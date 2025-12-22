@@ -24,8 +24,8 @@
             </div>
             <div class="p-6 bg-gray-50 rounded-xl">
               <p class="text-sm font-semibold text-gray-600 uppercase mb-2">Tickets Available</p>
-              <p class="text-2xl font-bold text-gray-900">{{ event.maxTickets - event.ticketsSold }}</p>
-              <p class="text-gray-600 text-sm mt-1">of {{ event.maxTickets }} total</p>
+              <p class="text-2xl font-bold text-gray-900">{{ event.tickets_available }}</p>
+              <p class="text-gray-600 text-sm mt-1">of {{ event.max_tickets }} total</p>
             </div>
             <div class="p-6 bg-gray-50 rounded-xl">
               <p class="text-sm font-semibold text-gray-600 uppercase mb-2">Price per Ticket</p>
@@ -55,16 +55,16 @@
                 <div
                   class="bg-primary-600 h-3 rounded-full transition-all duration-500"
                   :style="{
-                    width: `${(event.ticketsSold / event.maxTickets) * 100}%`
+                    width: `${(event.tickets_sold / event.max_tickets) * 100}%`
                   }"
                 />
               </div>
             </div>
             <p class="text-sm text-gray-600">
-              {{ event.ticketsSold }} of {{ event.maxTickets }} tickets sold
+              {{ event.tickets_sold }} of {{ event.max_tickets }} tickets sold
             </p>
             <p class="text-lg font-bold text-primary-600 mt-2">
-              {{ Math.round((event.ticketsSold / event.maxTickets) * 100) }}% Sold
+              {{ Math.round((event.tickets_sold / event.max_tickets) * 100) }}% Sold
             </p>
           </div>
         </div>

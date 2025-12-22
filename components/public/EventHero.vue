@@ -2,9 +2,10 @@
   <div class="relative h-96 md:h-screen overflow-hidden bg-gradient-to-br from-primary-600 to-primary-900">
     <!-- Background Image -->
     <div
+      v-if="event.hero_image_url"
       class="absolute inset-0 bg-cover bg-center opacity-40"
       :style="{
-        backgroundImage: `url('${event.heroImage}')`
+        backgroundImage: `url('${event.hero_image_url}')`
       }"
     />
 
@@ -14,11 +15,21 @@
     <!-- Content -->
     <div class="relative h-full flex flex-col items-center justify-center text-center px-4">
       <div class="max-w-3xl">
+        <!-- Category Badge -->
+        <div v-if="event.category" class="mb-4">
+          <span
+            class="inline-block px-4 py-1 rounded-full text-sm font-semibold text-white"
+            :style="{ backgroundColor: event.category.color }"
+          >
+            {{ event.category.name }}
+          </span>
+        </div>
+
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          {{ event.heroTitle }}
+          {{ event.hero_title || event.name }}
         </h1>
         <p class="text-xl md:text-2xl text-gray-100 mb-8 drop-shadow-md">
-          {{ event.heroSubtitle }}
+          {{ event.hero_subtitle || event.description }}
         </p>
 
         <!-- Event Meta -->
@@ -48,7 +59,7 @@
     </div>
 
     <!-- Scroll Indicator -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden md:block">
       <span class="text-white text-2xl">↓</span>
     </div>
   </div>

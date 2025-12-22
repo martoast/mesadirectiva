@@ -36,7 +36,8 @@
 
 <script setup>
 import BaseButton from '../ui/BaseButton.vue'
-defineProps({
+
+const props = defineProps({
   isOpen: {
     type: Boolean,
     required: true
@@ -66,7 +67,7 @@ defineProps({
 const emit = defineEmits(['confirm', 'cancel'])
 
 const handleBackdropClick = () => {
-  if (closeOnBackdrop) {
+  if (props.closeOnBackdrop) {
     emit('cancel')
   }
 }

@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <NuxtLink to="/app/events" class="text-2xl font-bold text-primary-600">
-              🎫 EventHub
+              EventHub
             </NuxtLink>
           </div>
           <div class="flex items-center gap-4">
@@ -16,18 +16,35 @@
             >
               Events
             </NuxtLink>
-            <NuxtLink
-              to="/app/admin/events"
-              class="text-gray-700 hover:text-primary-600 transition-colors"
-            >
-              Admin
-            </NuxtLink>
-            <NuxtLink
-              to="/"
-              class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Home
-            </NuxtLink>
+
+            <!-- Authenticated User -->
+            <template v-if="isAuthenticated">
+              <NuxtLink
+                to="/app/admin/events"
+                class="text-gray-700 hover:text-primary-600 transition-colors"
+              >
+                Dashboard
+              </NuxtLink>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600 hidden sm:inline">{{ user?.name }}</span>
+                <button
+                  @click="handleLogout"
+                  class="px-4 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </template>
+
+            <!-- Guest User -->
+            <template v-else>
+              <NuxtLink
+                to="/login"
+                class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Login
+              </NuxtLink>
+            </template>
           </div>
         </div>
       </div>
@@ -50,7 +67,7 @@
             <h4 class="font-semibold mb-4">Platform</h4>
             <ul class="space-y-2 text-sm text-gray-400">
               <li><NuxtLink to="/app/events" class="hover:text-white transition-colors">Browse Events</NuxtLink></li>
-              <li><NuxtLink to="/app/admin/events" class="hover:text-white transition-colors">Admin Panel</NuxtLink></li>
+              <li v-if="isAuthenticated"><NuxtLink to="/app/admin/events" class="hover:text-white transition-colors">Admin Panel</NuxtLink></li>
             </ul>
           </div>
           <div>
@@ -75,3 +92,13 @@
     </footer>
   </div>
 </template>
+
+<script setup>
+const { user, isAuthenticated, logout } = useAuth()
+const router = useRouter()
+
+const handleLogout = async () => {
+  await logout()
+  router.push('/login')
+}
+</script>

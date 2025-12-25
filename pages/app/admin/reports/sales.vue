@@ -89,7 +89,8 @@
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order #</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Event</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tickets</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Type</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Items</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Total</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
             </tr>
@@ -106,8 +107,22 @@
               <td class="px-6 py-4 text-sm text-gray-900">
                 {{ order.event?.name || '-' }}
               </td>
+              <td class="px-6 py-4">
+                <span :class="orderTypeClass(order)">
+                  {{ getOrderType(order) }}
+                </span>
+              </td>
               <td class="px-6 py-4 text-sm text-gray-900">
-                {{ order.ticket_count }}
+                <div v-if="order.tables?.length > 0 || order.seats?.length > 0">
+                  <span v-if="order.tables?.length > 0" class="block">{{ order.tables.length }} table(s)</span>
+                  <span v-if="order.seats?.length > 0" class="block">{{ order.seats.length }} seat(s)</span>
+                </div>
+                <div v-else-if="order.tier_items?.length > 0">
+                  <span v-for="tier in order.tier_items" :key="tier.tier_id" class="block text-xs">
+                    {{ tier.tier_name }}: {{ tier.quantity }}
+                  </span>
+                </div>
+                <span v-else>{{ order.ticket_count }} ticket(s)</span>
               </td>
               <td class="px-6 py-4 text-sm font-medium text-success-600">
                 ${{ order.total?.toFixed(2) }}
@@ -219,6 +234,22 @@ const formatDate = (dateStr) => {
     day: 'numeric',
     year: 'numeric'
   })
+}
+
+const getOrderType = (order) => {
+  if (order.tables?.length > 0 || order.seats?.length > 0) return 'Seated'
+  if (order.tier_items?.length > 0) return 'Tiered'
+  return 'General'
+}
+
+const orderTypeClass = (order) => {
+  if (order.tables?.length > 0 || order.seats?.length > 0) {
+    return 'px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800'
+  }
+  if (order.tier_items?.length > 0) {
+    return 'px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800'
+  }
+  return 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800'
 }
 
 watch([filterEvent, filterCategory, dateFrom, dateTo], () => {

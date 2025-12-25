@@ -1,30 +1,24 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-    <div class="max-w-md w-full text-center">
-      <div class="bg-white rounded-xl shadow-card p-8">
+  <div class="cancel-page">
+    <div class="cancel-container">
+      <div class="cancel-card">
         <!-- Cancel Icon -->
-        <div class="w-20 h-20 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg class="w-10 h-10 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <div class="cancel-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
 
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Payment Cancelled</h1>
-        <p class="text-gray-600 mb-6">
+        <h1>Payment Cancelled</h1>
+        <p class="cancel-message">
           Your payment was not completed. No charges have been made to your account.
         </p>
 
-        <div class="space-y-3">
-          <NuxtLink
-            :to="`/app/events/${route.params.slug}/checkout`"
-            class="block w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
-          >
+        <div class="cancel-actions">
+          <NuxtLink :to="`/app/events/${route.params.slug}/checkout`" class="btn-primary">
             Try Again
           </NuxtLink>
-          <NuxtLink
-            :to="`/app/events/${route.params.slug}`"
-            class="block w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
-          >
+          <NuxtLink :to="`/app/events/${route.params.slug}`" class="btn-secondary">
             Back to Event
           </NuxtLink>
         </div>
@@ -40,3 +34,122 @@ definePageMeta({
 
 const route = useRoute()
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+.cancel-page {
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --color-text: #1a1a1a;
+  --color-text-light: #666;
+  --color-text-muted: #999;
+  --color-bg: #fff;
+  --color-bg-alt: #f8f8f8;
+  --color-border: #eee;
+  --color-warning: #d97706;
+  --radius: 12px;
+
+  font-family: var(--font-body);
+  min-height: 100vh;
+  background: var(--color-bg-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.cancel-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.cancel-card {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 40px 24px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.cancel-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.cancel-icon svg {
+  width: 40px;
+  height: 40px;
+  color: var(--color-warning);
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.cancel-message {
+  font-size: 15px;
+  color: var(--color-text-light);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.cancel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--color-text);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #333;
+}
+
+.btn-secondary {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* Tablet+ */
+@media (min-width: 640px) {
+  .cancel-card {
+    padding: 48px 40px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+}
+</style>

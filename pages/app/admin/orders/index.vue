@@ -1,132 +1,215 @@
 <template>
-  <div class="space-y-6">
+  <div class="orders-page">
     <!-- Header -->
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Orders</h1>
-      <p class="text-gray-600 mt-1">View and manage all orders</p>
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Orders</h1>
+        <p class="page-subtitle">View and manage all ticket orders</p>
+      </div>
+      <div class="header-stats">
+        <div class="mini-stat">
+          <span class="mini-stat-value">{{ summary.total_orders || 0 }}</span>
+          <span class="mini-stat-label">Total</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat-value">${{ formatCurrency(summary.total_revenue || 0) }}</span>
+          <span class="mini-stat-label">Revenue</span>
+        </div>
+      </div>
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap gap-4 items-center bg-white rounded-xl shadow-card p-4">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search by name, email, or order #"
-        class="flex-1 min-w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-        @input="debouncedSearch"
-      />
-      <select
-        v-model="filterEvent"
-        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-      >
-        <option value="">All Events</option>
-        <option v-for="event in events" :key="event.id" :value="event.id">
-          {{ event.name }}
-        </option>
-      </select>
-      <select
-        v-model="filterStatus"
-        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-      >
-        <option value="">All Status</option>
-        <option value="pending">Pending</option>
-        <option value="completed">Completed</option>
-        <option value="failed">Failed</option>
-        <option value="refunded">Refunded</option>
-      </select>
-      <input
-        v-model="dateFrom"
-        type="date"
-        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-        placeholder="From"
-      />
-      <input
-        v-model="dateTo"
-        type="date"
-        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-        placeholder="To"
-      />
+    <div class="filters-bar">
+      <div class="search-wrapper">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Search by name, email, or order #"
+          class="search-input"
+          @input="debouncedSearch"
+        />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Event</label>
+        <select v-model="filterEvent" class="filter-select">
+          <option value="">All Events</option>
+          <option v-for="event in events" :key="event.id" :value="event.id">
+            {{ event.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select v-model="filterStatus" class="filter-select">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="failed">Failed</option>
+          <option value="refunded">Refunded</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">From</label>
+        <input v-model="dateFrom" type="date" class="filter-input" />
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">To</label>
+        <input v-model="dateTo" type="date" class="filter-input" />
+      </div>
+
+      <button v-if="hasActiveFilters" @click="clearFilters" class="clear-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Clear
+      </button>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="bg-white rounded-xl shadow-card p-12 text-center">
-      <svg class="animate-spin h-10 w-10 text-primary-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <p class="text-gray-600">Loading orders...</p>
+    <div v-if="loading" class="state-container">
+      <div class="loading-spinner"></div>
+      <p class="state-text">Loading orders...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-      {{ error }}
+    <div v-else-if="error" class="state-container error">
+      <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <p class="state-text">{{ error }}</p>
+      <button @click="fetchOrders" class="retry-btn">Try Again</button>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="orders.length === 0" class="state-container">
+      <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <p class="state-text">No orders found</p>
+      <p class="state-hint">Try adjusting your filters</p>
     </div>
 
     <!-- Orders Table -->
-    <div v-else class="bg-white rounded-xl shadow-card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b-2 border-gray-200">
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Order #</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Customer</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Event</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tickets</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Total</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Date</th>
-              <th class="px-6 py-4 text-center text-sm font-semibold text-gray-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4 text-sm font-mono font-medium text-gray-900">
-                {{ order.order_number }}
-              </td>
-              <td class="px-6 py-4">
-                <p class="text-sm font-medium text-gray-900">{{ order.customer_name }}</p>
-                <p class="text-sm text-gray-500">{{ order.customer_email }}</p>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-900">
-                {{ order.event?.name || '-' }}
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-900">
-                {{ order.ticket_count }}
-              </td>
-              <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                ${{ order.total?.toFixed(2) }}
-              </td>
-              <td class="px-6 py-4">
-                <span :class="statusClass(order.status)">
-                  {{ order.status }}
+    <div v-else class="table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th class="col-order">Order #</th>
+            <th class="col-customer">Customer</th>
+            <th class="col-event">Event</th>
+            <th class="col-type">Type</th>
+            <th class="col-items">Items</th>
+            <th class="col-total">Total</th>
+            <th class="col-status">Status</th>
+            <th class="col-date">Date</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="order in orders" :key="order.id">
+            <td class="col-order">
+              <span class="order-number">{{ order.order_number }}</span>
+            </td>
+            <td class="col-customer">
+              <span class="customer-name">{{ order.customer_name }}</span>
+              <span class="customer-email">{{ order.customer_email }}</span>
+            </td>
+            <td class="col-event">
+              <span class="event-name">{{ order.event?.name || '—' }}</span>
+            </td>
+            <td class="col-type">
+              <span :class="['type-badge', getOrderTypeClass(order)]">
+                {{ getOrderType(order) }}
+              </span>
+            </td>
+            <td class="col-items">
+              <div v-if="order.tables?.length > 0 || order.seats?.length > 0" class="items-list">
+                <span v-if="order.tables?.length > 0">{{ order.tables.length }} table(s)</span>
+                <span v-if="order.seats?.length > 0">{{ order.seats.length }} seat(s)</span>
+              </div>
+              <div v-else-if="order.tier_items?.length > 0" class="items-list">
+                <span v-for="tier in order.tier_items" :key="tier.tier_id">
+                  {{ tier.tier_name }}: {{ tier.quantity }}
                 </span>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-500">
-                {{ formatDate(order.created_at) }}
-              </td>
-              <td class="px-6 py-4 text-center">
-                <NuxtLink
-                  :to="`/app/admin/orders/${order.order_number}`"
-                  class="px-3 py-1 text-sm bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
-                >
-                  View
-                </NuxtLink>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </div>
+              <span v-else class="items-count">{{ order.ticket_count }} ticket(s)</span>
+            </td>
+            <td class="col-total">
+              <span class="total-amount">${{ order.total?.toFixed(2) }}</span>
+            </td>
+            <td class="col-status">
+              <span :class="['status-badge', order.status]">
+                <span class="status-dot"></span>
+                {{ statusLabel(order.status) }}
+              </span>
+            </td>
+            <td class="col-date">
+              <span class="date-text">{{ formatDate(order.created_at) }}</span>
+            </td>
+            <td class="col-actions">
+              <NuxtLink :to="`/app/admin/orders/${order.order_number}`" class="action-btn view" title="View Details">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </NuxtLink>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <!-- Empty State -->
-      <div v-if="orders.length === 0" class="p-12 text-center">
-        <p class="text-gray-600 text-lg">No orders found.</p>
+    <!-- Mobile Cards -->
+    <div v-if="!loading && !error && orders.length > 0" class="mobile-cards">
+      <div v-for="order in orders" :key="order.id" class="order-card">
+        <div class="card-header">
+          <span class="order-number">{{ order.order_number }}</span>
+          <span :class="['status-badge', order.status]">
+            <span class="status-dot"></span>
+            {{ statusLabel(order.status) }}
+          </span>
+        </div>
+
+        <div class="card-customer">
+          <span class="customer-name">{{ order.customer_name }}</span>
+          <span class="customer-email">{{ order.customer_email }}</span>
+        </div>
+
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">Event</span>
+            <span class="detail-value">{{ order.event?.name || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Total</span>
+            <span class="detail-value total">${{ order.total?.toFixed(2) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">{{ formatDate(order.created_at) }}</span>
+          </div>
+        </div>
+
+        <NuxtLink :to="`/app/admin/orders/${order.order_number}`" class="card-action">
+          View Details
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+          </svg>
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 
 definePageMeta({
   layout: 'admin',
@@ -145,8 +228,22 @@ const filterEvent = ref('')
 const filterStatus = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
+const summary = ref({ total_orders: 0, total_revenue: 0 })
 
 let searchTimeout = null
+
+const hasActiveFilters = computed(() => {
+  return search.value || filterEvent.value || filterStatus.value || dateFrom.value || dateTo.value
+})
+
+const clearFilters = () => {
+  search.value = ''
+  filterEvent.value = ''
+  filterStatus.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
+  fetchOrders()
+}
 
 const fetchEvents = async () => {
   try {
@@ -172,6 +269,7 @@ const fetchOrders = async () => {
 
     const response = await getOrdersReport(params)
     orders.value = response.orders || []
+    summary.value = response.summary || { total_orders: orders.value.length, total_revenue: orders.value.reduce((sum, o) => sum + (o.total || 0), 0) }
   } catch (e) {
     error.value = e.message || 'Failed to load orders'
   } finally {
@@ -187,24 +285,42 @@ const debouncedSearch = () => {
 }
 
 const formatDate = (dateStr) => {
+  if (!dateStr) return '—'
   const date = new Date(dateStr)
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   })
 }
 
-const statusClass = (status) => {
-  const classes = {
-    pending: 'px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800',
-    completed: 'px-2 py-1 text-xs rounded-full bg-green-100 text-green-800',
-    failed: 'px-2 py-1 text-xs rounded-full bg-red-100 text-red-800',
-    refunded: 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800'
+const formatCurrency = (amount) => {
+  if (amount >= 1000) {
+    return (amount / 1000).toFixed(1) + 'k'
   }
-  return classes[status] || classes.pending
+  return amount.toFixed(2)
+}
+
+const statusLabel = (status) => {
+  const labels = {
+    pending: 'Pending',
+    completed: 'Completed',
+    failed: 'Failed',
+    refunded: 'Refunded'
+  }
+  return labels[status] || status
+}
+
+const getOrderType = (order) => {
+  if (order.tables?.length > 0 || order.seats?.length > 0) return 'Seated'
+  if (order.tier_items?.length > 0) return 'Tiered'
+  return 'General'
+}
+
+const getOrderTypeClass = (order) => {
+  if (order.tables?.length > 0 || order.seats?.length > 0) return 'seated'
+  if (order.tier_items?.length > 0) return 'tiered'
+  return 'general'
 }
 
 watch([filterEvent, filterStatus, dateFrom, dateTo], () => {
@@ -216,3 +332,614 @@ onMounted(() => {
   fetchOrders()
 })
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+
+.orders-page {
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --color-text: #0a0a0a;
+  --color-text-secondary: #525252;
+  --color-text-muted: #a1a1aa;
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-border: #e4e4e7;
+  --color-border-light: #f4f4f5;
+  --color-hover: #f4f4f5;
+
+  --color-primary: #6366f1;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  font-family: var(--font-sans);
+  padding: 24px;
+  max-width: 1400px;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.header-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.mini-stat-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.mini-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Filters */
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-select,
+.filter-input {
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  outline: none;
+  min-width: 120px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  border-color: var(--color-primary);
+}
+
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.clear-btn:hover {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  background: #fef2f2;
+}
+
+.clear-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* States */
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.state-container.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+.state-container.error .state-icon {
+  color: var(--color-danger);
+}
+
+.state-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.state-hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.retry-btn {
+  margin-top: 16px;
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background: var(--color-text);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.retry-btn:hover {
+  background: #262626;
+}
+
+/* Table */
+.table-container {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table thead tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.orders-table th {
+  padding: 14px 16px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.orders-table tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background 0.1s;
+}
+
+.orders-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.orders-table tbody tr:hover {
+  background: var(--color-hover);
+}
+
+.orders-table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  vertical-align: middle;
+}
+
+/* Order Number */
+.order-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-border-light);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Customer */
+.col-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customer-name {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.customer-email {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Event */
+.event-name {
+  color: var(--color-text-secondary);
+}
+
+/* Type Badge */
+.type-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 50px;
+}
+
+.type-badge.seated {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.type-badge.tiered {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.type-badge.general {
+  color: var(--color-text-muted);
+  background: var(--color-border-light);
+}
+
+/* Items */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.items-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* Total */
+.total-amount {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 50px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-badge.pending {
+  color: var(--color-warning);
+  background: #fef3c7;
+}
+
+.status-badge.pending .status-dot {
+  background: var(--color-warning);
+}
+
+.status-badge.completed {
+  color: var(--color-success);
+  background: #d1fae5;
+}
+
+.status-badge.completed .status-dot {
+  background: var(--color-success);
+}
+
+.status-badge.failed {
+  color: var(--color-danger);
+  background: #fee2e2;
+}
+
+.status-badge.failed .status-dot {
+  background: var(--color-danger);
+}
+
+.status-badge.refunded {
+  color: var(--color-text-muted);
+  background: var(--color-border-light);
+}
+
+.status-badge.refunded .status-dot {
+  background: var(--color-text-muted);
+}
+
+/* Date */
+.date-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+/* Actions */
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.action-btn.view:hover {
+  color: var(--color-primary);
+  background: #eef2ff;
+}
+
+/* Mobile Cards */
+.mobile-cards {
+  display: none;
+}
+
+.order-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.detail-value.total {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background: var(--color-text);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.card-action:hover {
+  background: #262626;
+}
+
+.card-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Column widths */
+.col-order { min-width: 120px; }
+.col-customer { min-width: 180px; }
+.col-event { min-width: 140px; }
+.col-type { min-width: 90px; }
+.col-items { min-width: 120px; }
+.col-total { min-width: 80px; }
+.col-status { min-width: 110px; }
+.col-date { min-width: 100px; }
+.col-actions { min-width: 60px; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .table-container {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-stats {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .filters-bar {
+    padding: 12px;
+  }
+
+  .search-wrapper {
+    min-width: 100%;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: calc(50% - 6px);
+  }
+
+  .card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>

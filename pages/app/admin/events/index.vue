@@ -107,12 +107,12 @@
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">Category</label>
+          <label class="filter-label">Group</label>
           <div class="select-wrapper">
-            <select v-model="filterCategory" class="filter-select">
-              <option value="">All Categories</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                {{ cat.name }}
+            <select v-model="filterGroup" class="filter-select">
+              <option value="">All Groups</option>
+              <option v-for="group in groups" :key="group.id" :value="group.id">
+                {{ group.name }}
               </option>
             </select>
             <svg class="select-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,17 +277,17 @@ definePageMeta({
 })
 
 const { getEvents, deleteEvent, publishEvent, closeEvent } = useEvents()
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 const { hasPermission, isSuperAdmin } = useAuth()
 
 const events = ref([])
-const categories = ref([])
+const groups = ref([])
 const loading = ref(true)
 const error = ref('')
 const deleteModalOpen = ref(false)
 const eventToDelete = ref(null)
 const filterStatus = ref('')
-const filterCategory = ref('')
+const filterGroup = ref('')
 const currentPage = ref(1)
 const meta = ref({
   current_page: 1,
@@ -332,12 +332,12 @@ const visiblePages = computed(() => {
   return pages
 })
 
-const fetchCategories = async () => {
+const fetchGroups = async () => {
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
   } catch (e) {
-    // Categories are optional for filtering
+    // Groups are optional for filtering
   }
 }
 
@@ -355,8 +355,8 @@ const fetchEvents = async () => {
       params.status = filterStatus.value
     }
 
-    if (filterCategory.value) {
-      params.category_id = filterCategory.value
+    if (filterGroup.value) {
+      params.group_id = filterGroup.value
     }
 
     const response = await getEvents(params)
@@ -406,7 +406,7 @@ const handleClose = async (slug) => {
 }
 
 // Watch for filter changes
-watch([filterStatus, filterCategory], () => {
+watch([filterStatus, filterGroup], () => {
   currentPage.value = 1
   fetchEvents()
 })
@@ -416,7 +416,7 @@ watch(currentPage, () => {
 })
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
   fetchEvents()
 })
 </script>

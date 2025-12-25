@@ -9,7 +9,7 @@ export const useEvents = () => {
 
   /**
    * Get list of public live events
-   * @param {Object} params - { category, per_page, page }
+   * @param {Object} params - { group, per_page, page }
    */
   const getPublicEvents = async (params = {}) => {
     return await get('/public/events', params, { auth: false })
@@ -35,7 +35,7 @@ export const useEvents = () => {
 
   /**
    * Get list of events (admin)
-   * @param {Object} params - { status, category_id, per_page, page }
+   * @param {Object} params - { status, group_id, per_page, page }
    */
   const getEvents = async (params = {}) => {
     return await get('/events', params)

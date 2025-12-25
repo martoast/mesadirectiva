@@ -14,8 +14,8 @@
         <div class="hero-overlay"></div>
         <div class="hero-inner">
           <div class="hero-content">
-            <div v-if="event.category" class="hero-badge" :style="{ backgroundColor: event.category.color }">
-              {{ event.category.name }}
+            <div v-if="event.group" class="hero-badge" :style="{ backgroundColor: event.group.color }">
+              {{ event.group.name }}
             </div>
             <h1 class="hero-title">{{ event.hero_title || event.name }}</h1>
             <p class="hero-subtitle">{{ event.hero_subtitle || event.description }}</p>
@@ -401,7 +401,7 @@ const fetchTiers = async () => {
 
 const fetchRelatedEvents = async () => {
   try {
-    const res = await getPublicEvents({ per_page: 4, category: event.value?.category?.slug })
+    const res = await getPublicEvents({ per_page: 4, group: event.value?.group?.slug })
     relatedEvents.value = (res.events || []).filter(e => e.slug !== route.params.slug).slice(0, 3)
   } catch (e) {}
 }

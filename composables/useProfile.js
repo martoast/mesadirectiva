@@ -6,7 +6,7 @@ export const useProfile = () => {
   const { get, patch, put } = useApi()
 
   /**
-   * Get the current user's full profile with categories and permissions
+   * Get the current user's full profile with groups and permissions
    */
   const getProfile = async () => {
     return await get('/profile')

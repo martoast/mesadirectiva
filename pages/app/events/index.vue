@@ -14,18 +14,18 @@
         <span class="results-count">{{ meta.total || 0 }} events</span>
         <div class="filter-pills">
           <button
-            :class="['pill', selectedCategory === null && 'active']"
-            @click="selectCategory(null)"
+            :class="['pill', selectedGroup === null && 'active']"
+            @click="selectGroup(null)"
           >
             All
           </button>
           <button
-            v-for="cat in categories"
-            :key="cat.id"
-            :class="['pill', selectedCategory === cat.slug && 'active']"
-            @click="selectCategory(cat.slug)"
+            v-for="group in groups"
+            :key="group.id"
+            :class="['pill', selectedGroup === group.slug && 'active']"
+            @click="selectGroup(group.slug)"
           >
-            {{ cat.name }}
+            {{ group.name }}
           </button>
         </div>
       </div>
@@ -68,8 +68,8 @@
             class="event-card"
           >
             <div class="card-image" :style="getImageStyle(event)">
-              <span v-if="event.category" class="card-badge" :style="{ backgroundColor: event.category.color }">
-                {{ event.category.name }}
+              <span v-if="event.group" class="card-badge" :style="{ backgroundColor: event.group.color }">
+                {{ event.group.name }}
               </span>
             </div>
             <div class="card-content">
@@ -129,13 +129,13 @@ definePageMeta({
 })
 
 const { getPublicEvents } = useEvents()
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 
 const events = ref([])
-const categories = ref([])
+const groups = ref([])
 const loading = ref(true)
 const error = ref('')
-const selectedCategory = ref(null)
+const selectedGroup = ref(null)
 const currentPage = ref(1)
 const meta = ref({
   current_page: 1,
@@ -144,10 +144,10 @@ const meta = ref({
   total: 0
 })
 
-const fetchCategories = async () => {
+const fetchGroups = async () => {
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
   } catch (e) {}
 }
 
@@ -156,7 +156,7 @@ const fetchEvents = async () => {
   error.value = ''
   try {
     const params = { per_page: 12, page: currentPage.value }
-    if (selectedCategory.value) params.category = selectedCategory.value
+    if (selectedGroup.value) params.group = selectedGroup.value
     const response = await getPublicEvents(params)
     events.value = response.events || []
     meta.value = response.meta || meta.value
@@ -167,15 +167,15 @@ const fetchEvents = async () => {
   }
 }
 
-const selectCategory = (slug) => {
-  selectedCategory.value = slug
+const selectGroup = (slug) => {
+  selectedGroup.value = slug
   currentPage.value = 1
 }
 
-watch([selectedCategory, currentPage], fetchEvents)
+watch([selectedGroup, currentPage], fetchEvents)
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
   fetchEvents()
 })
 

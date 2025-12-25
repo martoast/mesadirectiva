@@ -72,11 +72,11 @@
             </div>
 
             <div class="form-group">
-              <label for="event-category">Category</label>
-              <select id="event-category" v-model="form.category_id" class="input-standard">
-                <option :value="null">Select a category</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                  {{ cat.name }}
+              <label for="event-group">Group</label>
+              <select id="event-group" v-model="form.group_id" class="input-standard">
+                <option :value="null">Select a group</option>
+                <option v-for="g in groups" :key="g.id" :value="g.id">
+                  {{ g.name }}
                 </option>
               </select>
             </div>
@@ -576,17 +576,16 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 
 definePageMeta({
-  layout: 'admin',
   middleware: ['auth', 'admin']
 })
 
 const router = useRouter()
 const { createEvent, publishEvent } = useEvents()
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 
 // State
 const phase = ref('setup')
-const categories = ref([])
+const groups = ref([])
 const activeSection = ref(null)
 const previewMode = ref('desktop')
 const submitting = ref(false)
@@ -596,7 +595,7 @@ const generatedSlug = ref('')
 // Form data
 const form = reactive({
   name: '',
-  category_id: null,
+  group_id: null,
   date: '',
   time: '',
   location: '',
@@ -748,7 +747,7 @@ const formatDate = (dateStr) => {
 const prepareEventData = () => {
   const data = {
     name: form.name,
-    category_id: form.category_id,
+    group_id: form.group_id,
     date: form.date,
     time: form.time,
     location: form.location,
@@ -826,17 +825,17 @@ const handlePublish = async () => {
   }
 }
 
-const fetchCategories = async () => {
+const fetchGroups = async () => {
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
   } catch (e) {
     // Optional
   }
 }
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
 })
 </script>
 

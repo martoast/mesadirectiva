@@ -1,416 +1,223 @@
-# Event Ticketing Frontend - Implementation Plan
-
-## Status: COMPLETED
-
-**Tech Stack**: Nuxt 4 + Vue 3 + Tailwind CSS
-**API Base**: `http://localhost:8001`
-**Completed**: December 24, 2024
-
----
+# Rename "Categories" to "Groups" - Frontend Migration Plan
 
 ## Overview
-
-This plan covers the implementation of the new ticketing system features:
-- **General Admission Events**: Ticket tiers with early bird pricing
-- **Seated Events**: Tables and individual seat selection
-- **Reservation System**: Temporary holds during checkout
-- **Enhanced Checkout Flows**: Different flows per event type
+The API has been updated to rename "categories" to "groups". This plan covers all frontend files that need to be updated to match.
 
 ---
 
-## Phase 1: API Composables & Data Layer - COMPLETED
+## 1. Composables (API Layer)
 
-### 1.1 Ticket Tiers Composable
-- [x] Create `composables/useTicketTiers.js`
-  - `getTicketTiers(eventSlug)` - List tiers for event
-  - `getPublicTicketTiers(eventSlug)` - Public available tiers
-  - `createTicketTier(eventSlug, data)` - Create tier
-  - `updateTicketTier(eventSlug, tierId, data)` - Update tier
-  - `deleteTicketTier(eventSlug, tierId)` - Delete tier
+### 1.1 Rename composable file
+- [ ] `composables/useCategories.js` → `composables/useGroups.js`
+  - Rename function `useCategories` → `useGroups`
+  - Update all API endpoints: `/categories` → `/groups`
+  - Rename all functions: `getCategories` → `getGroups`, `getCategory` → `getGroup`, etc.
 
-### 1.2 Tables Composable
-- [x] Create `composables/useTables.js`
-  - `getTables(eventSlug)` - List tables for event (admin)
-  - `getPublicTables(eventSlug)` - Public available tables with seats
-  - `createTable(eventSlug, data)` - Create table
-  - `createTablesBulk(eventSlug, tables[])` - Bulk create tables
-  - `updateTable(eventSlug, tableId, data)` - Update table
-  - `deleteTable(eventSlug, tableId)` - Delete table
+### 1.2 Update useUsers.js
+- [ ] `composables/useUsers.js`
+  - Line 50-55: Rename `assignCategories` → `assignGroups`
+  - Update endpoint: `/users/${id}/categories` → `/users/${id}/groups`
+  - Update param name: `categories` → `groups`
 
-### 1.3 Seats Composable
-- [x] Create `composables/useSeats.js`
-  - `getSeats(eventSlug, tableId)` - List seats for table
-  - `getPublicSeats(eventSlug, tableId)` - Public available seats
-  - `createSeat(eventSlug, tableId, data)` - Create seat
-  - `createSeatsBulk(eventSlug, tableId, seats[])` - Bulk create seats
-  - `updateSeat(eventSlug, seatId, data)` - Update seat
-  - `deleteSeat(eventSlug, seatId)` - Delete seat
+### 1.3 Update useAuth.js
+- [ ] `composables/useAuth.js`
+  - Line 56, 91, 95: Update comments from "categories" to "groups"
+  - Line 169: Rename `userCategories` → `userGroups` and update `user.value?.categories` → `user.value?.groups`
 
-### 1.4 Reservations Composable
-- [x] Create `composables/useReservations.js`
-  - `createReservation(eventSlug, { tables[], seats[] })` - Reserve tables/seats
-  - `releaseReservation(eventSlug, token)` - Release reservation
-  - Reservation timer state management
-  - Auto-release on timeout
+### 1.4 Update useProfile.js
+- [ ] `composables/useProfile.js`
+  - Line 9: Update comment from "categories" to "groups"
 
-### 1.5 Update Checkout Composable
-- [x] Update `composables/useCheckout.js`
-  - Support tier-based checkout: `{ tiers: [{ tier_id, quantity }], extra_items }`
-  - Support seated checkout: `{ tables[], seats[], reservation_token, extra_items }`
-  - Backward compatibility with legacy `tickets` field
+### 1.5 Update useEvents.js
+- [ ] `composables/useEvents.js`
+  - Line 38: Update param comment `category_id` → `group_id`
 
-### 1.6 Update Events Composable
-- [x] Update `composables/useEvents.js`
-  - Add `seating_type` to event create/update
-  - Add `reservation_minutes` to event create/update
-  - Update availability response handling for both event types
+### 1.6 Update useReports.js
+- [ ] `composables/useReports.js`
+  - Lines 10, 18, 27, 35: Update param comments `category_id` → `group_id`
 
 ---
 
-## Phase 2: UI Components - COMPLETED
+## 2. Pages - Admin Section
 
-### 2.1 Ticket Tier Components
-- [x] Create `components/public/TicketTierCard.vue`
-  - Display tier name, description, price
-  - Early bird badge and countdown
-  - Quantity selector (+/- buttons, max available)
-  - Sold out state
-  - Props: `tier`, `quantity`, `@update:quantity`
+### 2.1 Rename categories page directory
+- [ ] `pages/app/admin/categories/` → `pages/app/admin/groups/`
+  - Rename `index.vue` and update all internal references
+  - Update page title, labels, error messages
+  - Update CSS class names: `.categories-page` → `.groups-page`, `.categories-grid` → `.groups-grid`
+  - Update `useCategories()` → `useGroups()`
+  - Update response handling: `response.categories` → `response.groups`
 
-- [x] Create `components/public/TicketTierSelector.vue`
-  - List of TicketTierCard components
-  - Computed total based on selections
-  - Props: `tiers`, `selections`, `@update:selections`
+### 2.2 Update admin layout
+- [ ] `layouts/admin.vue`
+  - Line 27: Update route `/app/admin/categories` → `/app/admin/groups`
+  - Line 27: Update link text "Categories" → "Groups"
+  - Line 114: Update mobile menu route and text
 
-### 2.2 Seating Components
-- [x] Create `components/public/SeatingMap.vue`
-  - Visual table/seat layout display
-  - Table click to select (for sell_as_whole)
-  - Seat click to select (for individual seats)
-  - Status colors: available (green), reserved (yellow), sold (gray), selected (blue)
-  - Legend component
-  - Props: `tables`, `selectedTables`, `selectedSeats`, `@select-table`, `@select-seat`
+### 2.3 Update events pages
+- [ ] `pages/app/admin/events/index.vue`
+  - Line 114: Update loop variable and display
+  - Line 284: Rename `categories` ref → `groups`
+  - Line 338: Update `response.categories` → `response.groups`
+  - Line 359: Update `category_id` param → `group_id`
+  - Update `useCategories()` → `useGroups()`
 
-- [x] Create `components/public/TableCard.vue`
-  - Table display with capacity info
-  - Price display
-  - Availability status
-  - Selection state
-  - Props: `table`, `selected`, `@select`
+- [ ] `pages/app/admin/events/create.vue`
+  - Line 76-78: Update category dropdown to group
+  - Line 589: Rename form field `category_id` → `group_id`
+  - Line 751: Update form submission
+  - Line 832: Update response handling
+  - Update `useCategories()` → `useGroups()`
 
-- [x] Create `components/public/SeatGrid.vue`
-  - Grid of seats for a table (when sell_as_whole=false)
-  - Seat status visualization
-  - Multi-select support
-  - Props: `table`, `seats`, `selectedSeats`, `@select-seat`
+- [ ] `pages/app/admin/events/[slug]/edit.vue`
+  - Line 60-64: Update dropdown
+  - Line 533: Rename ref
+  - Line 549: Update form field `category_id` → `group_id`
+  - Line 626, 632: Update API calls and response
+  - Line 639: Update form population
+  - Update `useCategories()` → `useGroups()`
 
-- [x] Create `components/public/ReservationTimer.vue`
-  - Countdown timer display
-  - Warning state when < 2 minutes
-  - Expired state handling
-  - Props: `expiresAt`, `@expired`
+- [ ] `pages/app/admin/events/[slug]/index.vue`
+  - Check for any category references and update
 
-### 2.3 Admin Ticket Tier Components
-- [x] Create `components/admin/TicketTierForm.vue`
-  - Form for creating/editing tiers
-  - Fields: name, description, price, early_bird_price, early_bird_deadline, max_quantity, sort_order, is_active
-  - Props: `tier` (optional for edit), `@submit`, `@cancel`
+### 2.4 Update users pages
+- [ ] `pages/app/admin/users/index.vue`
+  - Line 82: Update column header "Categories" → "Groups"
+  - Lines 110-124: Update `user.categories` → `user.groups`
+  - Lines 210-223: Update mobile card category display
+  - Line 836: Update CSS `.no-categories` → `.no-groups`
+  - Line 1047: Update CSS `.col-categories` → `.col-groups`
 
-- [x] Create `components/admin/TicketTierList.vue`
-  - Sortable list of tiers
-  - Inline actions: edit, delete, toggle active
-  - Drag to reorder (optional enhancement)
-  - Props: `tiers`, `@edit`, `@delete`, `@reorder`
+- [ ] `pages/app/admin/users/[id].vue`
+  - Lines 109-153: Update all category references to groups
+  - Line 195: Rename `categories` ref → `groups`
+  - Lines 222-243: Update API calls and response handling
+  - Update `useCategories()` → `useGroups()`
+  - Update `assignCategories()` → `assignGroups()`
 
-### 2.4 Admin Table/Seat Components
-- [x] Create `components/admin/TableForm.vue`
-  - Form for creating/editing tables
-  - Fields: name, capacity, price, sell_as_whole, position_x, position_y, is_active
-  - Props: `table` (optional for edit), `@submit`, `@cancel`
+- [ ] `pages/app/admin/users/create.vue`
+  - Lines 76-77, 97-110: Update labels and help text
+  - Line 181: Rename ref
+  - Lines 206-208: Update response handling
+  - Update composable imports
 
-- [x] Create `components/admin/TableList.vue`
-  - Grid/list of tables
-  - Status badges (available/reserved/sold)
-  - Actions: edit, delete, manage seats
-  - Props: `tables`, `@edit`, `@delete`, `@manage-seats`
+### 2.5 Update reports pages
+- [ ] `pages/app/admin/reports/sales.vue`
+  - Line 34: Update dropdown
+  - Line 160: Rename ref
+  - Line 177: Update param `category_id` → `group_id`
+  - Lines 185-190: Update API calls
+  - Update `useCategories()` → `useGroups()`
 
-- [x] Create `components/admin/SeatForm.vue`
-  - Form for creating/editing seats
-  - Fields: label, price, position_x, position_y, is_active
-  - Props: `seat` (optional for edit), `@submit`, `@cancel`
+- [ ] `pages/app/admin/reports/orders.vue`
+  - Line 34: Update dropdown
+  - Line 164: Rename ref
+  - Line 181: Update param `category_id` → `group_id`
+  - Lines 190-195: Update API calls
+  - Update `useCategories()` → `useGroups()`
 
-- [x] Create `components/admin/SeatList.vue`
-  - Grid of seats for a table
-  - Status indicators
-  - Bulk create option
-  - Props: `seats`, `tableId`, `@edit`, `@delete`
-
-- [x] Create `components/admin/BulkTableForm.vue`
-  - Quick create multiple tables
-  - Pattern: name prefix, count, capacity, price per table
-  - Generate seats option
-
-- [x] Create `components/admin/SeatingLayoutEditor.vue` (Optional - Phase 3)
-  - Drag-and-drop table positioning
-  - Visual layout builder
-  - Export/import layout
+### 2.6 Update account page
+- [ ] `pages/app/admin/account/index.vue`
+  - Line 85: Update text "categories" → "groups"
+  - Lines 89-91: Update `profile.categories` → `profile.groups`
 
 ---
 
-## Phase 3: Admin Pages - COMPLETED
+## 3. Pages - Public Section
 
-### 3.1 Event Form Updates
-- [x] Update `components/admin/EventForm.vue`
-  - Add seating_type selector (general_admission / seated)
-  - Add reservation_minutes field (for seated events)
-  - Conditional display based on seating type
-  - Step indicator update for new sections
+### 3.1 Update public events pages
+- [ ] `pages/app/events/index.vue`
+  - Line 23: Update loop variable
+  - Line 135: Rename ref
+  - Line 150: Update response handling
+  - Update `useCategories()` → `useGroups()`
 
-### 3.2 Ticket Tiers Management Page
-- [x] Create `pages/app/admin/events/[slug]/tiers.vue`
-  - List all tiers for the event
-  - Create/edit tier modal
-  - Delete tier confirmation
-  - Reorder tiers
-  - Show sold/available counts per tier
-  - Only accessible for general_admission events
+- [ ] `pages/app/events/[slug]/index.vue`
+  - Check for category references
 
-### 3.3 Tables Management Page
-- [x] Create `pages/app/admin/events/[slug]/tables.vue`
-  - List all tables for the event
-  - Create/edit table modal or inline
-  - Bulk create tables
-  - Delete table (with sold validation)
-  - Status overview
-  - Only accessible for seated events
-
-### 3.4 Seats Management Page
-- [x] Create `pages/app/admin/events/[slug]/tables/[tableId]/seats.vue`
-  - List all seats for the table
-  - Create/edit seat modal or inline
-  - Bulk create seats
-  - Delete seat (with sold validation)
-  - Visual seat layout
-
-### 3.5 Event Detail Page Updates
-- [x] Update `pages/app/admin/events/[slug]/index.vue`
-  - Show seating type badge
-  - Show ticket tiers summary (for general_admission)
-  - Show tables/seats summary (for seated)
-  - Links to manage tiers/tables/seats
-  - Enhanced stats per tier or table
-
-### 3.6 Admin Navigation Updates
-- [x] Update event detail navigation
-  - Add "Ticket Tiers" link (general_admission)
-  - Add "Tables & Seats" link (seated)
-  - Conditional based on seating_type
+### 3.2 Update app index
+- [ ] `pages/app/index.vue`
+  - Check for category references
 
 ---
 
-## Phase 4: Public Pages - COMPLETED
+## 4. Components
 
-### 4.1 Event Detail Page Updates
-- [x] Update `pages/app/events/[slug]/index.vue`
-  - Display seating type
-  - For general_admission: Show tier options with prices
-  - For seated: Show "Select Seats" CTA
-  - Updated availability display
+### 4.1 Update EventForm component
+- [ ] `components/admin/EventForm.vue`
+  - Line 23-28: Update form field and dropdown
+  - Line 353: Rename ref
+  - Line 359: Update form field `category_id` → `group_id`
+  - Lines 383-385: Update response handling
+  - Line 395: Update validation
+  - Line 420: Update submission data
+  - Update `useCategories()` → `useGroups()`
 
-### 4.2 General Admission Checkout
-- [x] Update `pages/app/events/[slug]/checkout.vue`
-  - Replace quantity selector with TicketTierSelector
-  - Each tier has its own quantity selector
-  - Calculate totals based on tier selections
-  - Support extra items as before
-  - Update Stripe session creation payload
+### 4.2 Update EventCard component
+- [ ] `components/admin/EventCard.vue`
+  - Lines 116, 122: Update `category_id` → `group_id`, `event.category` → `event.group`
 
-### 4.3 Seated Event Checkout Flow
-- [x] Create `pages/app/events/[slug]/select-seats.vue`
-  - Step 1: Seat/table selection
-  - SeatingMap component
-  - Selection summary sidebar
-  - "Continue" button to reserve and proceed
+### 4.3 Update EventTable component
+- [ ] `components/admin/EventTable.vue`
+  - Lines 114, 120: Update `category_id` → `group_id`, `event.category` → `event.group`
 
-- [x] Update checkout.vue for seated events
-  - Detect seated event type
-  - Show reservation timer
-  - Display selected tables/seats
-  - Lock selection during checkout
-  - Handle reservation expiration
-
-### 4.4 Checkout Flow Router Guard
-- [x] Add route guard for seated checkout
-  - Require valid reservation token
-  - Redirect to select-seats if no reservation
-  - Handle expired reservations
+### 4.4 Update EventHero component
+- [ ] `components/public/EventHero.vue`
+  - Check for category display and update
 
 ---
 
-## Phase 5: Checkout Session Updates - COMPLETED
+## 5. Summary of Changes
 
-### 5.1 General Admission Session
-- [x] Update checkout session creation
-  - Send `tiers: [{ tier_id, quantity }]` instead of `tickets`
-  - Include `extra_items` as before
-  - Handle early bird pricing (API calculates)
-
-### 5.2 Seated Event Session
-- [x] Update checkout session creation
-  - Send `tables: [tableId, ...]`
-  - Send `seats: [seatId, ...]`
-  - Send `reservation_token`
-  - Include `extra_items`
-  - Handle reservation validation errors
-
-### 5.3 Checkout Success Page Updates
-- [x] Update `pages/app/events/[slug]/checkout-success.vue`
-  - Display tier breakdown (for general_admission)
-  - Display table/seat info (for seated)
-  - Show seat labels and table names
+| Type | Count | Files |
+|------|-------|-------|
+| Composables | 6 | useGroups.js (rename), useUsers.js, useAuth.js, useProfile.js, useEvents.js, useReports.js |
+| Admin Pages | 11 | groups/index.vue (rename), events/*, users/*, reports/*, account/* |
+| Public Pages | 3 | app/index.vue, events/index.vue, events/[slug]/index.vue |
+| Components | 4 | EventForm, EventCard, EventTable, EventHero |
+| Layouts | 1 | admin.vue |
+| **Total** | **25** | |
 
 ---
 
-## Phase 6: Reports & Admin Enhancements - COMPLETED
+## 6. Implementation Order
 
-### 6.1 Sales Report Updates
-- [x] Update `pages/app/admin/reports/sales.vue`
-  - Add tier breakdown column
-  - Add table/seat info for seated events
-  - Filter by tier
-  - Tier-level revenue summary
+1. **Phase 1 - Composables** (Foundation)
+   - Rename and update useCategories.js → useGroups.js
+   - Update useUsers.js, useAuth.js, useProfile.js, useEvents.js, useReports.js
 
-### 6.2 Orders Report Updates
-- [x] Update `pages/app/admin/reports/orders.vue`
-  - Show tier names in order items
-  - Show table/seat labels
-  - Filter by tier
+2. **Phase 2 - Components** (Shared UI)
+   - Update EventForm, EventCard, EventTable, EventHero
 
-### 6.3 Event Stats Updates
-- [x] Update dashboard stats
-  - Per-tier sales breakdown
-  - Per-table occupancy (seated)
-  - Early bird vs regular sales comparison
+3. **Phase 3 - Admin Pages**
+   - Rename categories directory → groups
+   - Update layouts/admin.vue navigation
+   - Update all admin pages (events, users, reports, account)
 
----
+4. **Phase 4 - Public Pages**
+   - Update public event listing and detail pages
 
-## Phase 7: Polish & UX - COMPLETED
-
-### 7.1 Loading States
-- [x] Add loading states for:
-  - Tier fetching
-  - Table/seat fetching
-  - Reservation creation
-  - Checkout session creation
-
-### 7.2 Error Handling
-- [x] Handle specific errors:
-  - Tier sold out during checkout
-  - Seat already reserved
-  - Reservation expired
-  - Invalid reservation token
-
-### 7.3 Responsive Design
-- [x] Ensure all new components are mobile-friendly:
-  - TicketTierSelector responsive layout
-  - SeatingMap mobile view (scrollable, zoomable)
-  - Admin tables/seats management on mobile
-
-### 7.4 Accessibility
-- [x] Keyboard navigation for seat selection
-- [x] ARIA labels for status indicators
-- [x] Screen reader support for tier info
+5. **Phase 5 - Testing**
+   - Run build to verify no errors
+   - Test all affected functionality
 
 ---
 
-## File Structure (New Files)
+## 7. Key Renames
 
-```
-composables/
-  useTicketTiers.js          # NEW - Ticket tiers API
-  useTables.js               # NEW - Tables API
-  useSeats.js                # NEW - Seats API
-  useReservations.js         # NEW - Reservations API
-  useCheckout.js             # UPDATE - Multi-flow support
-
-components/
-  public/
-    TicketTierCard.vue       # NEW - Single tier display
-    TicketTierSelector.vue   # NEW - Tier selection list
-    SeatingMap.vue           # NEW - Visual table/seat layout
-    TableCard.vue            # NEW - Table display card
-    SeatGrid.vue             # NEW - Seats grid for table
-    ReservationTimer.vue     # NEW - Countdown timer
-  admin/
-    TicketTierForm.vue       # NEW - Tier create/edit form
-    TicketTierList.vue       # NEW - Tiers list with actions
-    TableForm.vue            # NEW - Table create/edit form
-    TableList.vue            # NEW - Tables grid/list
-    SeatForm.vue             # NEW - Seat create/edit form
-    SeatList.vue             # NEW - Seats grid for table
-    BulkTableForm.vue        # NEW - Quick multi-table create
-    EventForm.vue            # UPDATE - Add seating type
-
-pages/
-  app/
-    admin/
-      events/
-        [slug]/
-          tiers.vue          # NEW - Manage ticket tiers
-          tables.vue         # NEW - Manage tables
-          tables/
-            [tableId]/
-              seats.vue      # NEW - Manage seats for table
-          index.vue          # UPDATE - Show tier/table summary
-    events/
-      [slug]/
-        select-seats.vue     # NEW - Seat selection page
-        checkout.vue         # UPDATE - Multi-flow checkout
-        checkout-success.vue # UPDATE - Show tier/seat details
-```
-
----
-
-## Implementation Priority
-
-### High Priority (Core Functionality)
-1. Phase 1: API Composables (all)
-2. Phase 2.1: Ticket Tier Components
-3. Phase 4.2: General Admission Checkout
-4. Phase 3.2: Ticket Tiers Management Page
-5. Phase 3.1: Event Form Updates
-
-### Medium Priority (Seated Events)
-6. Phase 2.2: Seating Components
-7. Phase 4.3: Seated Event Checkout Flow
-8. Phase 3.3: Tables Management Page
-9. Phase 3.4: Seats Management Page
-10. Phase 5: Checkout Session Updates
-
-### Lower Priority (Enhancements)
-11. Phase 6: Reports Updates
-12. Phase 7: Polish & UX
-13. Phase 2.4 BulkTableForm, SeatingLayoutEditor
-
----
-
-## Notes
-
-- The API already supports all features - this is purely frontend work
-- General admission with tiers is higher priority than seated events
-- Backward compatibility: legacy `tickets` field still works for simple events
-- Early bird pricing is calculated server-side based on tier settings
-- Reservations expire after `reservation_minutes` (default 15)
-- Use `can_purchase` and `blocked_reason` from availability endpoint
-
----
-
-## Completed (Previous MVP)
-
-See git history for the completed MVP implementation which included:
-- Authentication system (email, OAuth, password reset)
-- Basic event management (CRUD, publish/close)
-- Simple checkout (quantity-based tickets + add-ons)
-- Admin dashboard (events, users, categories, orders, reports)
-- Role-based access control
-- Excel export functionality
+| Old | New |
+|-----|-----|
+| `useCategories` | `useGroups` |
+| `getCategories` | `getGroups` |
+| `createCategory` | `createGroup` |
+| `updateCategory` | `updateGroup` |
+| `deleteCategory` | `deleteGroup` |
+| `assignCategories` | `assignGroups` |
+| `userCategories` | `userGroups` |
+| `category_id` | `group_id` |
+| `categories` (ref) | `groups` (ref) |
+| `/categories` (route) | `/groups` (route) |
+| `response.categories` | `response.groups` |
+| `event.category` | `event.group` |
+| `user.categories` | `user.groups` |
+| `profile.categories` | `profile.groups` |

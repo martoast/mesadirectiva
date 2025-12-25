@@ -731,8 +731,8 @@ const handleTableSubmit = async () => {
       price: parseFloat(tableForm.value.price) || 0,
       sell_as_whole: tableForm.value.sell_as_whole,
       is_active: tableForm.value.is_active,
-      position_x: isCreatingTable.value ? 200 + Math.random() * 400 : selectedTable.value.position_x,
-      position_y: isCreatingTable.value ? 150 + Math.random() * 300 : selectedTable.value.position_y
+      position_x: isCreatingTable.value ? Math.round(200 + Math.random() * 400) : Math.round(selectedTable.value.position_x),
+      position_y: isCreatingTable.value ? Math.round(150 + Math.random() * 300) : Math.round(selectedTable.value.position_y)
     }
 
     if (isCreatingTable.value) {

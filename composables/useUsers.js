@@ -47,12 +47,12 @@ export const useUsers = () => {
   }
 
   /**
-   * Assign categories to user
+   * Assign groups to user
    * @param {number} id
-   * @param {Array} categories - [{ id, permission }]
+   * @param {Array} groups - [{ id, permission }]
    */
-  const assignCategories = async (id, categories) => {
-    return await post(`/users/${id}/categories`, { categories })
+  const assignGroups = async (id, groups) => {
+    return await post(`/users/${id}/groups`, { groups })
   }
 
   /**
@@ -69,7 +69,7 @@ export const useUsers = () => {
     createUser,
     updateUser,
     deleteUser,
-    assignCategories,
+    assignGroups,
     toggleActive
   }
 }

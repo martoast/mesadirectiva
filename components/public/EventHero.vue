@@ -15,13 +15,13 @@
     <!-- Content -->
     <div class="relative h-full flex flex-col items-center justify-center text-center px-4">
       <div class="max-w-3xl">
-        <!-- Category Badge -->
-        <div v-if="event.category" class="mb-4">
+        <!-- Group Badge -->
+        <div v-if="event.group" class="mb-4">
           <span
             class="inline-block px-4 py-1 rounded-full text-sm font-semibold text-white"
-            :style="{ backgroundColor: event.category.color }"
+            :style="{ backgroundColor: event.group.color }"
           >
-            {{ event.category.name }}
+            {{ event.group.name }}
           </span>
         </div>
 

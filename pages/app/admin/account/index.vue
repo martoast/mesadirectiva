@@ -73,8 +73,8 @@
 
       <!-- Permissions Card -->
       <div class="bg-white rounded-xl shadow-card p-6">
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Category Permissions</h2>
-        <p class="text-gray-600 mb-6">Your access level for each event category</p>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Group Permissions</h2>
+        <p class="text-gray-600 mb-6">Your access level for each event group</p>
 
         <!-- Super Admin Notice -->
         <div v-if="profile.role === 'super_admin'" class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
@@ -82,32 +82,32 @@
             <span class="text-xl">👑</span>
             <p class="font-medium">Super Admin Access</p>
           </div>
-          <p class="mt-1 text-sm">You have full access to all categories and all actions.</p>
+          <p class="mt-1 text-sm">You have full access to all groups and all actions.</p>
         </div>
 
-        <!-- Category Permissions List -->
-        <div v-else-if="profile.categories && profile.categories.length > 0" class="space-y-3">
+        <!-- Group Permissions List -->
+        <div v-else-if="profile.groups && profile.groups.length > 0" class="space-y-3">
           <div
-            v-for="category in profile.categories"
-            :key="category.id"
+            v-for="group in profile.groups"
+            :key="group.id"
             class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
               <div
                 class="w-4 h-4 rounded-full"
-                :style="{ backgroundColor: category.color }"
+                :style="{ backgroundColor: group.color }"
               ></div>
-              <span class="font-medium text-gray-900">{{ category.name }}</span>
+              <span class="font-medium text-gray-900">{{ group.name }}</span>
             </div>
-            <span :class="permissionClass(category.permission)">
-              {{ permissionLabel(category.permission) }}
+            <span :class="permissionClass(group.permission)">
+              {{ permissionLabel(group.permission) }}
             </span>
           </div>
         </div>
 
         <!-- No Permissions -->
         <div v-else class="text-center py-8">
-          <p class="text-gray-600">You don't have any category permissions assigned.</p>
+          <p class="text-gray-600">You don't have any group permissions assigned.</p>
           <p class="text-sm text-gray-500 mt-1">Contact a Super Admin to request access.</p>
         </div>
 

@@ -34,8 +34,8 @@
               <span class="status-dot"></span>
               {{ statusLabel }}
             </span>
-            <span v-if="event.category" class="category-badge" :style="{ '--cat-color': event.category.color }">
-              {{ event.category.name }}
+            <span v-if="event.group" class="group-badge" :style="{ '--group-color': event.group.color }">
+              {{ event.group.name }}
             </span>
             <span :class="['type-badge', event.seating_type]">
               {{ event.seating_type === 'seated' ? 'Seated Event' : 'General Admission' }}
@@ -626,14 +626,14 @@ onMounted(() => {
   50% { opacity: 0.5; }
 }
 
-/* Category Badge */
-.category-badge {
+/* Group Badge */
+.group-badge {
   display: inline-flex;
   padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--cat-color, var(--color-primary));
-  background: color-mix(in srgb, var(--cat-color, var(--color-primary)) 12%, transparent);
+  color: var(--group-color, var(--color-primary));
+  background: color-mix(in srgb, var(--group-color, var(--color-primary)) 12%, transparent);
   border-radius: 50px;
 }
 

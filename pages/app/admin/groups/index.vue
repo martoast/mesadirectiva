@@ -1,23 +1,23 @@
 <template>
-  <div class="categories-page">
+  <div class="groups-page">
     <!-- Header -->
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Categories</h1>
-        <p class="page-subtitle">Organize events into categories</p>
+        <h1 class="page-title">Groups</h1>
+        <p class="page-subtitle">Organize events into groups</p>
       </div>
       <button @click="openCreateModal" class="create-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
-        Create Category
+        Create Group
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="state-container">
       <div class="loading-spinner"></div>
-      <p class="state-text">Loading categories...</p>
+      <p class="state-text">Loading groups...</p>
     </div>
 
     <!-- Error State -->
@@ -26,50 +26,50 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <p class="state-text">{{ error }}</p>
-      <button @click="fetchCategories" class="retry-btn">Try Again</button>
+      <button @click="fetchGroups" class="retry-btn">Try Again</button>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="categories.length === 0" class="state-container">
+    <div v-else-if="groups.length === 0" class="state-container">
       <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
       </svg>
-      <p class="state-text">No categories yet</p>
-      <p class="state-hint">Create your first category to organize events</p>
+      <p class="state-text">No groups yet</p>
+      <p class="state-hint">Create your first group to organize events</p>
       <button @click="openCreateModal" class="create-first-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
-        Create Category
+        Create Group
       </button>
     </div>
 
-    <!-- Categories Grid -->
-    <div v-else class="categories-grid">
+    <!-- Groups Grid -->
+    <div v-else class="groups-grid">
       <div
-        v-for="category in categories"
-        :key="category.id"
-        class="category-card"
+        v-for="group in groups"
+        :key="group.id"
+        class="group-card"
       >
         <div class="card-header">
-          <div class="color-indicator" :style="{ '--cat-color': category.color }"></div>
+          <div class="color-indicator" :style="{ '--group-color': group.color }"></div>
           <div class="event-count">
-            <span class="count-value">{{ category.events_count || 0 }}</span>
+            <span class="count-value">{{ group.events_count || 0 }}</span>
             <span class="count-label">events</span>
           </div>
         </div>
 
-        <h3 class="category-name">{{ category.name }}</h3>
-        <p class="category-description">{{ category.description || 'No description provided' }}</p>
+        <h3 class="group-name">{{ group.name }}</h3>
+        <p class="group-description">{{ group.description || 'No description provided' }}</p>
 
         <div class="card-actions">
-          <button @click="openEditModal(category)" class="action-btn edit">
+          <button @click="openEditModal(group)" class="action-btn edit">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             Edit
           </button>
-          <button @click="handleDelete(category)" class="action-btn delete">
+          <button @click="handleDelete(group)" class="action-btn delete">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
@@ -81,20 +81,20 @@
 
     <!-- Create/Edit Modal -->
     <Teleport to="body">
-      <div v-if="modalOpen" class="category-modal-overlay" @click.self="closeModal">
-        <div class="category-modal">
-          <div class="category-modal-header">
-            <h2 class="category-modal-title">
-              {{ editingCategory ? 'Edit Category' : 'Create Category' }}
+      <div v-if="modalOpen" class="group-modal-overlay" @click.self="closeModal">
+        <div class="group-modal">
+          <div class="group-modal-header">
+            <h2 class="group-modal-title">
+              {{ editingGroup ? 'Edit Group' : 'Create Group' }}
             </h2>
-            <button @click="closeModal" class="category-modal-close">
+            <button @click="closeModal" class="group-modal-close">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <form @submit.prevent="handleSubmit" class="category-modal-form">
+          <form @submit.prevent="handleSubmit" class="group-modal-form">
             <div class="form-group">
               <label class="form-label">Name</label>
               <input
@@ -112,7 +112,7 @@
                 v-model="form.description"
                 rows="3"
                 class="form-textarea"
-                placeholder="Brief description of this category"
+                placeholder="Brief description of this group"
               ></textarea>
             </div>
 
@@ -158,7 +158,7 @@
               </button>
               <button type="submit" :disabled="submitting" class="btn-primary">
                 <span v-if="submitting" class="btn-spinner"></span>
-                {{ submitting ? 'Saving...' : (editingCategory ? 'Update' : 'Create') }}
+                {{ submitting ? 'Saving...' : (editingGroup ? 'Update' : 'Create') }}
               </button>
             </div>
           </form>
@@ -169,8 +169,8 @@
     <!-- Delete Confirmation Modal -->
     <UiConfirmModal
       :is-open="deleteModalOpen"
-      title="Delete Category"
-      :message="`Are you sure you want to delete '${categoryToDelete?.name}'? This action cannot be undone.`"
+      title="Delete Group"
+      :message="`Are you sure you want to delete '${groupToDelete?.name}'? This action cannot be undone.`"
       confirm-text="Delete"
       cancel-text="Cancel"
       @confirm="confirmDelete"
@@ -187,15 +187,15 @@ definePageMeta({
   middleware: ['auth', 'super-admin']
 })
 
-const { getCategories, createCategory, updateCategory, deleteCategory } = useCategories()
+const { getGroups, createGroup, updateGroup, deleteGroup } = useGroups()
 
-const categories = ref([])
+const groups = ref([])
 const loading = ref(true)
 const error = ref('')
 const modalOpen = ref(false)
 const deleteModalOpen = ref(false)
-const editingCategory = ref(null)
-const categoryToDelete = ref(null)
+const editingGroup = ref(null)
+const groupToDelete = ref(null)
 const submitting = ref(false)
 const formError = ref('')
 
@@ -211,33 +211,33 @@ const form = ref({
   color: '#6366f1'
 })
 
-const fetchCategories = async () => {
+const fetchGroups = async () => {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
   } catch (e) {
-    error.value = e.message || 'Failed to load categories'
+    error.value = e.message || 'Failed to load groups'
   } finally {
     loading.value = false
   }
 }
 
 const openCreateModal = () => {
-  editingCategory.value = null
+  editingGroup.value = null
   form.value = { name: '', description: '', color: '#6366f1' }
   formError.value = ''
   modalOpen.value = true
 }
 
-const openEditModal = (category) => {
-  editingCategory.value = category
+const openEditModal = (group) => {
+  editingGroup.value = group
   form.value = {
-    name: category.name,
-    description: category.description || '',
-    color: category.color || '#6366f1'
+    name: group.name,
+    description: group.description || '',
+    color: group.color || '#6366f1'
   }
   formError.value = ''
   modalOpen.value = true
@@ -245,7 +245,7 @@ const openEditModal = (category) => {
 
 const closeModal = () => {
   modalOpen.value = false
-  editingCategory.value = null
+  editingGroup.value = null
 }
 
 const handleSubmit = async () => {
@@ -253,47 +253,47 @@ const handleSubmit = async () => {
   formError.value = ''
 
   try {
-    if (editingCategory.value) {
-      await updateCategory(editingCategory.value.id, form.value)
+    if (editingGroup.value) {
+      await updateGroup(editingGroup.value.id, form.value)
     } else {
-      await createCategory(form.value)
+      await createGroup(form.value)
     }
     closeModal()
-    fetchCategories()
+    fetchGroups()
   } catch (e) {
-    formError.value = e.message || 'Failed to save category'
+    formError.value = e.message || 'Failed to save group'
   } finally {
     submitting.value = false
   }
 }
 
-const handleDelete = (category) => {
-  categoryToDelete.value = category
+const handleDelete = (group) => {
+  groupToDelete.value = group
   deleteModalOpen.value = true
 }
 
 const confirmDelete = async () => {
-  if (categoryToDelete.value) {
+  if (groupToDelete.value) {
     try {
-      await deleteCategory(categoryToDelete.value.id)
-      fetchCategories()
+      await deleteGroup(groupToDelete.value.id)
+      fetchGroups()
     } catch (e) {
-      error.value = e.message || 'Failed to delete category'
+      error.value = e.message || 'Failed to delete group'
     }
     deleteModalOpen.value = false
-    categoryToDelete.value = null
+    groupToDelete.value = null
   }
 }
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
 })
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
 
-.categories-page {
+.groups-page {
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
 
@@ -446,14 +446,14 @@ onMounted(() => {
   height: 16px;
 }
 
-/* Categories Grid */
-.categories-grid {
+/* Groups Grid */
+.groups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 
-.category-card {
+.group-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -461,7 +461,7 @@ onMounted(() => {
   transition: border-color 0.15s;
 }
 
-.category-card:hover {
+.group-card:hover {
   border-color: var(--color-text-muted);
 }
 
@@ -476,7 +476,7 @@ onMounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: var(--cat-color, var(--color-primary));
+  background: var(--group-color, var(--color-primary));
 }
 
 .event-count {
@@ -497,14 +497,14 @@ onMounted(() => {
   color: var(--color-text-muted);
 }
 
-.category-name {
+.group-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0 0 6px 0;
 }
 
-.category-description {
+.group-description {
   font-size: 13px;
   color: var(--color-text-muted);
   margin: 0 0 16px 0;
@@ -557,7 +557,7 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .categories-page {
+  .groups-page {
     padding: 16px;
   }
 
@@ -570,7 +570,7 @@ onMounted(() => {
     justify-content: center;
   }
 
-  .categories-grid {
+  .groups-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -578,7 +578,7 @@ onMounted(() => {
 
 <!-- Non-scoped styles for teleported modal -->
 <style>
-.category-modal-overlay {
+.group-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
@@ -590,7 +590,7 @@ onMounted(() => {
   backdrop-filter: blur(4px);
 }
 
-.category-modal {
+.group-modal {
   width: 100%;
   max-width: 440px;
   background: #ffffff;
@@ -599,7 +599,7 @@ onMounted(() => {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-.category-modal-header {
+.group-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -607,7 +607,7 @@ onMounted(() => {
   border-bottom: 1px solid #f4f4f5;
 }
 
-.category-modal-title {
+.group-modal-title {
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 18px;
   font-weight: 600;
@@ -615,7 +615,7 @@ onMounted(() => {
   margin: 0;
 }
 
-.category-modal-close {
+.group-modal-close {
   width: 32px;
   height: 32px;
   display: flex;
@@ -629,25 +629,25 @@ onMounted(() => {
   transition: all 0.15s;
 }
 
-.category-modal-close:hover {
+.group-modal-close:hover {
   background: #f4f4f5;
   color: #0a0a0a;
 }
 
-.category-modal-close svg {
+.group-modal-close svg {
   width: 18px;
   height: 18px;
 }
 
-.category-modal-form {
+.group-modal-form {
   padding: 24px;
 }
 
-.category-modal-form .form-group {
+.group-modal-form .form-group {
   margin-bottom: 20px;
 }
 
-.category-modal-form .form-label {
+.group-modal-form .form-label {
   display: block;
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 12px;
@@ -656,8 +656,8 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
-.category-modal-form .form-input,
-.category-modal-form .form-textarea {
+.group-modal-form .form-input,
+.group-modal-form .form-textarea {
   width: 100%;
   padding: 10px 12px;
   font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -670,30 +670,30 @@ onMounted(() => {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.category-modal-form .form-input:focus,
-.category-modal-form .form-textarea:focus {
+.group-modal-form .form-input:focus,
+.group-modal-form .form-textarea:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.category-modal-form .form-input::placeholder,
-.category-modal-form .form-textarea::placeholder {
+.group-modal-form .form-input::placeholder,
+.group-modal-form .form-textarea::placeholder {
   color: #a1a1aa;
 }
 
-.category-modal-form .form-textarea {
+.group-modal-form .form-textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-.category-modal-form .color-picker {
+.group-modal-form .color-picker {
   display: flex;
   gap: 8px;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.category-modal-form .color-preview {
+.group-modal-form .color-preview {
   width: 40px;
   height: 40px;
   border-radius: 6px;
@@ -701,11 +701,11 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.category-modal-form .color-input {
+.group-modal-form .color-input {
   flex: 1;
 }
 
-.category-modal-form .color-native {
+.group-modal-form .color-native {
   width: 40px;
   height: 40px;
   padding: 0;
@@ -715,13 +715,13 @@ onMounted(() => {
   background: none;
 }
 
-.category-modal-form .color-presets {
+.group-modal-form .color-presets {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.category-modal-form .color-preset {
+.group-modal-form .color-preset {
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -730,15 +730,15 @@ onMounted(() => {
   transition: transform 0.15s, border-color 0.15s;
 }
 
-.category-modal-form .color-preset:hover {
+.group-modal-form .color-preset:hover {
   transform: scale(1.1);
 }
 
-.category-modal-form .color-preset.active {
+.group-modal-form .color-preset.active {
   border-color: #0a0a0a;
 }
 
-.category-modal-form .form-error {
+.group-modal-form .form-error {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -751,20 +751,20 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.category-modal-form .form-error svg {
+.group-modal-form .form-error svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
 
-.category-modal-form .modal-actions {
+.group-modal-form .modal-actions {
   display: flex;
   gap: 12px;
   padding-top: 4px;
 }
 
-.category-modal-form .btn-secondary,
-.category-modal-form .btn-primary {
+.group-modal-form .btn-secondary,
+.group-modal-form .btn-primary {
   flex: 1;
   display: inline-flex;
   align-items: center;
@@ -780,39 +780,39 @@ onMounted(() => {
   transition: all 0.15s;
 }
 
-.category-modal-form .btn-secondary {
+.group-modal-form .btn-secondary {
   color: #525252;
   background: #f4f4f5;
 }
 
-.category-modal-form .btn-secondary:hover {
+.group-modal-form .btn-secondary:hover {
   background: #e4e4e7;
 }
 
-.category-modal-form .btn-primary {
+.group-modal-form .btn-primary {
   color: white;
   background: #0a0a0a;
 }
 
-.category-modal-form .btn-primary:hover:not(:disabled) {
+.group-modal-form .btn-primary:hover:not(:disabled) {
   background: #262626;
 }
 
-.category-modal-form .btn-primary:disabled {
+.group-modal-form .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.category-modal-form .btn-spinner {
+.group-modal-form .btn-spinner {
   width: 14px;
   height: 14px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: category-modal-spin 0.8s linear infinite;
+  animation: group-modal-spin 0.8s linear infinite;
 }
 
-@keyframes category-modal-spin {
+@keyframes group-modal-spin {
   to { transform: rotate(360deg); }
 }
 </style>

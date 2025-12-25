@@ -73,8 +73,8 @@
             <option value="viewer">Viewer</option>
           </select>
           <p class="mt-1 text-sm text-gray-500">
-            <span v-if="form.role === 'admin'">Admins can create, edit, and manage events in their assigned categories.</span>
-            <span v-else>Viewers can only view events in their assigned categories (read-only).</span>
+            <span v-if="form.role === 'admin'">Admins can create, edit, and manage events in their assigned groups.</span>
+            <span v-else>Viewers can only view events in their assigned groups (read-only).</span>
           </p>
         </div>
 
@@ -90,36 +90,36 @@
         </div>
       </div>
 
-      <!-- Category Permissions -->
+      <!-- Group Permissions -->
       <div class="bg-white rounded-xl shadow-card p-6 space-y-4">
-        <h2 class="text-xl font-bold text-gray-900">Category Permissions</h2>
+        <h2 class="text-xl font-bold text-gray-900">Group Permissions</h2>
         <p class="text-sm text-gray-600">
-          Assign which categories this user can access and what permissions they have.
+          Assign which groups this user can access and what permissions they have.
         </p>
 
-        <div v-if="loadingCategories" class="text-center py-4">
-          <p class="text-gray-600">Loading categories...</p>
+        <div v-if="loadingGroups" class="text-center py-4">
+          <p class="text-gray-600">Loading groups...</p>
         </div>
 
-        <div v-else-if="categories.length === 0" class="text-center py-4">
-          <p class="text-gray-600">No categories available. Create categories first.</p>
+        <div v-else-if="groups.length === 0" class="text-center py-4">
+          <p class="text-gray-600">No groups available. Create groups first.</p>
         </div>
 
         <div v-else class="space-y-3">
           <div
-            v-for="category in categories"
-            :key="category.id"
+            v-for="group in groups"
+            :key="group.id"
             class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
               <div
                 class="w-4 h-4 rounded-full"
-                :style="{ backgroundColor: category.color }"
+                :style="{ backgroundColor: group.color }"
               ></div>
-              <span class="font-medium text-gray-900">{{ category.name }}</span>
+              <span class="font-medium text-gray-900">{{ group.name }}</span>
             </div>
             <select
-              v-model="categoryPermissions[category.id]"
+              v-model="groupPermissions[group.id]"
               class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">No access</option>
@@ -134,7 +134,7 @@
         <div class="mt-4 p-4 bg-blue-50 rounded-lg">
           <p class="text-sm font-semibold text-blue-900 mb-2">Permission Levels:</p>
           <ul class="text-sm text-blue-800 space-y-1">
-            <li><strong>View:</strong> Can see events in this category (read-only)</li>
+            <li><strong>View:</strong> Can see events in this group (read-only)</li>
             <li><strong>Edit:</strong> Can create and update events</li>
             <li><strong>Manage:</strong> Full control - create, update, and delete events</li>
           </ul>
@@ -175,11 +175,11 @@ definePageMeta({
 })
 
 const router = useRouter()
-const { createUser, assignCategories } = useUsers()
-const { getCategories } = useCategories()
+const { createUser, assignGroups } = useUsers()
+const { getGroups } = useGroups()
 
-const categories = ref([])
-const loadingCategories = ref(true)
+const groups = ref([])
+const loadingGroups = ref(true)
 const error = ref('')
 const submitting = ref(false)
 
@@ -192,26 +192,26 @@ const form = reactive({
   is_active: true
 })
 
-// Track permissions for each category
-const categoryPermissions = reactive({})
+// Track permissions for each group
+const groupPermissions = reactive({})
 
 const passwordMismatch = computed(() => {
   return form.password && form.password_confirmation && form.password !== form.password_confirmation
 })
 
-const fetchCategories = async () => {
-  loadingCategories.value = true
+const fetchGroups = async () => {
+  loadingGroups.value = true
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
     // Initialize permissions as empty (no access)
-    categories.value.forEach(cat => {
-      categoryPermissions[cat.id] = ''
+    groups.value.forEach(group => {
+      groupPermissions[group.id] = ''
     })
   } catch (e) {
-    // Categories are optional
+    // Groups are optional
   } finally {
-    loadingCategories.value = false
+    loadingGroups.value = false
   }
 }
 
@@ -235,16 +235,16 @@ const handleSubmit = async () => {
     const response = await createUser(userData)
     const userId = response.user.id
 
-    // 2. Assign category permissions (if any selected)
-    const selectedCategories = Object.entries(categoryPermissions)
+    // 2. Assign group permissions (if any selected)
+    const selectedGroups = Object.entries(groupPermissions)
       .filter(([_, permission]) => permission !== '')
       .map(([id, permission]) => ({
         id: parseInt(id),
         permission
       }))
 
-    if (selectedCategories.length > 0) {
-      await assignCategories(userId, selectedCategories)
+    if (selectedGroups.length > 0) {
+      await assignGroups(userId, selectedGroups)
     }
 
     // Success - redirect to users list
@@ -257,6 +257,6 @@ const handleSubmit = async () => {
 }
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
 })
 </script>

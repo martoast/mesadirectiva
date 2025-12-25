@@ -7,8 +7,8 @@
           <span class="status-dot"></span>
           {{ statusLabel(event.status) }}
         </span>
-        <span v-if="event.category" class="category-tag" :style="{ '--cat-color': event.category.color || '#6366f1' }">
-          {{ event.category.name }}
+        <span v-if="event.group" class="group-tag" :style="{ '--group-color': event.group.color || '#6366f1' }">
+          {{ event.group.name }}
         </span>
       </div>
       <div class="date-badge">
@@ -113,15 +113,15 @@ defineEmits(['delete', 'publish', 'close'])
 
 // Permission helpers
 const canEdit = () => {
-  const categoryId = props.event.category?.id || props.event.category_id
-  if (!categoryId) return props.isSuperAdmin
-  return props.hasPermission(categoryId, 'edit')
+  const groupId = props.event.group?.id || props.event.group_id
+  if (!groupId) return props.isSuperAdmin
+  return props.hasPermission(groupId, 'edit')
 }
 
 const canManage = () => {
-  const categoryId = props.event.category?.id || props.event.category_id
-  if (!categoryId) return props.isSuperAdmin
-  return props.hasPermission(categoryId, 'manage')
+  const groupId = props.event.group?.id || props.event.group_id
+  if (!groupId) return props.isSuperAdmin
+  return props.hasPermission(groupId, 'manage')
 }
 
 const formatDay = (dateStr) => {
@@ -266,14 +266,14 @@ const ticketPercent = () => {
   }
 }
 
-/* Category Tag */
-.category-tag {
+/* Group Tag */
+.group-tag {
   display: inline-flex;
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--cat-color, #6366f1);
-  background: color-mix(in srgb, var(--cat-color, #6366f1) 10%, transparent);
+  color: var(--group-color, #6366f1);
+  background: color-mix(in srgb, var(--group-color, #6366f1) 10%, transparent);
   border-radius: 6px;
 }
 

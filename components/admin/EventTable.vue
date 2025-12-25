@@ -4,7 +4,7 @@
       <thead>
         <tr>
           <th class="col-name">Event</th>
-          <th class="col-category">Category</th>
+          <th class="col-group">Group</th>
           <th class="col-date">Date</th>
           <th class="col-price">Price</th>
           <th class="col-status">Status</th>
@@ -20,12 +20,12 @@
               <span class="event-location" v-if="event.location">{{ event.location }}</span>
             </NuxtLink>
           </td>
-          <td class="col-category">
-            <span v-if="event.category" class="category-badge" :style="{ '--cat-color': event.category.color || '#6366f1' }">
-              <span class="category-dot"></span>
-              {{ event.category.name }}
+          <td class="col-group">
+            <span v-if="event.group" class="group-badge" :style="{ '--group-color': event.group.color || '#6366f1' }">
+              <span class="group-dot"></span>
+              {{ event.group.name }}
             </span>
-            <span v-else class="no-category">No category</span>
+            <span v-else class="no-group">No group</span>
           </td>
           <td class="col-date">
             <div class="date-cell">
@@ -111,15 +111,15 @@ defineEmits(['delete', 'publish', 'close'])
 
 // Permission helpers
 const canEdit = (event) => {
-  const categoryId = event.category?.id || event.category_id
-  if (!categoryId) return props.isSuperAdmin
-  return props.hasPermission(categoryId, 'edit')
+  const groupId = event.group?.id || event.group_id
+  if (!groupId) return props.isSuperAdmin
+  return props.hasPermission(groupId, 'edit')
 }
 
 const canManage = (event) => {
-  const categoryId = event.category?.id || event.category_id
-  if (!categoryId) return props.isSuperAdmin
-  return props.hasPermission(categoryId, 'manage')
+  const groupId = event.group?.id || event.group_id
+  if (!groupId) return props.isSuperAdmin
+  return props.hasPermission(groupId, 'manage')
 }
 
 const formatDay = (dateStr) => {
@@ -283,27 +283,27 @@ td:last-child {
   white-space: nowrap;
 }
 
-/* Category */
-.category-badge {
+/* Group */
+.group-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--cat-color, #6366f1);
-  background: color-mix(in srgb, var(--cat-color, #6366f1) 10%, transparent);
+  color: var(--group-color, #6366f1);
+  background: color-mix(in srgb, var(--group-color, #6366f1) 10%, transparent);
   border-radius: 6px;
 }
 
-.category-dot {
+.group-dot {
   width: 6px;
   height: 6px;
-  background: var(--cat-color, #6366f1);
+  background: var(--group-color, #6366f1);
   border-radius: 50%;
 }
 
-.no-category {
+.no-group {
   font-size: 12px;
   color: var(--color-text-muted);
 }
@@ -502,7 +502,7 @@ td:last-child {
 
 /* Column widths */
 .col-name { min-width: 220px; }
-.col-category { min-width: 130px; }
+.col-group { min-width: 130px; }
 .col-date { min-width: 80px; }
 .col-price { min-width: 80px; }
 .col-status { min-width: 100px; }

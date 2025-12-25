@@ -79,7 +79,7 @@
             <th class="col-user">User</th>
             <th class="col-role">Role</th>
             <th class="col-status">Status</th>
-            <th class="col-categories">Categories</th>
+            <th class="col-groups">Groups</th>
             <th class="col-actions">Actions</th>
           </tr>
         </thead>
@@ -107,21 +107,21 @@
                 {{ user.is_active ? 'Active' : 'Inactive' }}
               </span>
             </td>
-            <td class="col-categories">
-              <div v-if="user.categories?.length" class="category-list">
+            <td class="col-groups">
+              <div v-if="user.groups?.length" class="group-list">
                 <span
-                  v-for="cat in user.categories.slice(0, 2)"
-                  :key="cat.id"
-                  class="category-pill"
-                  :style="{ '--cat-color': cat.color }"
+                  v-for="group in user.groups.slice(0, 2)"
+                  :key="group.id"
+                  class="group-pill"
+                  :style="{ '--group-color': group.color }"
                 >
-                  {{ cat.name }}
+                  {{ group.name }}
                 </span>
-                <span v-if="user.categories.length > 2" class="category-more">
-                  +{{ user.categories.length - 2 }}
+                <span v-if="user.groups.length > 2" class="group-more">
+                  +{{ user.groups.length - 2 }}
                 </span>
               </div>
-              <span v-else class="no-categories">—</span>
+              <span v-else class="no-groups">—</span>
             </td>
             <td class="col-actions">
               <div class="actions-row">
@@ -206,21 +206,21 @@
             </span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Categories</span>
-            <div v-if="user.categories?.length" class="category-list">
+            <span class="detail-label">Groups</span>
+            <div v-if="user.groups?.length" class="group-list">
               <span
-                v-for="cat in user.categories.slice(0, 2)"
-                :key="cat.id"
-                class="category-pill small"
-                :style="{ '--cat-color': cat.color }"
+                v-for="group in user.groups.slice(0, 2)"
+                :key="group.id"
+                class="group-pill small"
+                :style="{ '--group-color': group.color }"
               >
-                {{ cat.name }}
+                {{ group.name }}
               </span>
-              <span v-if="user.categories.length > 2" class="category-more">
-                +{{ user.categories.length - 2 }}
+              <span v-if="user.groups.length > 2" class="group-more">
+                +{{ user.groups.length - 2 }}
               </span>
             </div>
-            <span v-else class="no-categories">None</span>
+            <span v-else class="no-groups">None</span>
           </div>
         </div>
 
@@ -805,35 +805,35 @@ onMounted(() => {
   background: var(--color-text-muted);
 }
 
-/* Categories */
-.category-list {
+/* Groups */
+.group-list {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
 }
 
-.category-pill {
+.group-pill {
   display: inline-flex;
   padding: 3px 8px;
   font-size: 10px;
   font-weight: 500;
-  color: var(--cat-color, var(--color-primary));
-  background: color-mix(in srgb, var(--cat-color, var(--color-primary)) 12%, transparent);
+  color: var(--group-color, var(--color-primary));
+  background: color-mix(in srgb, var(--group-color, var(--color-primary)) 12%, transparent);
   border-radius: 50px;
 }
 
-.category-pill.small {
+.group-pill.small {
   padding: 2px 6px;
   font-size: 9px;
 }
 
-.category-more {
+.group-more {
   font-size: 10px;
   color: var(--color-text-muted);
 }
 
-.no-categories {
+.no-groups {
   color: var(--color-text-muted);
 }
 
@@ -1044,7 +1044,7 @@ onMounted(() => {
 .col-user { min-width: 200px; }
 .col-role { min-width: 100px; }
 .col-status { min-width: 100px; }
-.col-categories { min-width: 160px; }
+.col-groups { min-width: 160px; }
 .col-actions { min-width: 80px; }
 
 /* Responsive */

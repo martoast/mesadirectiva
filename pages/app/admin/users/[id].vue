@@ -102,32 +102,32 @@
         </div>
       </div>
 
-      <!-- Category Permissions -->
+      <!-- Group Permissions -->
       <div v-if="user.role !== 'super_admin'" class="bg-white rounded-xl shadow-card p-6 space-y-4">
-        <h2 class="text-xl font-bold text-gray-900">Category Permissions</h2>
+        <h2 class="text-xl font-bold text-gray-900">Group Permissions</h2>
         <p class="text-sm text-gray-600">
-          Assign which categories this user can access and what permissions they have.
+          Assign which groups this user can access and what permissions they have.
         </p>
 
-        <div v-if="categories.length === 0" class="text-center py-4">
-          <p class="text-gray-600">No categories available.</p>
+        <div v-if="groups.length === 0" class="text-center py-4">
+          <p class="text-gray-600">No groups available.</p>
         </div>
 
         <div v-else class="space-y-3">
           <div
-            v-for="category in categories"
-            :key="category.id"
+            v-for="group in groups"
+            :key="group.id"
             class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
               <div
                 class="w-4 h-4 rounded-full"
-                :style="{ backgroundColor: category.color }"
+                :style="{ backgroundColor: group.color }"
               ></div>
-              <span class="font-medium text-gray-900">{{ category.name }}</span>
+              <span class="font-medium text-gray-900">{{ group.name }}</span>
             </div>
             <select
-              v-model="categoryPermissions[category.id]"
+              v-model="groupPermissions[group.id]"
               class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">No access</option>
@@ -142,7 +142,7 @@
         <div class="mt-4 p-4 bg-blue-50 rounded-lg">
           <p class="text-sm font-semibold text-blue-900 mb-2">Permission Levels:</p>
           <ul class="text-sm text-blue-800 space-y-1">
-            <li><strong>View:</strong> Can see events in this category (read-only)</li>
+            <li><strong>View:</strong> Can see events in this group (read-only)</li>
             <li><strong>Edit:</strong> Can create and update events</li>
             <li><strong>Manage:</strong> Full control - create, update, and delete events</li>
           </ul>
@@ -150,7 +150,7 @@
       </div>
 
       <div v-else class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
-        Super Admins have full access to all categories and don't need category-specific permissions.
+        Super Admins have full access to all groups and don't need group-specific permissions.
       </div>
 
       <!-- Form Error -->
@@ -188,11 +188,11 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { getUser, updateUser, assignCategories } = useUsers()
-const { getCategories } = useCategories()
+const { getUser, updateUser, assignGroups } = useUsers()
+const { getGroups } = useGroups()
 
 const user = ref(null)
-const categories = ref([])
+const groups = ref([])
 const loading = ref(true)
 const loadError = ref('')
 const error = ref('')
@@ -207,8 +207,8 @@ const form = reactive({
   is_active: true
 })
 
-// Track permissions for each category
-const categoryPermissions = reactive({})
+// Track permissions for each group - use ref for better reactivity with dynamic keys
+const groupPermissions = ref({})
 
 const passwordMismatch = computed(() => {
   return form.password && form.password_confirmation && form.password !== form.password_confirmation
@@ -219,13 +219,13 @@ const fetchData = async () => {
   loadError.value = ''
 
   try {
-    const [userResponse, categoriesResponse] = await Promise.all([
+    const [userResponse, groupsResponse] = await Promise.all([
       getUser(route.params.id),
-      getCategories()
+      getGroups()
     ])
 
     user.value = userResponse.user
-    categories.value = categoriesResponse.categories || []
+    groups.value = groupsResponse.groups || []
 
     // Populate form with user data
     form.name = user.value.name
@@ -233,17 +233,20 @@ const fetchData = async () => {
     form.role = user.value.role
     form.is_active = user.value.is_active
 
-    // Initialize category permissions
-    categories.value.forEach(cat => {
-      categoryPermissions[cat.id] = ''
+    // Initialize group permissions - build object then assign for proper reactivity
+    const perms = {}
+    groups.value.forEach(group => {
+      perms[group.id] = ''
     })
 
     // Set existing permissions
-    if (user.value.categories) {
-      user.value.categories.forEach(cat => {
-        categoryPermissions[cat.id] = cat.pivot?.permission || cat.permission || ''
+    if (user.value.groups) {
+      user.value.groups.forEach(group => {
+        perms[group.id] = group.pivot?.permission || group.permission || ''
       })
     }
+
+    groupPermissions.value = perms
   } catch (e) {
     loadError.value = e.message || 'Failed to load user'
   } finally {
@@ -274,16 +277,16 @@ const handleSubmit = async () => {
 
     await updateUser(route.params.id, userData)
 
-    // 2. Update category permissions (if not super_admin)
+    // 2. Update group permissions (if not super_admin)
     if (user.value.role !== 'super_admin') {
-      const selectedCategories = Object.entries(categoryPermissions)
+      const selectedGroups = Object.entries(groupPermissions.value)
         .filter(([_, permission]) => permission !== '')
         .map(([id, permission]) => ({
           id: parseInt(id),
           permission
         }))
 
-      await assignCategories(route.params.id, selectedCategories)
+      await assignGroups(route.params.id, selectedGroups)
     }
 
     // Success - redirect to users list

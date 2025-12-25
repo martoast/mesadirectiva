@@ -27,12 +27,12 @@
         </option>
       </select>
       <select
-        v-model="filterCategory"
+        v-model="filterGroup"
         class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
       >
-        <option value="">All Categories</option>
-        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-          {{ cat.name }}
+        <option value="">All Groups</option>
+        <option v-for="group in groups" :key="group.id" :value="group.id">
+          {{ group.name }}
         </option>
       </select>
       <input
@@ -153,18 +153,18 @@ definePageMeta({
 
 const { getSalesReport, exportSales } = useReports()
 const { getEvents } = useEvents()
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 
 const orders = ref([])
 const events = ref([])
-const categories = ref([])
+const groups = ref([])
 const summary = ref({ total_orders: 0, total_revenue: 0 })
 const loading = ref(true)
 const exporting = ref(false)
 const error = ref('')
 const search = ref('')
 const filterEvent = ref('')
-const filterCategory = ref('')
+const filterGroup = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 
@@ -174,7 +174,7 @@ const getFilters = () => {
   const params = {}
   if (search.value) params.search = search.value
   if (filterEvent.value) params.event_id = filterEvent.value
-  if (filterCategory.value) params.category_id = filterCategory.value
+  if (filterGroup.value) params.group_id = filterGroup.value
   if (dateFrom.value) params.date_from = dateFrom.value
   if (dateTo.value) params.date_to = dateTo.value
   return params
@@ -182,12 +182,12 @@ const getFilters = () => {
 
 const fetchData = async () => {
   try {
-    const [eventsRes, categoriesRes] = await Promise.all([
+    const [eventsRes, groupsRes] = await Promise.all([
       getEvents({ per_page: 100 }),
-      getCategories()
+      getGroups()
     ])
     events.value = eventsRes.events || []
-    categories.value = categoriesRes.categories || []
+    groups.value = groupsRes.groups || []
   } catch (e) {
     // Optional data
   }
@@ -252,7 +252,7 @@ const orderTypeClass = (order) => {
   return 'px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800'
 }
 
-watch([filterEvent, filterCategory, dateFrom, dateTo], () => {
+watch([filterEvent, filterGroup, dateFrom, dateTo], () => {
   fetchReport()
 })
 

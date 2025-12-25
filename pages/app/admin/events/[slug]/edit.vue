@@ -55,14 +55,14 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Group</label>
             <select
-              v-model="form.category_id"
+              v-model="form.group_id"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
             >
-              <option :value="null">No category</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                {{ cat.name }}
+              <option :value="null">No group</option>
+              <option v-for="group in groups" :key="group.id" :value="group.id">
+                {{ group.name }}
               </option>
             </select>
           </div>
@@ -527,10 +527,10 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { getEvent, updateEvent, publishEvent } = useEvents()
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 
 const event = ref(null)
-const categories = ref([])
+const groups = ref([])
 const loading = ref(true)
 const error = ref('')
 const formError = ref('')
@@ -546,7 +546,7 @@ const currentHeroImage = ref('')
 const form = reactive({
   // Basic info
   name: '',
-  category_id: null,
+  group_id: null,
   date: '',
   time: '',
   location: '',
@@ -623,20 +623,20 @@ const fetchEvent = async () => {
   error.value = ''
 
   try {
-    const [eventResponse, categoriesResponse] = await Promise.all([
+    const [eventResponse, groupsResponse] = await Promise.all([
       getEvent(route.params.slug),
-      getCategories()
+      getGroups()
     ])
 
     event.value = eventResponse.event
-    categories.value = categoriesResponse.categories || []
+    groups.value = groupsResponse.groups || []
 
     // Populate form with event data
     const e = eventResponse.event
 
     // Basic info
     form.name = e.name || ''
-    form.category_id = e.category?.id || null
+    form.group_id = e.group?.id || null
     form.date = e.date || ''
     form.time = e.time?.substring(0, 5) || ''
     form.location = e.location || ''

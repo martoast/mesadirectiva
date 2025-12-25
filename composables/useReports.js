@@ -7,7 +7,7 @@ export const useReports = () => {
 
   /**
    * Get sales report
-   * @param {Object} params - { event_id, category_id, date_from, date_to, search }
+   * @param {Object} params - { event_id, group_id, date_from, date_to, search }
    */
   const getSalesReport = async (params = {}) => {
     return await get('/reports/sales', params)
@@ -15,7 +15,7 @@ export const useReports = () => {
 
   /**
    * Export sales report to Excel
-   * @param {Object} params - { event_id, category_id, date_from, date_to, search }
+   * @param {Object} params - { event_id, group_id, date_from, date_to, search }
    */
   const exportSales = async (params = {}) => {
     const today = new Date().toISOString().split('T')[0]
@@ -24,7 +24,7 @@ export const useReports = () => {
 
   /**
    * Get orders report
-   * @param {Object} params - { event_id, category_id, date_from, date_to, status, search }
+   * @param {Object} params - { event_id, group_id, date_from, date_to, status, search }
    */
   const getOrdersReport = async (params = {}) => {
     return await get('/reports/orders', params)
@@ -32,7 +32,7 @@ export const useReports = () => {
 
   /**
    * Export orders report to Excel
-   * @param {Object} params - { event_id, category_id, date_from, date_to, status, search }
+   * @param {Object} params - { event_id, group_id, date_from, date_to, status, search }
    */
   const exportOrders = async (params = {}) => {
     const today = new Date().toISOString().split('T')[0]

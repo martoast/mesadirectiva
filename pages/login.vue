@@ -4,10 +4,7 @@
       <!-- Left Side - Branding -->
       <div class="login-branding">
         <div class="branding-content">
-          <NuxtLink to="/" class="brand">
-            <div class="brand-mark">M</div>
-            <span>Evently</span>
-          </NuxtLink>
+          <AppLogo to="/" variant="light" size="large" />
           <div class="branding-text">
             <h1>Welcome back</h1>
             <p>Sign in to access your event management dashboard and continue creating amazing experiences.</p>
@@ -243,31 +240,8 @@ const handleSubmit = async () => {
   max-width: 400px;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
+.branding-content :deep(.app-logo) {
   margin-bottom: 48px;
-}
-
-.brand-mark {
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.brand span {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffff;
 }
 
 .branding-text h1 {

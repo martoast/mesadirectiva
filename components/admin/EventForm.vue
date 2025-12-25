@@ -13,20 +13,20 @@
     <form v-show="!isMultiStep || currentStep === 0" @submit.prevent="handleNext" class="space-y-6">
       <h2 class="text-2xl font-bold text-gray-900">{{ isMultiStep ? 'Basic Information' : 'Event Details' }}</h2>
 
-      <!-- Category Selection -->
+      <!-- Group Selection -->
       <div class="flex flex-col gap-1">
-        <label for="category" class="text-sm font-medium text-gray-700">
-          Category <span class="text-danger-600">*</span>
+        <label for="group" class="text-sm font-medium text-gray-700">
+          Group <span class="text-danger-600">*</span>
         </label>
         <select
-          id="category"
-          v-model="formData.category_id"
+          id="group"
+          v-model="formData.group_id"
           required
           class="px-4 py-2 border rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent border-gray-300"
         >
-          <option value="">Select a category</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
+          <option value="">Select a group</option>
+          <option v-for="g in groups" :key="g.id" :value="g.id">
+            {{ g.name }}
           </option>
         </select>
       </div>
@@ -348,15 +348,15 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'draft', 'publish'])
 
-const { getCategories } = useCategories()
+const { getGroups } = useGroups()
 
-const categories = ref([])
+const groups = ref([])
 const currentStep = ref(0)
 const steps = ['Basic Info', 'Page Design', 'Review & Publish']
 const isSubmitting = ref(false)
 
 const defaultFormData = {
-  category_id: '',
+  group_id: '',
   name: '',
   date: '',
   time: '',
@@ -377,22 +377,22 @@ const formData = reactive(
   props.initialData ? { ...defaultFormData, ...props.initialData } : { ...defaultFormData }
 )
 
-const fetchCategories = async () => {
+const fetchGroups = async () => {
   try {
-    const response = await getCategories()
-    categories.value = response.categories || []
+    const response = await getGroups()
+    groups.value = response.groups || []
   } catch (e) {
-    console.error('Failed to load categories', e)
+    console.error('Failed to load groups', e)
   }
 }
 
 onMounted(() => {
-  fetchCategories()
+  fetchGroups()
 })
 
 const canProceed = computed(() => {
   if (currentStep.value === 0) {
-    const baseValid = formData.name && formData.date && formData.time && formData.location && formData.category_id
+    const baseValid = formData.name && formData.date && formData.time && formData.location && formData.group_id
     if (formData.seating_type === 'general_admission') {
       return baseValid && formData.price && formData.max_tickets
     }
@@ -417,7 +417,7 @@ const handleBack = () => {
 
 const prepareData = () => {
   const data = {
-    category_id: formData.category_id,
+    group_id: formData.group_id,
     name: formData.name,
     date: formData.date,
     time: formData.time,

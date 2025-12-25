@@ -53,7 +53,7 @@ export const useAuth = () => {
       localStorage.setItem('auth_token', response.token)
     }
 
-    // Fetch full profile to get categories with permissions
+    // Fetch full profile to get groups with permissions
     const profileResponse = await get('/profile')
     user.value = profileResponse.user
 
@@ -88,11 +88,11 @@ export const useAuth = () => {
 
   /**
    * Fetch current user from API
-   * Uses /profile to get full user data including categories with permissions
+   * Uses /profile to get full user data including groups with permissions
    */
   const fetchUser = async () => {
     try {
-      // Use /profile instead of /auth/user to get categories with permissions
+      // Use /profile instead of /auth/user to get groups with permissions
       const response = await get('/profile')
       user.value = response.user
 
@@ -166,19 +166,19 @@ export const useAuth = () => {
 
   const isSuperAdmin = computed(() => user.value?.role === 'super_admin')
 
-  const userCategories = computed(() => user.value?.categories || [])
+  const userGroups = computed(() => user.value?.groups || [])
 
   /**
-   * Check if user has permission for a category
+   * Check if user has permission for a group
    */
-  const hasPermission = (categoryId, requiredPermission) => {
+  const hasPermission = (groupId, requiredPermission) => {
     if (isSuperAdmin.value) return true
 
-    const category = userCategories.value.find(c => c.id === categoryId)
-    if (!category) return false
+    const group = userGroups.value.find(g => g.id === groupId)
+    if (!group) return false
 
     const permissionLevels = { view: 1, edit: 2, manage: 3 }
-    const userLevel = permissionLevels[category.permission] || 0
+    const userLevel = permissionLevels[group.permission] || 0
     const requiredLevel = permissionLevels[requiredPermission] || 0
 
     return userLevel >= requiredLevel
@@ -209,6 +209,6 @@ export const useAuth = () => {
     isViewer,
     isAdmin,
     isSuperAdmin,
-    userCategories
+    userGroups
   }
 }

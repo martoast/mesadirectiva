@@ -4,13 +4,7 @@
     <aside class="sidebar">
       <!-- Brand -->
       <div class="sidebar-brand">
-        <NuxtLink to="/app/admin/events" class="brand-link">
-          <span class="brand-icon">M</span>
-          <div class="brand-text">
-            <span class="brand-name">Evently</span>
-            <span class="brand-label">Admin</span>
-          </div>
-        </NuxtLink>
+        <AppLogo to="/app/admin/events" variant="light" size="small" label="Admin" />
       </div>
 
       <!-- Navigation -->
@@ -24,11 +18,11 @@
             <span>Events</span>
           </NuxtLink>
 
-          <NuxtLink v-if="isSuperAdmin" to="/app/admin/categories" class="nav-item" active-class="active">
+          <NuxtLink v-if="isSuperAdmin" to="/app/admin/groups" class="nav-item" active-class="active">
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <span>Categories</span>
+            <span>Groups</span>
           </NuxtLink>
 
           <NuxtLink v-if="isSuperAdmin" to="/app/admin/users" class="nav-item" active-class="active">
@@ -92,10 +86,7 @@
 
     <!-- Mobile Header -->
     <header class="mobile-header">
-      <NuxtLink to="/app/admin/events" class="mobile-brand">
-        <span class="brand-icon">M</span>
-        <span>Evently</span>
-      </NuxtLink>
+      <AppLogo to="/app/admin/events" variant="light" size="small" :show-text="true" />
       <button @click="mobileMenuOpen = !mobileMenuOpen" class="mobile-toggle">
         <svg v-if="!mobileMenuOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
@@ -111,7 +102,7 @@
       <div v-if="mobileMenuOpen" class="mobile-menu">
         <nav class="mobile-nav">
           <NuxtLink to="/app/admin/events" class="mobile-link" @click="mobileMenuOpen = false">Events</NuxtLink>
-          <NuxtLink v-if="isSuperAdmin" to="/app/admin/categories" class="mobile-link" @click="mobileMenuOpen = false">Categories</NuxtLink>
+          <NuxtLink v-if="isSuperAdmin" to="/app/admin/groups" class="mobile-link" @click="mobileMenuOpen = false">Groups</NuxtLink>
           <NuxtLink v-if="isSuperAdmin" to="/app/admin/users" class="mobile-link" @click="mobileMenuOpen = false">Users</NuxtLink>
           <NuxtLink to="/app/admin/orders" class="mobile-link" @click="mobileMenuOpen = false">Orders</NuxtLink>
           <NuxtLink to="/app/admin/reports/sales" class="mobile-link" @click="mobileMenuOpen = false">Sales Report</NuxtLink>
@@ -206,45 +197,6 @@ const handleLogout = async () => {
 .sidebar-brand {
   padding: 20px 16px;
   border-bottom: 1px solid #262626;
-}
-
-.brand-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-}
-
-.brand-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--color-primary), #818cf8);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  color: white;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text-inverse);
-  letter-spacing: -0.01em;
-}
-
-.brand-label {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 /* Navigation */
@@ -402,21 +354,6 @@ const handleLogout = async () => {
   z-index: 50;
 }
 
-.mobile-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-inverse);
-  text-decoration: none;
-}
-
-.mobile-brand .brand-icon {
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
-}
 
 .mobile-toggle {
   width: 40px;

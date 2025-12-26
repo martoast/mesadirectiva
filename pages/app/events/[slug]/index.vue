@@ -17,8 +17,8 @@
             <div v-if="event.group" class="hero-badge" :style="{ backgroundColor: event.group.color }">
               {{ event.group.name }}
             </div>
-            <h1 class="hero-title">{{ event.hero_title || event.name }}</h1>
-            <p class="hero-subtitle">{{ event.hero_subtitle || event.description }}</p>
+            <h1 class="hero-title">{{ event.name }}</h1>
+            <p v-if="truncatedDescription" class="hero-subtitle">{{ truncatedDescription }}</p>
 
             <div class="hero-meta">
               <div class="meta-item">
@@ -27,7 +27,7 @@
                 </svg>
                 <div>
                   <span class="meta-label">Date</span>
-                  <span class="meta-value">{{ formatDate(event.date) }}</span>
+                  <span class="meta-value">{{ formattedDate }}</span>
                 </div>
               </div>
               <div class="meta-item">
@@ -36,17 +36,20 @@
                 </svg>
                 <div>
                   <span class="meta-label">Time</span>
-                  <span class="meta-value">{{ formatTime(event.time) }}</span>
+                  <span class="meta-value">{{ formattedTime }}</span>
                 </div>
               </div>
               <div class="meta-item">
-                <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-if="event.location_type === 'online'" class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <svg v-else class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div>
-                  <span class="meta-label">Location</span>
-                  <span class="meta-value">{{ event.location }}</span>
+                  <span class="meta-label">{{ event.location_type === 'online' ? 'Platform' : 'Location' }}</span>
+                  <span class="meta-value">{{ formattedLocation }}</span>
                 </div>
               </div>
             </div>
@@ -80,57 +83,42 @@
           <div class="content-column">
             <!-- About Section -->
             <section class="section about-section">
-              <h2 class="section-title">{{ event.about_title || 'About This Event' }}</h2>
-              <div class="about-grid" :class="{ 'reversed': event.about_image_position === 'left' }">
+              <h2 class="section-title">About This Event</h2>
+              <div class="about-grid">
                 <div class="about-text">
-                  <div v-if="event.about_content" class="prose" v-html="event.about_content"></div>
-                  <p v-else class="about-plain">{{ event.about }}</p>
+                  <p class="about-plain">{{ event.description }}</p>
                 </div>
-                <div v-if="event.about_image_url" class="about-image">
-                  <img :src="event.about_image_url" :alt="event.about_title || 'About'" loading="lazy" />
-                </div>
-              </div>
-            </section>
-
-            <!-- Highlights Section -->
-            <section v-if="event.highlights?.length" class="section highlights-section">
-              <h2 class="section-title centered">What to Expect</h2>
-              <div class="highlights-grid">
-                <div v-for="(highlight, i) in event.highlights" :key="i" class="highlight-card">
-                  <span class="highlight-icon">{{ getIconEmoji(highlight.icon) }}</span>
-                  <h3 class="highlight-title">{{ highlight.title }}</h3>
-                  <p v-if="highlight.description" class="highlight-desc">{{ highlight.description }}</p>
-                </div>
-              </div>
-            </section>
-
-            <!-- Schedule Section -->
-            <section v-if="event.schedule?.length" class="section schedule-section">
-              <h2 class="section-title centered">Event Schedule</h2>
-              <div class="schedule-list">
-                <div v-for="(item, i) in event.schedule" :key="i" class="schedule-item">
-                  <div class="schedule-time">{{ item.time }}</div>
-                  <div class="schedule-dot"></div>
-                  <div class="schedule-content">
-                    <h4 class="schedule-title">{{ item.title }}</h4>
-                    <p v-if="item.description" class="schedule-desc">{{ item.description }}</p>
-                  </div>
+                <div v-if="galleryImages.length > 0" class="about-image">
+                  <img :src="galleryImages[0]" alt="Event" loading="lazy" />
                 </div>
               </div>
             </section>
 
             <!-- Gallery Section -->
-            <section v-if="event.gallery_images?.length" class="section gallery-section">
+            <section v-if="galleryImages.length > 1" class="section gallery-section">
               <h2 class="section-title centered">Gallery</h2>
               <div class="gallery-grid">
                 <button
-                  v-for="(img, i) in event.gallery_images"
+                  v-for="(img, i) in galleryImages"
                   :key="i"
                   class="gallery-item"
                   @click="openGallery(i)"
                 >
                   <img :src="img" :alt="`Gallery ${i + 1}`" loading="lazy" />
                 </button>
+              </div>
+            </section>
+
+            <!-- YouTube Video -->
+            <section v-if="event.media?.youtube" class="section video-section">
+              <h2 class="section-title centered">Watch</h2>
+              <div class="video-wrapper">
+                <iframe
+                  :src="youtubeEmbedUrl"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
               </div>
             </section>
 
@@ -152,12 +140,13 @@
               </div>
             </section>
 
-            <!-- Venue Section -->
-            <section v-if="hasVenueInfo" class="section venue-section">
-              <h2 class="section-title centered">Venue & Contact</h2>
+            <!-- Venue/Online Section -->
+            <section v-if="hasLocationInfo" class="section venue-section">
+              <h2 class="section-title centered">{{ event.location_type === 'online' ? 'Event Details' : 'Venue' }}</h2>
               <div class="venue-card">
                 <div class="venue-grid">
-                  <div v-if="event.venue_name || event.venue_address" class="venue-info">
+                  <!-- Venue Location -->
+                  <div v-if="event.location_type === 'venue'" class="venue-info">
                     <div class="venue-icon">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -165,23 +154,39 @@
                       </svg>
                     </div>
                     <div>
-                      <h4 class="venue-name">{{ event.venue_name || event.location }}</h4>
-                      <p v-if="event.venue_address" class="venue-address">{{ event.venue_address }}</p>
-                      <a v-if="event.venue_map_url" :href="event.venue_map_url" target="_blank" rel="noopener" class="venue-map-link">
-                        View on Map →
+                      <h4 class="venue-name">{{ event.location?.name || 'Venue' }}</h4>
+                      <p v-if="fullAddress" class="venue-address">{{ fullAddress }}</p>
+                      <a v-if="mapUrl" :href="mapUrl" target="_blank" rel="noopener" class="venue-map-link">
+                        View on Map
                       </a>
                     </div>
                   </div>
-                  <div v-if="event.contact_email || event.contact_phone" class="venue-contact">
+
+                  <!-- Online Event -->
+                  <div v-else-if="event.location_type === 'online'" class="venue-info">
                     <div class="venue-icon">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                     </div>
                     <div>
-                      <h4 class="contact-title">Contact</h4>
-                      <a v-if="event.contact_email" :href="`mailto:${event.contact_email}`" class="contact-link">{{ event.contact_email }}</a>
-                      <a v-if="event.contact_phone" :href="`tel:${event.contact_phone}`" class="contact-link">{{ event.contact_phone }}</a>
+                      <h4 class="venue-name">{{ platformLabel }}</h4>
+                      <p v-if="event.location?.instructions" class="venue-address">{{ event.location.instructions }}</p>
+                      <p class="venue-note">Join link will be provided after registration</p>
+                    </div>
+                  </div>
+
+                  <!-- Organizer Info -->
+                  <div v-if="event.organizer_name" class="venue-contact">
+                    <div class="venue-icon">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 class="contact-title">Organized by</h4>
+                      <p class="organizer-name">{{ event.organizer_name }}</p>
+                      <p v-if="event.organizer_description" class="organizer-desc">{{ event.organizer_description }}</p>
                     </div>
                   </div>
                 </div>
@@ -207,11 +212,10 @@
               :to="`/app/events/${re.slug}`"
               class="related-card"
             >
-              <div class="related-image" :style="re.hero_image_url ? { backgroundImage: `url('${re.hero_image_url}')` } : {}"></div>
+              <div class="related-image" :style="re.image_url ? { backgroundImage: `url('${re.image_url}')` } : {}"></div>
               <div class="related-content">
                 <h3 class="related-title">{{ re.name }}</h3>
-                <p class="related-date">{{ formatDate(re.date) }}</p>
-                <p class="related-price">${{ re.price }}</p>
+                <p class="related-date">{{ formatRelatedDate(re.starts_at) }}</p>
               </div>
             </NuxtLink>
           </div>
@@ -232,13 +236,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <img :src="event.gallery_images[galleryIndex]" alt="Gallery" class="modal-image" />
-            <button v-if="galleryIndex < event.gallery_images.length - 1" class="modal-nav next" @click="galleryIndex++">
+            <img :src="galleryImages[galleryIndex]" alt="Gallery" class="modal-image" />
+            <button v-if="galleryIndex < galleryImages.length - 1" class="modal-nav next" @click="galleryIndex++">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <div class="modal-counter">{{ galleryIndex + 1 }} / {{ event.gallery_images.length }}</div>
+            <div class="modal-counter">{{ galleryIndex + 1 }} / {{ galleryImages.length }}</div>
           </div>
         </Transition>
       </Teleport>
@@ -255,6 +259,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { formatDate, formatTime } from '~/utils/dateTime'
+import { formatLocation, formatFullAddress, buildMapUrl, getPlatformLabel } from '~/utils/location'
 
 definePageMeta({
   layout: 'public'
@@ -277,33 +283,86 @@ const galleryIndex = ref(0)
 // Computed
 const isSeatedEvent = computed(() => event.value?.seating_type === 'seated')
 const hasTiers = computed(() => tiers.value.length > 0)
-const hasEarlyBird = computed(() => tiers.value.some(t => t.is_early_bird))
 
 const heroBackground = computed(() => {
-  if (event.value?.hero_image_url) {
-    return { backgroundImage: `url('${event.value.hero_image_url}')` }
+  if (event.value?.image_url) {
+    return { backgroundImage: `url('${event.value.image_url}')` }
   }
   return {}
 })
 
+const truncatedDescription = computed(() => {
+  if (!event.value?.description) return ''
+  const maxLength = 200
+  if (event.value.description.length <= maxLength) return event.value.description
+  return event.value.description.substring(0, maxLength).trim() + '...'
+})
+
+const formattedDate = computed(() => {
+  if (!event.value?.starts_at) return ''
+  return formatDate(event.value.starts_at, event.value.timezone)
+})
+
+const formattedTime = computed(() => {
+  if (!event.value?.starts_at) return ''
+  return formatTime(event.value.starts_at, event.value.timezone)
+})
+
+const formattedLocation = computed(() => {
+  return formatLocation(event.value?.location_type, event.value?.location)
+})
+
+const galleryImages = computed(() => {
+  const images = []
+  if (event.value?.image_url) {
+    images.push(event.value.image_url)
+  }
+  if (event.value?.media?.images) {
+    images.push(...event.value.media.images)
+  }
+  return images
+})
+
+const youtubeEmbedUrl = computed(() => {
+  const url = event.value?.media?.youtube
+  if (!url) return ''
+
+  // Extract video ID from various YouTube URL formats
+  let videoId = ''
+  if (url.includes('youtube.com/watch')) {
+    const urlParams = new URL(url).searchParams
+    videoId = urlParams.get('v')
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1]?.split('?')[0]
+  } else if (url.includes('youtube.com/embed/')) {
+    videoId = url.split('youtube.com/embed/')[1]?.split('?')[0]
+  }
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : ''
+})
+
+const activeTiers = computed(() => {
+  return tiers.value.filter(t => t.is_active && !t.is_hidden)
+})
+
 const lowestTierPrice = computed(() => {
-  if (!hasTiers.value) return null
-  return Math.min(...tiers.value.map(t => Number(t.current_price)))
+  if (!activeTiers.value.length) return null
+  return Math.min(...activeTiers.value.map(t => Number(t.price)))
 })
 
 const displayPrice = computed(() => {
-  if (hasTiers.value) return lowestTierPrice.value.toFixed(2)
-  return Number(event.value?.price || 0).toFixed(2)
+  if (lowestTierPrice.value !== null) return lowestTierPrice.value.toFixed(2)
+  return '0.00'
 })
 
 const pricingLabel = computed(() => {
-  if (isSeatedEvent.value || hasTiers.value) return 'From'
+  if (isSeatedEvent.value || activeTiers.value.length > 1) return 'From'
   return 'Per ticket'
 })
 
 const ctaButtonText = computed(() => {
   if (isSeatedEvent.value) return 'Select Seats'
-  return event.value?.hero_cta_text || 'Get Tickets'
+  return 'Get Tickets'
 })
 
 const blockedMessage = computed(() => {
@@ -317,9 +376,23 @@ const blockedMessage = computed(() => {
   return messages[reason] || 'Not Available'
 })
 
-const hasVenueInfo = computed(() => {
-  return event.value?.venue_name || event.value?.venue_address ||
-         event.value?.contact_email || event.value?.contact_phone
+const hasLocationInfo = computed(() => {
+  return event.value?.location || event.value?.organizer_name
+})
+
+const fullAddress = computed(() => {
+  if (!event.value?.location) return ''
+  return formatFullAddress(event.value.location)
+})
+
+const mapUrl = computed(() => {
+  if (!event.value?.location) return ''
+  return buildMapUrl(event.value.location)
+})
+
+const platformLabel = computed(() => {
+  if (!event.value?.location?.platform) return 'Online Event'
+  return getPlatformLabel(event.value.location.platform)
 })
 
 // Methods
@@ -344,32 +417,12 @@ const openGallery = (index) => {
   galleryOpen.value = true
 }
 
-const getIconEmoji = (iconName) => {
-  const map = {
-    utensils: '🍽️', music: '🎵', gift: '🎁', star: '⭐', heart: '❤️',
-    camera: '📷', users: '👥', clock: '🕐', calendar: '📅', map: '🗺️',
-    drink: '🍸', wine: '🍷', dance: '💃', microphone: '🎤', award: '🏆',
-    ticket: '🎟️', car: '🚗', parking: '🅿️', wifi: '📶', coffee: '☕'
-  }
-  return map[iconName?.toLowerCase()] || '✨'
-}
-
-const formatDate = (dateStr) => {
+const formatRelatedDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+    day: 'numeric'
   })
-}
-
-const formatTime = (timeStr) => {
-  if (!timeStr) return ''
-  const [h, m] = timeStr.split(':')
-  const hour = parseInt(h)
-  const ampm = hour >= 12 ? 'PM' : 'AM'
-  const hour12 = hour % 12 || 12
-  return `${hour12}:${m} ${ampm}`
 }
 
 // Data fetching
@@ -696,117 +749,21 @@ onMounted(fetchEvent)
   border-radius: var(--radius);
 }
 
-.prose {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--color-text-light);
-}
-
-.prose :deep(p) { margin-bottom: 16px; }
-.prose :deep(ul), .prose :deep(ol) { margin-bottom: 16px; padding-left: 24px; }
-.prose :deep(li) { margin-bottom: 8px; }
-.prose :deep(strong) { color: var(--color-text); font-weight: 600; }
-
-/* Highlights */
-.highlights-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.highlight-card {
-  background: var(--color-bg-alt);
-  padding: 20px 16px;
-  border-radius: var(--radius);
-  text-align: center;
-}
-
-.highlight-icon {
-  display: block;
-  font-size: 28px;
-  margin-bottom: 12px;
-}
-
-.highlight-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 6px;
-}
-
-.highlight-desc {
-  font-size: 13px;
-  color: var(--color-text-light);
-  line-height: 1.4;
-}
-
-/* Schedule */
-.schedule-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.schedule-item {
-  display: grid;
-  grid-template-columns: 70px 24px 1fr;
-  gap: 0;
-  align-items: flex-start;
-}
-
-.schedule-time {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary);
-  padding-top: 2px;
-  text-align: right;
-  padding-right: 12px;
-}
-
-.schedule-dot {
+/* Video Section */
+.video-wrapper {
   position: relative;
-  display: flex;
-  justify-content: center;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
 }
 
-.schedule-dot::before {
-  content: '';
-  width: 10px;
-  height: 10px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  margin-top: 6px;
-}
-
-.schedule-dot::after {
-  content: '';
+.video-wrapper iframe {
   position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: calc(100% + 20px);
-  background: var(--color-border);
-}
-
-.schedule-item:last-child .schedule-dot::after {
-  display: none;
-}
-
-.schedule-content {
-  padding: 0 0 32px 12px;
-}
-
-.schedule-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.schedule-desc {
-  font-size: 14px;
-  color: var(--color-text-light);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Gallery */
@@ -935,6 +892,12 @@ onMounted(fetchEvent)
   margin-bottom: 8px;
 }
 
+.venue-note {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .venue-map-link {
   font-size: 14px;
   font-weight: 500;
@@ -942,12 +905,15 @@ onMounted(fetchEvent)
   text-decoration: none;
 }
 
-.contact-link {
-  display: block;
+.organizer-name {
   font-size: 14px;
-  color: var(--color-primary);
-  text-decoration: none;
+  color: var(--color-text);
   margin-bottom: 4px;
+}
+
+.organizer-desc {
+  font-size: 13px;
+  color: var(--color-text-light);
 }
 
 /* Related Events */
@@ -1009,13 +975,6 @@ onMounted(fetchEvent)
 .related-date {
   font-size: 13px;
   color: var(--color-text-light);
-  margin-bottom: 8px;
-}
-
-.related-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-primary);
 }
 
 /* Gallery Modal */
@@ -1150,14 +1109,6 @@ onMounted(fetchEvent)
     min-width: auto;
   }
 
-  .highlights-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .highlight-card {
-    padding: 24px 16px;
-  }
-
   .gallery-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
@@ -1222,10 +1173,6 @@ onMounted(fetchEvent)
   .about-grid {
     flex-direction: row;
     gap: 48px;
-  }
-
-  .about-grid.reversed {
-    flex-direction: row-reverse;
   }
 
   .about-text {

@@ -1,6 +1,14 @@
 /**
  * Events composable
  * Handles all event-related API operations
+ *
+ * Event fields:
+ * - name, description, image
+ * - starts_at, ends_at, timezone
+ * - location_type ('venue' | 'online'), location (object)
+ * - media ({ images: [], videos: [] })
+ * - organizer_name, organizer_description
+ * - faq_items, is_private, show_remaining
  */
 export const useEvents = () => {
   const { get, post, put, del, upload } = useApi()
@@ -91,14 +99,6 @@ export const useEvents = () => {
   }
 
   /**
-   * Toggle registration open/closed
-   * @param {string} slug
-   */
-  const toggleRegistration = async (slug) => {
-    return await post(`/events/${slug}/toggle-registration`)
-  }
-
-  /**
    * Duplicate event
    * @param {string} slug
    */
@@ -107,14 +107,38 @@ export const useEvents = () => {
   }
 
   /**
-   * Upload hero image
+   * Upload event image
    * @param {string} slug
    * @param {File} file
    */
-  const uploadHeroImage = async (slug, file) => {
+  const uploadEventImage = async (slug, file) => {
     const formData = new FormData()
     formData.append('image', file)
-    return await upload(`/events/${slug}/hero-image`, formData)
+    return await upload(`/events/${slug}/image`, formData)
+  }
+
+  /**
+   * Add media to event gallery
+   * @param {string} slug
+   * @param {Object} data - { type: 'image'|'youtube', file?: File, url?: string }
+   */
+  const addMedia = async (slug, data) => {
+    if (data.type === 'image' && data.file) {
+      const formData = new FormData()
+      formData.append('type', 'image')
+      formData.append('file', data.file)
+      return await upload(`/events/${slug}/media`, formData)
+    }
+    return await post(`/events/${slug}/media`, data)
+  }
+
+  /**
+   * Remove media from event gallery
+   * @param {string} slug
+   * @param {Object} data - { type: 'images'|'videos', index: number }
+   */
+  const removeMedia = async (slug, data) => {
+    return await del(`/events/${slug}/media`, data)
   }
 
   /**
@@ -140,9 +164,10 @@ export const useEvents = () => {
     deleteEvent,
     publishEvent,
     closeEvent,
-    toggleRegistration,
     duplicateEvent,
-    uploadHeroImage,
+    uploadEventImage,
+    addMedia,
+    removeMedia,
     getEventOrders
   }
 }

@@ -2,10 +2,10 @@
   <div class="relative h-96 md:h-screen overflow-hidden bg-gradient-to-br from-primary-600 to-primary-900">
     <!-- Background Image -->
     <div
-      v-if="event.hero_image_url"
+      v-if="event.image_url"
       class="absolute inset-0 bg-cover bg-center opacity-40"
       :style="{
-        backgroundImage: `url('${event.hero_image_url}')`
+        backgroundImage: `url('${event.image_url}')`
       }"
     />
 
@@ -26,10 +26,10 @@
         </div>
 
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          {{ event.hero_title || event.name }}
+          {{ event.name }}
         </h1>
-        <p class="text-xl md:text-2xl text-gray-100 mb-8 drop-shadow-md">
-          {{ event.hero_subtitle || event.description }}
+        <p v-if="truncatedDescription" class="text-xl md:text-2xl text-gray-100 mb-8 drop-shadow-md">
+          {{ truncatedDescription }}
         </p>
 
         <!-- Event Meta -->
@@ -38,22 +38,22 @@
             <span class="text-2xl">📅</span>
             <div class="text-left">
               <p class="text-sm opacity-80">Date & Time</p>
-              <p class="font-semibold">{{ formatDate(event.date) }} at {{ event.time }}</p>
+              <p class="font-semibold">{{ formattedDateTime }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-2xl">📍</span>
+            <span class="text-2xl">{{ event.location_type === 'online' ? '💻' : '📍' }}</span>
             <div class="text-left">
-              <p class="text-sm opacity-80">Location</p>
-              <p class="font-semibold">{{ event.location }}</p>
+              <p class="text-sm opacity-80">{{ event.location_type === 'online' ? 'Online Event' : 'Location' }}</p>
+              <p class="font-semibold">{{ formattedLocation }}</p>
             </div>
           </div>
         </div>
 
         <!-- Ticket Info -->
-        <div class="inline-block bg-white bg-opacity-10 backdrop-blur-sm rounded-xl px-8 py-4 border border-white border-opacity-20">
+        <div v-if="lowestPrice !== null" class="inline-block bg-white bg-opacity-10 backdrop-blur-sm rounded-xl px-8 py-4 border border-white border-opacity-20">
           <p class="text-gray-200 text-sm mb-1">Starting at</p>
-          <p class="text-4xl font-bold text-white">${{ event.price }}</p>
+          <p class="text-4xl font-bold text-white">${{ formatPrice(lowestPrice) }}</p>
         </div>
       </div>
     </div>
@@ -66,19 +66,48 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+import { formatEventDateTime } from '~/utils/dateTime'
+import { formatLocation } from '~/utils/location'
+
+const props = defineProps({
   event: {
     type: Object,
     required: true
+  },
+  tiers: {
+    type: Array,
+    default: () => []
   }
 })
 
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  })
+const truncatedDescription = computed(() => {
+  if (!props.event.description) return ''
+  const maxLength = 150
+  if (props.event.description.length <= maxLength) return props.event.description
+  return props.event.description.substring(0, maxLength).trim() + '...'
+})
+
+const formattedDateTime = computed(() => {
+  return formatEventDateTime(
+    props.event.starts_at,
+    props.event.ends_at,
+    props.event.timezone
+  )
+})
+
+const formattedLocation = computed(() => {
+  return formatLocation(props.event.location_type, props.event.location)
+})
+
+const lowestPrice = computed(() => {
+  if (!props.tiers || props.tiers.length === 0) return null
+  const activeTiers = props.tiers.filter(t => t.is_active && !t.is_hidden)
+  if (activeTiers.length === 0) return null
+  return Math.min(...activeTiers.map(t => Number(t.price)))
+})
+
+const formatPrice = (price) => {
+  return Number(price).toFixed(2)
 }
 </script>

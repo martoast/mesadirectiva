@@ -26,7 +26,7 @@
 
     <!-- Tier List -->
     <div v-else class="space-y-3">
-      <TicketTierCard
+      <PublicTicketTierCard
         v-for="tier in sortedTiers"
         :key="tier.id"
         :tier="tier"
@@ -47,6 +47,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   tiers: {
     type: Array,
@@ -78,7 +80,7 @@ const sortedTiers = computed(() => {
     if (a.sort_order !== b.sort_order) {
       return (a.sort_order || 0) - (b.sort_order || 0)
     }
-    return (a.current_price || 0) - (b.current_price || 0)
+    return (a.price || 0) - (b.price || 0)
   })
 })
 
@@ -106,7 +108,7 @@ const totalAmount = computed(() => {
   return Object.entries(props.selections).reduce((sum, [tierId, qty]) => {
     const tier = props.tiers.find(t => t.id === Number(tierId))
     if (tier) {
-      return sum + (qty * (tier.current_price || 0))
+      return sum + (qty * (tier.price || 0))
     }
     return sum
   }, 0)

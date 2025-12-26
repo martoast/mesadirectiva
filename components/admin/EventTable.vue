@@ -6,9 +6,9 @@
           <th class="col-name">Event</th>
           <th class="col-group">Group</th>
           <th class="col-date">Date</th>
-          <th class="col-price">Price</th>
+          <th class="col-location">Location</th>
           <th class="col-status">Status</th>
-          <th class="col-tickets">Tickets</th>
+          <th class="col-sales">Sales</th>
           <th class="col-actions">Actions</th>
         </tr>
       </thead>
@@ -17,7 +17,9 @@
           <td class="col-name">
             <NuxtLink :to="`/app/admin/events/${event.slug}`" class="event-name-link">
               <span class="event-name">{{ event.name }}</span>
-              <span class="event-location" v-if="event.location">{{ event.location }}</span>
+              <span class="event-type">
+                {{ event.seating_type === 'seated' ? 'Seated' : 'General Admission' }}
+              </span>
             </NuxtLink>
           </td>
           <td class="col-group">
@@ -29,12 +31,22 @@
           </td>
           <td class="col-date">
             <div class="date-cell">
-              <span class="date-day">{{ formatDay(event.date) }}</span>
-              <span class="date-full">{{ formatDate(event.date) }}</span>
+              <span class="date-day">{{ formatDay(event.starts_at) }}</span>
+              <span class="date-full">{{ formatMonthYear(event.starts_at) }}</span>
+              <span class="date-time">{{ formatTime(event.starts_at) }}</span>
             </div>
           </td>
-          <td class="col-price">
-            <span class="price-text">${{ formatPrice(event.price) }}</span>
+          <td class="col-location">
+            <div class="location-cell">
+              <svg v-if="event.location_type === 'online'" class="location-icon online" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <svg v-else class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="location-text">{{ formatLocationShort(event) }}</span>
+            </div>
           </td>
           <td class="col-status">
             <span :class="['status-badge', event.status]">
@@ -42,17 +54,10 @@
               {{ statusLabel(event.status) }}
             </span>
           </td>
-          <td class="col-tickets">
-            <div class="tickets-cell">
-              <div class="tickets-numbers">
-                <span class="tickets-sold">{{ event.tickets_sold }}</span>
-                <span class="tickets-separator">/</span>
-                <span class="tickets-total">{{ event.max_tickets }}</span>
-              </div>
-              <div class="tickets-progress">
-                <div class="tickets-bar" :style="{ width: ticketPercent(event) + '%' }"></div>
-              </div>
-              <span class="tickets-percent">{{ ticketPercent(event) }}%</span>
+          <td class="col-sales">
+            <div class="sales-cell">
+              <span class="sales-count">{{ event.tickets_sold || 0 }}</span>
+              <span class="sales-revenue">${{ (event.total_revenue || 0).toLocaleString() }}</span>
             </div>
           </td>
           <td class="col-actions">
@@ -92,6 +97,8 @@
 </template>
 
 <script setup>
+import { getPlatformLabel } from '~/utils/location'
+
 const props = defineProps({
   events: {
     type: Array,
@@ -123,20 +130,31 @@ const canManage = (event) => {
 }
 
 const formatDay = (dateStr) => {
+  if (!dateStr) return '—'
   const date = new Date(dateStr)
   return date.getDate()
 }
 
-const formatDate = (dateStr) => {
+const formatMonthYear = (dateStr) => {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    year: 'numeric'
-  })
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-const formatPrice = (price) => {
-  return parseFloat(price).toFixed(2)
+const formatTime = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+const formatLocationShort = (event) => {
+  if (event.location_type === 'online') {
+    return getPlatformLabel(event.location?.platform) || 'Online'
+  }
+  if (event.location?.city) {
+    return event.location.state ? `${event.location.city}, ${event.location.state}` : event.location.city
+  }
+  return event.location?.name || 'Venue'
 }
 
 const statusLabel = (status) => {
@@ -147,20 +165,10 @@ const statusLabel = (status) => {
   }
   return labels[status] || status
 }
-
-const ticketPercent = (event) => {
-  if (!event.max_tickets) return 0
-  return Math.min(100, Math.round((event.tickets_sold / event.max_tickets) * 100))
-}
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .event-table {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-  /* Colors */
   --color-text: #09090b;
   --color-text-secondary: #3f3f46;
   --color-text-tertiary: #71717a;
@@ -169,12 +177,7 @@ const ticketPercent = (event) => {
   --color-border-subtle: #f4f4f5;
   --color-hover: rgba(0, 0, 0, 0.02);
   --color-hover-strong: rgba(0, 0, 0, 0.04);
-
-  /* Accent */
   --color-accent: #6366f1;
-  --color-accent-subtle: rgba(99, 102, 241, 0.08);
-
-  /* Status */
   --color-success: #22c55e;
   --color-success-bg: rgba(34, 197, 94, 0.1);
   --color-warning: #f59e0b;
@@ -182,9 +185,7 @@ const ticketPercent = (event) => {
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.1);
 
-  font-family: var(--font-sans);
   overflow-x: auto;
-  -webkit-font-smoothing: antialiased;
 }
 
 table {
@@ -209,13 +210,8 @@ th {
   border-bottom: 1px solid var(--color-border);
 }
 
-th:first-child {
-  padding-left: 20px;
-}
-
-th:last-child {
-  padding-right: 20px;
-}
+th:first-child { padding-left: 20px; }
+th:last-child { padding-right: 20px; }
 
 /* Body rows */
 tbody tr {
@@ -225,19 +221,10 @@ tbody tr {
   opacity: 0;
 }
 
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
+@keyframes fadeIn { to { opacity: 1; } }
 
-tbody tr:hover {
-  background: var(--color-hover-strong);
-}
-
-tbody tr:not(:last-child) {
-  border-bottom: 1px solid var(--color-border-subtle);
-}
+tbody tr:hover { background: var(--color-hover-strong); }
+tbody tr:not(:last-child) { border-bottom: 1px solid var(--color-border-subtle); }
 
 td {
   padding: 16px;
@@ -246,13 +233,8 @@ td {
   vertical-align: middle;
 }
 
-td:first-child {
-  padding-left: 20px;
-}
-
-td:last-child {
-  padding-right: 20px;
-}
+td:first-child { padding-left: 20px; }
+td:last-child { padding-right: 20px; }
 
 /* Event Name Column */
 .event-name-link {
@@ -260,7 +242,6 @@ td:last-child {
   flex-direction: column;
   gap: 2px;
   text-decoration: none;
-  transition: all 0.15s ease;
 }
 
 .event-name {
@@ -274,13 +255,9 @@ td:last-child {
   color: var(--color-accent);
 }
 
-.event-location {
-  font-size: 12px;
+.event-type {
+  font-size: 11px;
   color: var(--color-text-muted);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Group */
@@ -330,12 +307,36 @@ td:last-child {
   letter-spacing: 0.03em;
 }
 
-/* Price */
-.price-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  font-variant-numeric: tabular-nums;
+.date-time {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+/* Location */
+.location-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.location-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.location-icon.online {
+  color: var(--color-accent);
+}
+
+.location-text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Status */
@@ -357,96 +358,38 @@ td:last-child {
   flex-shrink: 0;
 }
 
-.status-badge.draft {
-  color: #b45309;
-  background: var(--color-warning-bg);
-}
+.status-badge.draft { color: #b45309; background: var(--color-warning-bg); }
+.status-badge.draft .status-indicator { background: var(--color-warning); }
 
-.status-badge.draft .status-indicator {
-  background: var(--color-warning);
-}
+.status-badge.live { color: #16a34a; background: var(--color-success-bg); }
+.status-badge.live .status-indicator { background: var(--color-success); animation: pulse 2s infinite; }
 
-.status-badge.live {
-  color: #16a34a;
-  background: var(--color-success-bg);
-}
-
-.status-badge.live .status-indicator {
-  background: var(--color-success);
-  animation: pulse 2s infinite;
-}
-
-.status-badge.closed {
-  color: var(--color-text-tertiary);
-  background: var(--color-border-subtle);
-}
-
-.status-badge.closed .status-indicator {
-  background: var(--color-text-muted);
-}
+.status-badge.closed { color: var(--color-text-tertiary); background: var(--color-border-subtle); }
+.status-badge.closed .status-indicator { background: var(--color-text-muted); }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
 }
 
-/* Tickets */
-.tickets-cell {
+/* Sales */
+.sales-cell {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 100px;
-}
-
-.tickets-numbers {
-  display: flex;
-  align-items: baseline;
   gap: 2px;
 }
 
-.tickets-sold {
+.sales-count {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
-.tickets-separator {
-  color: var(--color-text-muted);
-  font-size: 12px;
-}
-
-.tickets-total {
-  font-size: 12px;
+.sales-revenue {
+  font-size: 11px;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
-}
-
-.tickets-progress {
-  width: 100%;
-  height: 4px;
-  background: var(--color-border-subtle);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.tickets-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent) 0%, #818cf8 100%);
-  border-radius: 2px;
-  transition: width 0.4s ease;
-}
-
-.tickets-percent {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-muted);
 }
 
 /* Actions */
@@ -501,11 +444,11 @@ td:last-child {
 }
 
 /* Column widths */
-.col-name { min-width: 220px; }
-.col-group { min-width: 130px; }
-.col-date { min-width: 80px; }
-.col-price { min-width: 80px; }
-.col-status { min-width: 100px; }
-.col-tickets { min-width: 120px; }
-.col-actions { min-width: 150px; }
+.col-name { min-width: 200px; }
+.col-group { min-width: 120px; }
+.col-date { min-width: 90px; }
+.col-location { min-width: 140px; }
+.col-status { min-width: 90px; }
+.col-sales { min-width: 80px; }
+.col-actions { min-width: 140px; }
 </style>

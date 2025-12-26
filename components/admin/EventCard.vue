@@ -10,10 +10,13 @@
         <span v-if="event.group" class="group-tag" :style="{ '--group-color': event.group.color || '#6366f1' }">
           {{ event.group.name }}
         </span>
+        <span :class="['type-tag', event.seating_type]">
+          {{ event.seating_type === 'seated' ? 'Seated' : 'GA' }}
+        </span>
       </div>
       <div class="date-badge">
-        <span class="date-day">{{ formatDay(event.date) }}</span>
-        <span class="date-month">{{ formatMonth(event.date) }}</span>
+        <span class="date-day">{{ formatDay(event.starts_at) }}</span>
+        <span class="date-month">{{ formatMonth(event.starts_at) }}</span>
       </div>
     </div>
 
@@ -21,12 +24,21 @@
     <NuxtLink :to="`/app/admin/events/${event.slug}`" class="card-content">
       <h3 class="event-title">{{ event.name }}</h3>
       <div class="event-meta">
-        <div class="meta-item" v-if="event.location">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="meta-item">
+          <svg v-if="event.location_type === 'online'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span>{{ event.location }}</span>
+          <span>{{ formatLocationShort() }}</span>
+        </div>
+        <div class="meta-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{ formatTime(event.starts_at) }}</span>
         </div>
       </div>
     </NuxtLink>
@@ -34,22 +46,13 @@
     <!-- Stats Row -->
     <div class="stats-row">
       <div class="stat-item">
-        <span class="stat-label">Price</span>
-        <span class="stat-value">${{ formatPrice(event.price) }}</span>
+        <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats' : 'Tickets' }} Sold</span>
+        <span class="stat-value">{{ event.tickets_sold || 0 }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-label">Tickets</span>
-        <div class="tickets-display">
-          <span class="stat-value">{{ event.tickets_sold }}</span>
-          <span class="tickets-max">/ {{ event.max_tickets }}</span>
-        </div>
-      </div>
-      <div class="stat-item tickets-progress-container">
-        <div class="tickets-progress">
-          <div class="tickets-bar" :style="{ width: ticketPercent() + '%' }"></div>
-        </div>
-        <span class="tickets-percent">{{ ticketPercent() }}%</span>
+        <span class="stat-label">Revenue</span>
+        <span class="stat-value">${{ (event.total_revenue || 0).toLocaleString() }}</span>
       </div>
     </div>
 
@@ -94,6 +97,8 @@
 </template>
 
 <script setup>
+import { getPlatformLabel } from '~/utils/location'
+
 const props = defineProps({
   event: {
     type: Object,
@@ -125,17 +130,32 @@ const canManage = () => {
 }
 
 const formatDay = (dateStr) => {
+  if (!dateStr) return '—'
   const date = new Date(dateStr)
   return date.getDate()
 }
 
 const formatMonth = (dateStr) => {
+  if (!dateStr) return ''
   const date = new Date(dateStr)
   return date.toLocaleDateString('en-US', { month: 'short' })
 }
 
-const formatPrice = (price) => {
-  return parseFloat(price).toFixed(2)
+const formatTime = (dateStr) => {
+  if (!dateStr) return '—'
+  const date = new Date(dateStr)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+const formatLocationShort = () => {
+  const e = props.event
+  if (e.location_type === 'online') {
+    return getPlatformLabel(e.location?.platform) || 'Online'
+  }
+  if (e.location?.city) {
+    return e.location.state ? `${e.location.city}, ${e.location.state}` : e.location.city
+  }
+  return e.location?.name || 'Venue'
 }
 
 const statusLabel = (status) => {
@@ -146,20 +166,10 @@ const statusLabel = (status) => {
   }
   return labels[status] || status
 }
-
-const ticketPercent = () => {
-  if (!props.event.max_tickets) return 0
-  return Math.min(100, Math.round((props.event.tickets_sold / props.event.max_tickets) * 100))
-}
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .event-card {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-  /* Colors */
   --color-text: #09090b;
   --color-text-secondary: #3f3f46;
   --color-text-tertiary: #71717a;
@@ -167,12 +177,7 @@ const ticketPercent = () => {
   --color-bg: #ffffff;
   --color-border: #e4e4e7;
   --color-border-subtle: #f4f4f5;
-
-  /* Accent */
   --color-accent: #6366f1;
-  --color-accent-subtle: rgba(99, 102, 241, 0.08);
-
-  /* Status */
   --color-success: #22c55e;
   --color-success-bg: rgba(34, 197, 94, 0.1);
   --color-warning: #f59e0b;
@@ -180,13 +185,11 @@ const ticketPercent = () => {
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.1);
 
-  font-family: var(--font-sans);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 16px;
   transition: all 0.2s ease;
-  -webkit-font-smoothing: antialiased;
 }
 
 .event-card:hover {
@@ -256,14 +259,8 @@ const ticketPercent = () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.2);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
 }
 
 /* Group Tag */
@@ -275,6 +272,27 @@ const ticketPercent = () => {
   color: var(--group-color, #6366f1);
   background: color-mix(in srgb, var(--group-color, #6366f1) 10%, transparent);
   border-radius: 6px;
+}
+
+/* Type Tag */
+.type-tag {
+  display: inline-flex;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.type-tag.seated {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.type-tag.general_admission {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
 }
 
 /* Date Badge */
@@ -327,8 +345,8 @@ const ticketPercent = () => {
 
 .event-meta {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .meta-item {
@@ -350,7 +368,7 @@ const ticketPercent = () => {
 .stats-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 14px;
   padding: 12px;
   background: var(--color-border-subtle);
@@ -384,48 +402,6 @@ const ticketPercent = () => {
   background: var(--color-border);
 }
 
-.tickets-display {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-}
-
-.tickets-max {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-}
-
-.tickets-progress-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.tickets-progress {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.tickets-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent) 0%, #818cf8 100%);
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-.tickets-percent {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-tertiary);
-  text-align: right;
-}
-
 /* Actions */
 .card-actions {
   display: flex;
@@ -441,7 +417,6 @@ const ticketPercent = () => {
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 600;
-  font-family: var(--font-sans);
   color: var(--color-text-secondary);
   background: var(--color-border-subtle);
   border: 1px solid transparent;

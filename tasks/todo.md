@@ -1,223 +1,258 @@
-# Rename "Categories" to "Groups" - Frontend Migration Plan
+# Frontend Update: Simplified Event System
 
-## Overview
-The API has been updated to rename "categories" to "groups". This plan covers all frontend files that need to be updated to match.
-
----
-
-## 1. Composables (API Layer)
-
-### 1.1 Rename composable file
-- [ ] `composables/useCategories.js` → `composables/useGroups.js`
-  - Rename function `useCategories` → `useGroups`
-  - Update all API endpoints: `/categories` → `/groups`
-  - Rename all functions: `getCategories` → `getGroups`, `getCategory` → `getGroup`, etc.
-
-### 1.2 Update useUsers.js
-- [ ] `composables/useUsers.js`
-  - Line 50-55: Rename `assignCategories` → `assignGroups`
-  - Update endpoint: `/users/${id}/categories` → `/users/${id}/groups`
-  - Update param name: `categories` → `groups`
-
-### 1.3 Update useAuth.js
-- [ ] `composables/useAuth.js`
-  - Line 56, 91, 95: Update comments from "categories" to "groups"
-  - Line 169: Rename `userCategories` → `userGroups` and update `user.value?.categories` → `user.value?.groups`
-
-### 1.4 Update useProfile.js
-- [ ] `composables/useProfile.js`
-  - Line 9: Update comment from "categories" to "groups"
-
-### 1.5 Update useEvents.js
-- [ ] `composables/useEvents.js`
-  - Line 38: Update param comment `category_id` → `group_id`
-
-### 1.6 Update useReports.js
-- [ ] `composables/useReports.js`
-  - Lines 10, 18, 27, 35: Update param comments `category_id` → `group_id`
+This document outlines the implementation plan for updating the frontend to match the new simplified event API.
 
 ---
 
-## 2. Pages - Admin Section
+## Phase 1: Composables & API Layer
 
-### 2.1 Rename categories page directory
-- [ ] `pages/app/admin/categories/` → `pages/app/admin/groups/`
-  - Rename `index.vue` and update all internal references
-  - Update page title, labels, error messages
-  - Update CSS class names: `.categories-page` → `.groups-page`, `.categories-grid` → `.groups-grid`
-  - Update `useCategories()` → `useGroups()`
-  - Update response handling: `response.categories` → `response.groups`
+### 1.1 Update `composables/useEvents.js`
+- [ ] Remove `toggleRegistration` method (endpoint removed)
+- [ ] Rename `uploadHeroImage` to `uploadEventImage` (endpoint changed from `/hero-image` to `/image`)
+- [ ] Add `addMedia(slug, data)` method for `POST /events/{slug}/media`
+- [ ] Add `removeMedia(slug, data)` method for `DELETE /events/{slug}/media`
+- [ ] Update JSDoc comments to reflect new field names
 
-### 2.2 Update admin layout
-- [ ] `layouts/admin.vue`
-  - Line 27: Update route `/app/admin/categories` → `/app/admin/groups`
-  - Line 27: Update link text "Categories" → "Groups"
-  - Line 114: Update mobile menu route and text
-
-### 2.3 Update events pages
-- [ ] `pages/app/admin/events/index.vue`
-  - Line 114: Update loop variable and display
-  - Line 284: Rename `categories` ref → `groups`
-  - Line 338: Update `response.categories` → `response.groups`
-  - Line 359: Update `category_id` param → `group_id`
-  - Update `useCategories()` → `useGroups()`
-
-- [ ] `pages/app/admin/events/create.vue`
-  - Line 76-78: Update category dropdown to group
-  - Line 589: Rename form field `category_id` → `group_id`
-  - Line 751: Update form submission
-  - Line 832: Update response handling
-  - Update `useCategories()` → `useGroups()`
-
-- [ ] `pages/app/admin/events/[slug]/edit.vue`
-  - Line 60-64: Update dropdown
-  - Line 533: Rename ref
-  - Line 549: Update form field `category_id` → `group_id`
-  - Line 626, 632: Update API calls and response
-  - Line 639: Update form population
-  - Update `useCategories()` → `useGroups()`
-
-- [ ] `pages/app/admin/events/[slug]/index.vue`
-  - Check for any category references and update
-
-### 2.4 Update users pages
-- [ ] `pages/app/admin/users/index.vue`
-  - Line 82: Update column header "Categories" → "Groups"
-  - Lines 110-124: Update `user.categories` → `user.groups`
-  - Lines 210-223: Update mobile card category display
-  - Line 836: Update CSS `.no-categories` → `.no-groups`
-  - Line 1047: Update CSS `.col-categories` → `.col-groups`
-
-- [ ] `pages/app/admin/users/[id].vue`
-  - Lines 109-153: Update all category references to groups
-  - Line 195: Rename `categories` ref → `groups`
-  - Lines 222-243: Update API calls and response handling
-  - Update `useCategories()` → `useGroups()`
-  - Update `assignCategories()` → `assignGroups()`
-
-- [ ] `pages/app/admin/users/create.vue`
-  - Lines 76-77, 97-110: Update labels and help text
-  - Line 181: Rename ref
-  - Lines 206-208: Update response handling
-  - Update composable imports
-
-### 2.5 Update reports pages
-- [ ] `pages/app/admin/reports/sales.vue`
-  - Line 34: Update dropdown
-  - Line 160: Rename ref
-  - Line 177: Update param `category_id` → `group_id`
-  - Lines 185-190: Update API calls
-  - Update `useCategories()` → `useGroups()`
-
-- [ ] `pages/app/admin/reports/orders.vue`
-  - Line 34: Update dropdown
-  - Line 164: Rename ref
-  - Line 181: Update param `category_id` → `group_id`
-  - Lines 190-195: Update API calls
-  - Update `useCategories()` → `useGroups()`
-
-### 2.6 Update account page
-- [ ] `pages/app/admin/account/index.vue`
-  - Line 85: Update text "categories" → "groups"
-  - Lines 89-91: Update `profile.categories` → `profile.groups`
+### 1.2 Update `composables/useTicketTiers.js`
+- [ ] Update `createTicketTier` JSDoc with new fields:
+  - `quantity` (renamed from `max_quantity`)
+  - `sales_start`, `sales_end`
+  - `min_per_order`, `max_per_order`
+  - `show_description`, `is_hidden`
+- [ ] Remove references to `early_bird_price`, `early_bird_deadline`
 
 ---
 
-## 3. Pages - Public Section
+## Phase 2: Event Creation Form (Complete Rewrite)
 
-### 3.1 Update public events pages
-- [ ] `pages/app/events/index.vue`
-  - Line 23: Update loop variable
-  - Line 135: Rename ref
-  - Line 150: Update response handling
-  - Update `useCategories()` → `useGroups()`
+### 2.1 Rewrite `components/admin/EventForm.vue`
 
-- [ ] `pages/app/events/[slug]/index.vue`
-  - Check for category references
+**New 5-step wizard:**
 
-### 3.2 Update app index
-- [ ] `pages/app/index.vue`
-  - Check for category references
+#### Step 1: Basic Info
+- [ ] Event name (required)
+- [ ] Description (rich text editor or textarea)
+- [ ] Main image upload/URL input
+- [ ] Group selection (keep existing)
 
----
+#### Step 2: Date & Time
+- [ ] Start datetime picker (`starts_at`)
+- [ ] End datetime picker (`ends_at`)
+- [ ] Timezone dropdown (default: `America/Los_Angeles`)
+- [ ] Common timezone presets for Mexico
 
-## 4. Components
+#### Step 3: Location
+- [ ] Location type toggle: `venue` | `online`
+- [ ] **Venue fields:**
+  - Name
+  - Address
+  - City
+  - State
+  - Country (default: Mexico)
+  - Postal code
+  - Map URL (optional)
+- [ ] **Online fields:**
+  - Platform (Zoom, Google Meet, Teams, Other)
+  - URL
+  - Instructions
 
-### 4.1 Update EventForm component
-- [ ] `components/admin/EventForm.vue`
-  - Line 23-28: Update form field and dropdown
-  - Line 353: Rename ref
-  - Line 359: Update form field `category_id` → `group_id`
-  - Lines 383-385: Update response handling
-  - Line 395: Update validation
-  - Line 420: Update submission data
-  - Update `useCategories()` → `useGroups()`
+#### Step 4: Tickets (Initial Setup)
+- [ ] Seating type selection (keep: `general_admission` | `seated`)
+- [ ] For general admission: Option to create first tier inline
+- [ ] For seated: Reservation minutes setting
 
-### 4.2 Update EventCard component
-- [ ] `components/admin/EventCard.vue`
-  - Lines 116, 122: Update `category_id` → `group_id`, `event.category` → `event.group`
+#### Step 5: Additional Details (Optional)
+- [ ] Organizer name
+- [ ] Organizer description
+- [ ] Privacy toggle (`is_private`)
+- [ ] Show remaining toggle (`show_remaining`)
+- [ ] FAQ items (add/remove dynamically)
 
-### 4.3 Update EventTable component
-- [ ] `components/admin/EventTable.vue`
-  - Lines 114, 120: Update `category_id` → `group_id`, `event.category` → `event.group`
+### 2.2 Create new helper components
 
-### 4.4 Update EventHero component
-- [ ] `components/public/EventHero.vue`
-  - Check for category display and update
-
----
-
-## 5. Summary of Changes
-
-| Type | Count | Files |
-|------|-------|-------|
-| Composables | 6 | useGroups.js (rename), useUsers.js, useAuth.js, useProfile.js, useEvents.js, useReports.js |
-| Admin Pages | 11 | groups/index.vue (rename), events/*, users/*, reports/*, account/* |
-| Public Pages | 3 | app/index.vue, events/index.vue, events/[slug]/index.vue |
-| Components | 4 | EventForm, EventCard, EventTable, EventHero |
-| Layouts | 1 | admin.vue |
-| **Total** | **25** | |
+- [ ] `components/admin/LocationForm.vue` - Reusable venue/online location form
+- [ ] `components/admin/DateTimePicker.vue` - Combined date+time picker with timezone
+- [ ] `components/admin/MediaGallery.vue` - Image upload + YouTube URL management
+- [ ] `components/admin/FAQEditor.vue` - Dynamic FAQ items editor
 
 ---
 
-## 6. Implementation Order
+## Phase 3: Ticket Tier Form Update
 
-1. **Phase 1 - Composables** (Foundation)
-   - Rename and update useCategories.js → useGroups.js
-   - Update useUsers.js, useAuth.js, useProfile.js, useEvents.js, useReports.js
+### 3.1 Update `components/admin/TicketTierForm.vue`
+- [ ] Replace `early_bird_price` / `early_bird_deadline` with:
+  - `sales_start` datetime picker
+  - `sales_end` datetime picker
+- [ ] Add `min_per_order` field (default: 1)
+- [ ] Add `max_per_order` field (default: 10)
+- [ ] Add `show_description` toggle
+- [ ] Add `is_hidden` toggle
+- [ ] Rename `max_quantity` to `quantity`
+- [ ] Add sales status preview (calculated from dates)
 
-2. **Phase 2 - Components** (Shared UI)
-   - Update EventForm, EventCard, EventTable, EventHero
+### 3.2 Update `components/admin/TicketTierList.vue`
+- [ ] Display `sales_status` badge (on_sale, scheduled, ended, sold_out)
+- [ ] Show `sales_start` / `sales_end` dates
+- [ ] Update sold/available display
 
-3. **Phase 3 - Admin Pages**
-   - Rename categories directory → groups
-   - Update layouts/admin.vue navigation
-   - Update all admin pages (events, users, reports, account)
-
-4. **Phase 4 - Public Pages**
-   - Update public event listing and detail pages
-
-5. **Phase 5 - Testing**
-   - Run build to verify no errors
-   - Test all affected functionality
+### 3.3 Update `pages/app/admin/events/[slug]/tiers.vue`
+- [ ] Handle new tier response fields
+- [ ] Add filtering by sales status (optional)
 
 ---
 
-## 7. Key Renames
+## Phase 4: Event Detail/Edit Pages
 
-| Old | New |
-|-----|-----|
-| `useCategories` | `useGroups` |
-| `getCategories` | `getGroups` |
-| `createCategory` | `createGroup` |
-| `updateCategory` | `updateGroup` |
-| `deleteCategory` | `deleteGroup` |
-| `assignCategories` | `assignGroups` |
-| `userCategories` | `userGroups` |
-| `category_id` | `group_id` |
-| `categories` (ref) | `groups` (ref) |
-| `/categories` (route) | `/groups` (route) |
-| `response.categories` | `response.groups` |
-| `event.category` | `event.group` |
-| `user.categories` | `user.groups` |
-| `profile.categories` | `profile.groups` |
+### 4.1 Update `pages/app/admin/events/[slug]/index.vue`
+- [ ] Display new date format (`starts_at`, `ends_at`, `timezone`)
+- [ ] Display location based on `location_type`
+- [ ] Show organizer info section
+- [ ] Show media gallery
+- [ ] Show FAQ section
+- [ ] Update stats to use `total_tickets_sold`, `total_tickets_available`
+- [ ] Remove references to old fields (`date`, `time`, `price`, etc.)
+
+### 4.2 Update `pages/app/admin/events/[slug]/edit.vue`
+- [ ] Use new EventForm with all fields pre-populated
+- [ ] Handle image upload to new endpoint
+- [ ] Handle media gallery management
+- [ ] Handle FAQ editing
+
+### 4.3 Update `pages/app/admin/events/create.vue`
+- [ ] Use new EventForm component
+- [ ] Handle initial image upload flow
+
+---
+
+## Phase 5: Event List & Cards
+
+### 5.1 Update `components/admin/EventCard.vue`
+- [ ] Display date using `starts_at` instead of `date`
+- [ ] Format: Show both start and end times
+- [ ] Handle venue vs online location display
+- [ ] Update price display (may need to show tier range)
+
+### 5.2 Update `components/admin/EventTable.vue`
+- [ ] Same updates as EventCard
+- [ ] Date column: format `starts_at`
+- [ ] Location column: show venue name or "Online"
+
+### 5.3 Update `pages/app/admin/events/index.vue`
+- [ ] Ensure compatibility with new event response format
+
+---
+
+## Phase 6: Public Event Pages
+
+### 6.1 Update `components/public/EventHero.vue`
+- [ ] Use `starts_at` / `ends_at` instead of `date` / `time`
+- [ ] Format datetime with timezone consideration
+- [ ] Handle `image` field (renamed from `hero_image_url`)
+- [ ] Display location based on `location_type`:
+  - Venue: Show name + address
+  - Online: Show "Online Event" badge
+- [ ] Remove `hero_title`, `hero_subtitle` (use `name`, `description`)
+
+### 6.2 Update `components/public/EventAbout.vue`
+- [ ] Use `description` field (HTML content)
+- [ ] Display organizer info (`organizer_name`, `organizer_description`)
+- [ ] Display FAQ items
+- [ ] Display media gallery (images + YouTube videos)
+
+### 6.3 Update `components/public/TicketTierCard.vue`
+- [ ] Handle new tier fields
+- [ ] Show sales status (scheduled, on sale, ended)
+- [ ] Respect `is_hidden` flag
+- [ ] Display `min_per_order` / `max_per_order` constraints
+
+### 6.4 Update `components/public/TicketTierSelector.vue`
+- [ ] Filter by `is_on_sale` status
+- [ ] Enforce `min_per_order` / `max_per_order` limits
+- [ ] Show "Coming Soon" for scheduled tiers
+- [ ] Show "Sales Ended" for past tiers
+
+### 6.5 Update public event page
+- [ ] Handle `available_ticket_tiers` for purchase flow
+- [ ] Display venue map or online event instructions
+- [ ] Show `show_remaining` conditional display
+
+---
+
+## Phase 7: Utility Functions
+
+### 7.1 Create `utils/dateTime.js`
+- [ ] `formatEventDateTime(startsAt, endsAt, timezone)` - Format date range
+- [ ] `formatTimeRange(startsAt, endsAt)` - Format time only
+- [ ] `getTimezoneLabel(timezone)` - Human-readable timezone
+- [ ] `isEventPast(endsAt)` - Check if event has ended
+- [ ] `isEventLive(startsAt, endsAt)` - Check if event is happening now
+
+### 7.2 Create `utils/location.js`
+- [ ] `formatLocation(location, locationType)` - Format location for display
+- [ ] `getLocationIcon(locationType)` - Return appropriate icon
+- [ ] `buildMapUrl(location)` - Generate Google Maps URL if not provided
+
+### 7.3 Create `utils/salesStatus.js`
+- [ ] `getSalesStatusLabel(status)` - Human-readable status
+- [ ] `getSalesStatusColor(status)` - Color for badges
+- [ ] `isTierPurchasable(tier)` - Check if tier can be purchased
+
+---
+
+## Phase 8: Cleanup
+
+### 8.1 Remove deprecated code
+- [ ] Remove `toggleRegistration` usage from all pages
+- [ ] Remove references to old fields in templates:
+  - `date`, `time` → `starts_at`, `ends_at`
+  - `price`, `max_tickets` → ticket tiers
+  - `hero_title`, `hero_subtitle` → `name`, `description`
+  - `hero_image_url` → `image`
+  - `gallery_images` → `media.images`
+  - `venue_*` → `location.*`
+  - `contact_*` → removed
+  - `about` → `description`
+  - `highlights`, `schedule` → removed
+- [ ] Remove `early_bird_price`, `early_bird_deadline` from tier forms
+
+### 8.2 Type definitions (optional but recommended)
+- [ ] Create `types/event.ts` with TypeScript interfaces
+- [ ] Create `types/ticketTier.ts` with TypeScript interfaces
+- [ ] Create `types/location.ts` with TypeScript interfaces
+
+---
+
+## Implementation Order (Recommended)
+
+1. **Phase 1** - API layer first (low risk, foundation)
+2. **Phase 7** - Utility functions (needed by other phases)
+3. **Phase 2** - Event form rewrite (biggest change)
+4. **Phase 3** - Ticket tier updates
+5. **Phase 4** - Admin detail pages
+6. **Phase 5** - List views
+7. **Phase 6** - Public pages
+8. **Phase 8** - Final cleanup
+
+---
+
+## Testing Checklist
+
+- [ ] Create new event with venue location
+- [ ] Create new event with online location
+- [ ] Upload event image
+- [ ] Add media gallery items (upload + URL + YouTube)
+- [ ] Create ticket tiers with sales windows
+- [ ] Verify early bird flow (create tier with future sales_start)
+- [ ] Edit existing event
+- [ ] Verify public event page displays correctly
+- [ ] Verify ticket purchase respects tier constraints
+- [ ] Verify timezone handling across components
+
+---
+
+## Notes
+
+- Keep `seating_type` logic (general_admission vs seated) - this is still relevant
+- The `reservation_minutes` field is still used for seated events
+- Group permissions system remains unchanged
+- Event status flow (draft → live → closed) remains unchanged

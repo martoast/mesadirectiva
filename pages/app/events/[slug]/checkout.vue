@@ -254,7 +254,7 @@ onMounted(async () => {
     if (event.value?.seating_type !== 'seated') {
       try {
         const tiersResponse = await getPublicTicketTiers(route.params.slug)
-        availableTiers.value = (tiersResponse.tiers || []).filter(t => t.is_available)
+        availableTiers.value = (tiersResponse.tiers || []).filter(t => t.is_active && !t.is_hidden)
       } catch (e) {
         availableTiers.value = []
       }
@@ -306,7 +306,7 @@ const legacyTicketSubtotal = computed(() => (event.value?.price || 0) * form.val
 const tierSubtotal = computed(() => {
   return Object.entries(tierSelections.value).reduce((sum, [tierId, qty]) => {
     const tier = availableTiers.value.find(t => t.id === Number(tierId))
-    return sum + (tier ? tier.current_price * qty : 0)
+    return sum + (tier ? tier.price * qty : 0)
   }, 0)
 })
 
@@ -351,7 +351,7 @@ const isFormValid = computed(() => {
 const getTierName = (tierId) => availableTiers.value.find(t => t.id === Number(tierId))?.name || 'Ticket'
 const getTierLineTotal = (tierId, qty) => {
   const tier = availableTiers.value.find(t => t.id === Number(tierId))
-  return tier ? (tier.current_price * qty).toFixed(2) : '0.00'
+  return tier ? (tier.price * qty).toFixed(2) : '0.00'
 }
 const getTableName = (tableId) => tables.value.find(t => t.id === tableId)?.name || ''
 const getTablePrice = (tableId) => Number(tables.value.find(t => t.id === tableId)?.price || 0).toFixed(2)

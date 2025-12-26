@@ -1,6 +1,18 @@
 /**
  * Ticket Tiers composable
  * Handles all ticket tier-related API operations for general admission events
+ *
+ * Tier fields:
+ * - name, description, price
+ * - quantity (total available)
+ * - sales_start, sales_end (sales window dates)
+ * - min_per_order, max_per_order (order constraints)
+ * - show_description, is_hidden, is_active
+ * - sort_order
+ *
+ * Computed fields in response:
+ * - sales_status: 'on_sale' | 'scheduled' | 'ended' | 'sold_out' | 'inactive' | 'hidden'
+ * - is_on_sale, is_sold_out, available
  */
 export const useTicketTiers = () => {
   const { get, post, put, del } = useApi()
@@ -41,9 +53,13 @@ export const useTicketTiers = () => {
    *   name,
    *   description,
    *   price,
-   *   early_bird_price,
-   *   early_bird_deadline,
-   *   max_quantity,
+   *   quantity,
+   *   sales_start,
+   *   sales_end,
+   *   min_per_order,
+   *   max_per_order,
+   *   show_description,
+   *   is_hidden,
    *   sort_order,
    *   is_active
    * }

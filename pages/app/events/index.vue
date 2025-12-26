@@ -71,6 +71,9 @@
               <span v-if="event.group" class="card-badge" :style="{ backgroundColor: event.group.color }">
                 {{ event.group.name }}
               </span>
+              <span v-if="event.location_type === 'online'" class="card-type-badge">
+                Online
+              </span>
             </div>
             <div class="card-content">
               <h3 class="card-title">{{ event.name }}</h3>
@@ -79,25 +82,21 @@
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span>{{ formatDate(event.date) }}</span>
+                  <span>{{ formatEventDate(event.starts_at) }}</span>
                 </div>
                 <div class="meta-row">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-if="event.location_type === 'online'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>{{ event.location }}</span>
+                  <span>{{ getLocationDisplay(event) }}</span>
                 </div>
               </div>
               <div class="card-footer">
-                <div class="card-price">
-                  <span class="price-label">From</span>
-                  <span class="price-value">${{ event.price }}</span>
-                </div>
-                <div class="card-availability">
-                  <div class="availability-bar">
-                    <div class="availability-fill" :style="{ width: `${getSoldPercent(event)}%` }"></div>
-                  </div>
+                <div v-if="event.show_remaining && event.tickets_available !== undefined" class="card-availability">
                   <span class="availability-text">{{ event.tickets_available }} left</span>
                 </div>
               </div>
@@ -123,6 +122,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { formatLocation } from '~/utils/location'
 
 definePageMeta({
   layout: 'public'
@@ -179,7 +179,8 @@ onMounted(() => {
   fetchEvents()
 })
 
-const formatDate = (dateStr) => {
+const formatEventDate = (dateStr) => {
+  if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric'
@@ -187,15 +188,14 @@ const formatDate = (dateStr) => {
 }
 
 const getImageStyle = (event) => {
-  if (event.hero_image_url) {
-    return { backgroundImage: `url('${event.hero_image_url}')` }
+  if (event.image_url) {
+    return { backgroundImage: `url('${event.image_url}')` }
   }
   return {}
 }
 
-const getSoldPercent = (event) => {
-  if (!event.max_tickets) return 0
-  return Math.round((event.tickets_sold / event.max_tickets) * 100)
+const getLocationDisplay = (event) => {
+  return formatLocation(event.location_type, event.location)
 }
 </script>
 
@@ -391,6 +391,20 @@ const getSoldPercent = (event) => {
   letter-spacing: 0.3px;
 }
 
+.card-type-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 .card-content {
   padding: 20px;
 }
@@ -430,52 +444,21 @@ const getSoldPercent = (event) => {
 
 .card-footer {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
   padding-top: 16px;
   border-top: 1px solid var(--color-border);
-}
-
-.card-price {
-  display: flex;
-  flex-direction: column;
-}
-
-.price-label {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.price-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-primary);
+  min-height: 40px;
 }
 
 .card-availability {
   text-align: right;
 }
 
-.availability-bar {
-  width: 60px;
-  height: 4px;
-  background: var(--color-border);
-  border-radius: 2px;
-  margin-bottom: 4px;
-  margin-left: auto;
-}
-
-.availability-fill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 2px;
-}
-
 .availability-text {
-  font-size: 11px;
-  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary);
 }
 
 /* Empty State */

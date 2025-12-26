@@ -173,52 +173,48 @@
               </div>
               <div class="info-item">
                 <span class="info-label">Location</span>
-                <span class="info-value">{{ event.location }}</span>
+                <span class="info-value">{{ formatLocationDisplay() }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Date</span>
-                <span class="info-value mono">{{ formatDate(event.date) }}</span>
+                <span class="info-label">Starts</span>
+                <span class="info-value mono">{{ formatEventDateTime(event.starts_at) }}</span>
+              </div>
+              <div v-if="event.ends_at" class="info-item">
+                <span class="info-label">Ends</span>
+                <span class="info-value mono">{{ formatEventDateTime(event.ends_at) }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Time</span>
-                <span class="info-value mono">{{ event.time }}</span>
-              </div>
-              <div v-if="event.seating_type === 'general_admission'" class="info-item">
-                <span class="info-label">Base Ticket Price</span>
-                <span class="info-value mono">${{ event.price }}</span>
+                <span class="info-label">Timezone</span>
+                <span class="info-value">{{ event.timezone || 'America/Mexico_City' }}</span>
               </div>
               <div v-if="event.seating_type === 'seated'" class="info-item">
                 <span class="info-label">Reservation Time</span>
                 <span class="info-value mono">{{ event.reservation_minutes || 15 }} min</span>
               </div>
-              <div v-if="event.seating_type === 'general_admission'" class="info-item">
-                <span class="info-label">Max Capacity</span>
-                <span class="info-value mono">{{ event.max_tickets }} tickets</span>
-              </div>
               <div class="info-item">
-                <span class="info-label">Registration</span>
-                <span :class="['info-value', event.registration_open ? 'text-success' : 'text-muted']">
-                  {{ event.registration_open ? 'Open' : 'Closed' }}
+                <span class="info-label">Visibility</span>
+                <span :class="['info-value', event.is_private ? 'text-muted' : 'text-success']">
+                  {{ event.is_private ? 'Private' : 'Public' }}
                 </span>
               </div>
             </div>
           </div>
 
-          <!-- Page Design Card -->
+          <!-- Event Details Card -->
           <div class="card">
-            <h2 class="card-title">Page Design</h2>
+            <h2 class="card-title">Event Details</h2>
             <div class="design-section">
-              <div class="design-item">
-                <span class="design-label">Hero Title</span>
-                <p class="design-value">{{ event.hero_title || '—' }}</p>
+              <div v-if="event.image_url" class="design-item">
+                <span class="design-label">Event Image</span>
+                <img :src="event.image_url" alt="Event" class="hero-preview" />
               </div>
               <div class="design-item">
-                <span class="design-label">Hero Subtitle</span>
-                <p class="design-value">{{ event.hero_subtitle || '—' }}</p>
+                <span class="design-label">Description</span>
+                <p class="design-value description">{{ event.description || '—' }}</p>
               </div>
-              <div v-if="event.hero_image_url" class="design-item">
-                <span class="design-label">Hero Image</span>
-                <img :src="event.hero_image_url" alt="Hero" class="hero-preview" />
+              <div v-if="event.organizer_name" class="design-item">
+                <span class="design-label">Organizer</span>
+                <p class="design-value">{{ event.organizer_name }}</p>
               </div>
             </div>
           </div>
@@ -231,26 +227,18 @@
             <h2 class="card-title">Sales Statistics</h2>
 
             <div class="stat-main">
-              <span class="stat-label">Tickets Sold</span>
-              <span class="stat-value">{{ event.tickets_sold }}</span>
-              <span v-if="event.max_tickets" class="stat-sub">of {{ event.max_tickets }} total</span>
+              <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats Sold' : 'Tickets Sold' }}</span>
+              <span class="stat-value">{{ event.seating_type === 'seated' ? soldSeats : (event.tickets_sold || 0) }}</span>
             </div>
-
-            <div v-if="event.max_tickets" class="progress-bar">
-              <div class="progress-fill" :style="{ width: `${(event.tickets_sold / event.max_tickets) * 100}%` }"></div>
-            </div>
-            <p v-if="event.max_tickets" class="progress-label">
-              {{ Math.round((event.tickets_sold / event.max_tickets) * 100) }}% capacity
-            </p>
 
             <div class="stat-row">
               <div class="stat-item">
                 <span class="stat-label">Available</span>
-                <span class="stat-number success">{{ event.tickets_available }}</span>
+                <span class="stat-number success">{{ event.seating_type === 'seated' ? availableSeats : (event.tickets_available || '—') }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Est. Revenue</span>
-                <span class="stat-number">${{ ((event.tickets_sold || 0) * (event.price || 0)).toLocaleString() }}</span>
+                <span class="stat-label">Total Revenue</span>
+                <span class="stat-number">${{ (event.total_revenue || 0).toLocaleString() }}</span>
               </div>
             </div>
           </div>
@@ -305,6 +293,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { formatLocation, getPlatformLabel } from '~/utils/location'
+import { formatDateTime } from '~/utils/dateTime'
 
 definePageMeta({
   layout: 'admin',
@@ -387,14 +377,25 @@ const fetchTables = async () => {
   }
 }
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
+const formatEventDateTime = (dateStr) => {
+  if (!dateStr) return '—'
   const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleString('en-US', {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
   })
+}
+
+const formatLocationDisplay = () => {
+  if (!event.value) return '—'
+  if (event.value.location_type === 'online') {
+    return getPlatformLabel(event.value.location?.platform) || 'Online Event'
+  }
+  return formatLocation(event.value.location, 'venue') || '—'
 }
 
 const handlePublish = async () => {
@@ -1098,6 +1099,11 @@ onMounted(() => {
   font-size: 14px;
   color: var(--color-text);
   margin: 0;
+}
+
+.design-value.description {
+  white-space: pre-wrap;
+  line-height: 1.6;
 }
 
 .hero-preview {

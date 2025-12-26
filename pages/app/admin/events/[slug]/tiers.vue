@@ -115,9 +115,9 @@ const selectedTier = ref(null)
 const formLoading = ref(false)
 const formErrors = ref({})
 
-const activeTiers = computed(() => tiers.value.filter(t => t.is_active).length)
-const totalSold = computed(() => tiers.value.reduce((sum, t) => sum + (t.quantity_sold || 0), 0))
-const totalAvailable = computed(() => tiers.value.reduce((sum, t) => sum + (t.available_quantity || 0), 0))
+const activeTiers = computed(() => tiers.value.filter(t => t.is_active && !t.is_hidden).length)
+const totalSold = computed(() => tiers.value.reduce((sum, t) => sum + (t.sold || 0), 0))
+const totalAvailable = computed(() => tiers.value.reduce((sum, t) => sum + (t.available || 0), 0))
 
 const fetchData = async () => {
   loading.value = true

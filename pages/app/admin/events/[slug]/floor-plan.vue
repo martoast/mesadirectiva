@@ -537,10 +537,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 definePageMeta({
-  layout: 'admin',
+  layout: 'admin-fullscreen',
   middleware: ['auth', 'admin']
 })
 
@@ -559,9 +559,9 @@ const showInstructions = ref(true)
 
 // Canvas state
 const canvasContainer = ref(null)
-const zoom = ref(0.65)
-const panX = ref(80)
-const panY = ref(40)
+const zoom = ref(0.7)
+const panX = ref(0)
+const panY = ref(0)
 const isPanning = ref(false)
 const panStartX = ref(0)
 const panStartY = ref(0)
@@ -662,6 +662,11 @@ const fetchData = async () => {
     if (event.value?.seating_type !== 'seated') {
       navigateTo(`/app/admin/events/${route.params.slug}`)
     }
+
+    // Center view on content after data loads
+    nextTick(() => {
+      setTimeout(() => centerOnContent(), 100)
+    })
   } catch (e) {
     error.value = e.message || 'Failed to load floor plan'
   } finally {
@@ -943,15 +948,62 @@ const onWheel = (e) => {
 
 const zoomIn = () => zoom.value = Math.min(2, zoom.value + 0.15)
 const zoomOut = () => zoom.value = Math.max(0.3, zoom.value - 0.15)
-const resetView = () => {
-  zoom.value = 0.65
-  panX.value = 80
-  panY.value = 40
+
+// Center view on content
+const centerOnContent = (targetZoom = null) => {
+  const container = canvasContainer.value
+  if (!container) return
+
+  const rect = container.getBoundingClientRect()
+  const containerWidth = rect.width
+  const containerHeight = rect.height
+
+  // If we have tables, center on them
+  if (tables.value.length > 0) {
+    // Find bounding box of all tables
+    const tableWidth = 130
+    const tableHeight = 100
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+
+    tables.value.forEach(table => {
+      minX = Math.min(minX, table.position_x)
+      minY = Math.min(minY, table.position_y)
+      maxX = Math.max(maxX, table.position_x + tableWidth)
+      maxY = Math.max(maxY, table.position_y + tableHeight)
+    })
+
+    // Include stage area (roughly at top)
+    minY = Math.min(minY, 10)
+    maxY = Math.max(maxY, 70)
+
+    // Calculate content center
+    const contentCenterX = (minX + maxX) / 2
+    const contentCenterY = (minY + maxY) / 2
+
+    // Calculate zoom to fit content with padding
+    const contentWidth = maxX - minX + 100
+    const contentHeight = maxY - minY + 100
+    const fitZoomX = containerWidth / contentWidth
+    const fitZoomY = containerHeight / contentHeight
+    const fitZoom = Math.min(fitZoomX, fitZoomY, 1) * 0.85
+
+    zoom.value = targetZoom ?? fitZoom
+    panX.value = (containerWidth / 2) - (contentCenterX * zoom.value)
+    panY.value = (containerHeight / 2) - (contentCenterY * zoom.value)
+  } else {
+    // No tables - center on a default area for new floor plans
+    zoom.value = targetZoom ?? 0.7
+    panX.value = (containerWidth / 2) - (700 * zoom.value)
+    panY.value = (containerHeight / 2) - (300 * zoom.value)
+  }
 }
+
+const resetView = () => {
+  centerOnContent(0.7)
+}
+
 const fitToView = () => {
-  zoom.value = 0.5
-  panX.value = 120
-  panY.value = 20
+  centerOnContent()
 }
 
 // Save positions
@@ -1021,21 +1073,12 @@ onBeforeUnmount(() => {
   --c-danger: #ef4444;
 
   font-family: var(--font-sans);
-  height: calc(100vh - 56px);
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--c-bg);
-  margin: -24px -16px;
-  width: calc(100% + 32px);
   -webkit-font-smoothing: antialiased;
-}
-
-@media (min-width: 768px) {
-  .floor-plan-page {
-    height: 100vh;
-    margin: -32px -40px;
-    width: calc(100% + 80px);
-  }
 }
 
 /* Header */
@@ -1299,12 +1342,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 4px;
   z-index: 10;
-}
-
-@media (min-width: 768px) {
-  .toolbar-left {
-    left: 24px;
-  }
 }
 
 .tool-section {

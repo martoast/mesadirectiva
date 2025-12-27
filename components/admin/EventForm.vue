@@ -1,5 +1,5 @@
 <!-- components/admin/EventForm.vue -->
-<!-- 7-step event form wizard with auto-save, media, and tickets -->
+<!-- 6-step event form wizard with auto-save and media -->
 <template>
   <div class="event-form">
     <!-- Draft Saved Indicator -->
@@ -335,35 +335,14 @@
           @update:media="handleMediaUpdate"
           @upload-main-image="handleMainImageUpload"
           @upload-gallery-image="handleGalleryImageUpload"
+          @add-video="handleAddVideo"
+          @remove-gallery-image="handleRemoveGalleryImage"
+          @remove-video="handleRemoveVideo"
         />
       </div>
 
-      <!-- Step 5: Tickets -->
+      <!-- Step 5: Details -->
       <div v-show="currentStep === 4" class="step-panel">
-        <div class="panel-header">
-          <h2>{{ form.seating_type === 'seated' ? 'Tables & Seating' : 'Ticket Tiers' }}</h2>
-          <p>{{ form.seating_type === 'seated' ? 'Set up tables for your seated event' : 'Create ticket options with different prices' }}</p>
-        </div>
-
-        <div v-if="!eventSlug" class="media-blocked">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-8V7m0 0V5m0 2h2m-2 0H9m12 8a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p>Complete the previous steps first to enable ticket setup</p>
-        </div>
-
-        <AdminEventTicketsStep
-          v-else
-          ref="ticketsStepRef"
-          :event-slug="eventSlug"
-          :seating-type="form.seating_type"
-          @update:tiers="(t) => ticketTiers = t"
-          @update:tables="(t) => eventTables = t"
-        />
-      </div>
-
-      <!-- Step 6: Details -->
-      <div v-show="currentStep === 5" class="step-panel">
         <div class="panel-header">
           <h2>Additional Details</h2>
           <p>Add extra information about your event</p>
@@ -458,8 +437,8 @@
         </div>
       </div>
 
-      <!-- Step 7: Review -->
-      <div v-show="currentStep === 6" class="step-panel">
+      <!-- Step 6: Review -->
+      <div v-show="currentStep === 5" class="step-panel">
         <div class="panel-header">
           <h2>Review & Publish</h2>
           <p>Make sure everything looks good before publishing</p>
@@ -542,29 +521,11 @@
             </div>
           </div>
 
-          <!-- Tickets Summary -->
-          <div class="review-card">
-            <div class="review-card-header">
-              <h3>{{ form.seating_type === 'seated' ? 'Tables' : 'Tickets' }}</h3>
-              <button type="button" @click="goToStep(4)" class="edit-btn">Edit</button>
-            </div>
-            <div class="review-grid">
-              <div v-if="form.seating_type === 'general_admission'" class="review-item full-width">
-                <span class="review-label">Ticket Tiers</span>
-                <span class="review-value">{{ ticketTiers.length }} tier{{ ticketTiers.length !== 1 ? 's' : '' }} configured</span>
-              </div>
-              <div v-else class="review-item full-width">
-                <span class="review-label">Tables</span>
-                <span class="review-value">{{ eventTables.length }} table{{ eventTables.length !== 1 ? 's' : '' }} configured</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Details Summary -->
           <div class="review-card">
             <div class="review-card-header">
               <h3>Details</h3>
-              <button type="button" @click="goToStep(5)" class="edit-btn">Edit</button>
+              <button type="button" @click="goToStep(4)" class="edit-btn">Edit</button>
             </div>
             <div class="review-grid">
               <div class="review-item full-width">
@@ -671,7 +632,7 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'draft', 'publish', 'slug-created'])
 
 const { getGroups } = useGroups()
-const { createEvent, updateEvent, uploadEventImage, addMedia } = useEvents()
+const { createEvent, updateEvent, uploadEventImage, addMedia, removeMedia } = useEvents()
 
 // State
 const groups = ref([])
@@ -680,29 +641,28 @@ const submitting = ref(false)
 const error = ref('')
 const savedSlug = ref('')
 const autoSaving = ref(false)
-const ticketsStepRef = ref(null)
 
-// Media & Tickets data
+// Media data
+// Structure matches API response: { image_url, media: { images: [], videos: [] } }
 const mediaData = reactive({
   image_url: '',
-  gallery: [],
-  video_url: ''
+  media: {
+    images: [],
+    videos: []
+  }
 })
-const ticketTiers = ref([])
-const eventTables = ref([])
 
 // Computed event slug (from initialData or auto-saved)
 const eventSlug = computed(() => {
   return props.initialData?.slug || savedSlug.value
 })
 
-// Steps configuration (7 steps)
+// Steps configuration (6 steps)
 const steps = [
   { id: 'basic', label: 'Basics' },
   { id: 'datetime', label: 'Date' },
   { id: 'location', label: 'Location' },
   { id: 'media', label: 'Media' },
-  { id: 'tickets', label: 'Tickets' },
   { id: 'details', label: 'Details' },
   { id: 'review', label: 'Review' }
 ]
@@ -767,10 +727,12 @@ const initializeForm = () => {
     form.show_remaining = data.show_remaining ?? true
     form.faq_items = data.faq_items?.length ? [...data.faq_items] : []
 
-    // Initialize media data
+    // Initialize media data from API structure
     mediaData.image_url = data.image_url || ''
-    mediaData.gallery = data.gallery || []
-    mediaData.video_url = data.video_url || ''
+    mediaData.media = {
+      images: data.media?.images || [],
+      videos: data.media?.videos || []
+    }
   }
 }
 
@@ -801,11 +763,9 @@ const canProceed = computed(() => {
         return form.location.name && form.location.city
       }
       return form.location.platform
-    case 3: // Media (optional but needs slug)
+    case 3: // Media (optional)
       return true
-    case 4: // Tickets (optional but needs slug)
-      return true
-    case 5: // Details
+    case 4: // Details
       return form.description
     default:
       return true
@@ -869,7 +829,6 @@ const removeFaqItem = (index) => {
 // Media handlers
 const handleMediaUpdate = (data) => {
   if (data.mainImageUrl) mediaData.image_url = data.mainImageUrl
-  if (data.videoUrl !== undefined) mediaData.video_url = data.videoUrl
 }
 
 const handleMainImageUpload = async (imageData) => {
@@ -882,7 +841,7 @@ const handleMainImageUpload = async (imageData) => {
     } else if (imageData.type === 'url') {
       // For URL-based images, we just store the URL
       mediaData.image_url = imageData.url
-      // Optionally update the event with the image URL
+      // Update the event with the image URL
       await updateEvent(eventSlug.value, { image_url: imageData.url })
     }
   } catch (e) {
@@ -899,12 +858,64 @@ const handleGalleryImageUpload = async (imageData) => {
         type: 'image',
         file: imageData.file
       })
-      if (response.media) {
-        mediaData.gallery.push(response.media)
+      // API returns the updated event with media
+      if (response.event?.media?.images) {
+        mediaData.media.images = response.event.media.images
+      } else if (response.media?.images) {
+        mediaData.media.images = response.media.images
       }
     }
   } catch (e) {
     error.value = e.message || 'Failed to upload gallery image'
+  }
+}
+
+const handleAddVideo = async (videoData) => {
+  if (!eventSlug.value) return
+
+  try {
+    const response = await addMedia(eventSlug.value, {
+      type: 'youtube',
+      url: videoData.url
+    })
+    // Update local media data
+    if (response.event?.media?.videos) {
+      mediaData.media.videos = response.event.media.videos
+    } else if (response.media?.videos) {
+      mediaData.media.videos = response.media.videos
+    }
+  } catch (e) {
+    error.value = e.message || 'Failed to add video'
+  }
+}
+
+const handleRemoveGalleryImage = async (data) => {
+  if (!eventSlug.value) return
+
+  try {
+    await removeMedia(eventSlug.value, {
+      type: 'images',
+      index: data.index
+    })
+    // Remove from local array
+    mediaData.media.images.splice(data.index, 1)
+  } catch (e) {
+    error.value = e.message || 'Failed to remove image'
+  }
+}
+
+const handleRemoveVideo = async (data) => {
+  if (!eventSlug.value) return
+
+  try {
+    await removeMedia(eventSlug.value, {
+      type: 'videos',
+      index: data.index
+    })
+    // Clear local videos
+    mediaData.media.videos = []
+  } catch (e) {
+    error.value = e.message || 'Failed to remove video'
   }
 }
 

@@ -110,7 +110,7 @@
             </section>
 
             <!-- YouTube Video -->
-            <section v-if="event.media?.youtube" class="section video-section">
+            <section v-if="youtubeEmbedUrl" class="section video-section">
               <h2 class="section-title centered">Watch</h2>
               <div class="video-wrapper">
                 <iframe
@@ -317,24 +317,34 @@ const galleryImages = computed(() => {
   if (event.value?.image_url) {
     images.push(event.value.image_url)
   }
-  if (event.value?.media?.images) {
-    images.push(...event.value.media.images)
+  if (event.value?.media?.images?.length) {
+    // Extract URL from each image object
+    images.push(...event.value.media.images.map(img => img.url))
   }
   return images
 })
 
 const youtubeEmbedUrl = computed(() => {
-  const url = event.value?.media?.youtube
-  if (!url) return ''
+  // Get first video from media.videos array
+  const video = event.value?.media?.videos?.[0]
+  if (!video?.url) return ''
+
+  const url = video.url
 
   // Extract video ID from various YouTube URL formats
   let videoId = ''
   if (url.includes('youtube.com/watch')) {
-    const urlParams = new URL(url).searchParams
-    videoId = urlParams.get('v')
-  } else if (url.includes('youtu.be/')) {
+    try {
+      const urlParams = new URL(url).searchParams
+      videoId = urlParams.get('v')
+    } catch (e) {
+      // Invalid URL, try regex
+    }
+  }
+  if (!videoId && url.includes('youtu.be/')) {
     videoId = url.split('youtu.be/')[1]?.split('?')[0]
-  } else if (url.includes('youtube.com/embed/')) {
+  }
+  if (!videoId && url.includes('youtube.com/embed/')) {
     videoId = url.split('youtube.com/embed/')[1]?.split('?')[0]
   }
 

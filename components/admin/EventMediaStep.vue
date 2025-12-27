@@ -131,7 +131,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:media', 'upload-main-image', 'upload-gallery-image'])
+const emit = defineEmits(['update:media', 'upload-main-image', 'upload-gallery-image', 'add-video', 'remove-gallery-image', 'remove-video'])
 
 // State
 const mainImage = ref(null)
@@ -142,16 +142,34 @@ const videoError = ref('')
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const galleryInput = ref(null)
+const existingVideo = ref(null)
 
 // Initialize with existing data
+// API returns: { image_url, media: { images: [...], videos: [...] } }
 watch(() => props.initialData, (data) => {
   if (data.image_url) {
     existingImageUrl.value = data.image_url
   }
-  if (data.gallery) {
-    galleryImages.value = data.gallery.map(g => ({ type: 'url', url: g.url, id: g.id }))
+  // Handle media.images array from API
+  if (data.media?.images?.length) {
+    galleryImages.value = data.media.images.map((img, index) => ({
+      type: 'existing',
+      url: img.url,
+      index: index
+    }))
+  } else if (data.gallery?.length) {
+    // Fallback for old structure
+    galleryImages.value = data.gallery.map((g, index) => ({
+      type: 'existing',
+      url: g.url,
+      index: index
+    }))
   }
-  if (data.video_url) {
+  // Handle media.videos array from API
+  if (data.media?.videos?.length) {
+    existingVideo.value = data.media.videos[0]
+    videoUrl.value = data.media.videos[0].url
+  } else if (data.video_url) {
     videoUrl.value = data.video_url
   }
 }, { immediate: true })
@@ -178,6 +196,7 @@ const getImagePreview = (image) => {
   if (image.type === 'file') {
     return URL.createObjectURL(image.file)
   }
+  // For existing or url types, return the url directly
   return image.url
 }
 
@@ -230,7 +249,22 @@ const validateGalleryFile = (file) => {
 }
 
 const removeGalleryImage = (index) => {
+  const image = galleryImages.value[index]
+
+  // If this is an existing image from the server, emit event to remove via API
+  if (image.type === 'existing') {
+    emit('remove-gallery-image', { index: image.index })
+  }
+
   galleryImages.value.splice(index, 1)
+
+  // Recalculate indices for remaining existing images
+  galleryImages.value.forEach((img, i) => {
+    if (img.type === 'existing') {
+      img.index = galleryImages.value.filter((g, j) => j < i && g.type === 'existing').length
+    }
+  })
+
   emitUpdate()
 }
 
@@ -245,11 +279,18 @@ const validateVideoUrl = () => {
     videoError.value = 'Please enter a valid YouTube URL'
   } else {
     videoError.value = ''
+    // Emit event to add video via API
+    emit('add-video', { type: 'youtube', url: videoUrl.value })
     emitUpdate()
   }
 }
 
 const clearVideo = () => {
+  // If there was an existing video, emit event to remove via API
+  if (existingVideo.value) {
+    emit('remove-video', { index: 0 })
+    existingVideo.value = null
+  }
   videoUrl.value = ''
   videoError.value = ''
   emitUpdate()

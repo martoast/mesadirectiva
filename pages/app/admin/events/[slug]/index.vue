@@ -1,267 +1,345 @@
 <template>
-  <div class="event-detail-page">
-    <!-- Back Button -->
-    <NuxtLink to="/app/admin/events" class="back-link">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-      </svg>
-      Back to Events
-    </NuxtLink>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="state-container">
-      <div class="loading-spinner"></div>
-      <p class="state-text">Loading event...</p>
+  <div class="event-dashboard">
+    <!-- Loading -->
+    <div v-if="loading" class="loading-state">
+      <div class="loader"></div>
+      <span>Loading event...</span>
     </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="state-container error">
-      <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <p class="state-text">{{ error }}</p>
+    <!-- Error -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">!</div>
+      <p>{{ error }}</p>
       <button @click="fetchEvent" class="retry-btn">Try Again</button>
     </div>
 
-    <!-- Event Content -->
+    <!-- Content -->
     <template v-else-if="event">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb">
+        <NuxtLink to="/app/admin/events">Events</NuxtLink>
+        <span class="sep">/</span>
+        <span class="current">{{ event.name }}</span>
+      </nav>
+
       <!-- Header -->
-      <div class="page-header">
-        <div class="header-content">
-          <h1 class="page-title">{{ event.name }}</h1>
-          <div class="badges-row">
-            <span :class="['status-badge', event.status]">
-              <span class="status-dot"></span>
-              {{ statusLabel }}
-            </span>
-            <span v-if="event.group" class="group-badge" :style="{ '--group-color': event.group.color }">
-              {{ event.group.name }}
-            </span>
-            <span :class="['type-badge', event.seating_type]">
-              {{ event.seating_type === 'seated' ? 'Seated Event' : 'General Admission' }}
+      <header class="event-header">
+        <div class="header-main">
+          <div class="title-row">
+            <h1>{{ event.name }}</h1>
+            <div class="badges">
+              <span :class="['status-badge', event.status]">
+                {{ event.status }}
+              </span>
+              <span v-if="event.group" class="group-badge" :style="{ '--accent': event.group.color }">
+                {{ event.group.name }}
+              </span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+              <span>{{ formatEventDate(event.starts_at) }}</span>
+            </div>
+            <div class="meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <span>{{ formatEventTime(event.starts_at) }}</span>
+            </div>
+            <div class="meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>{{ formatLocationShort() }}</span>
+            </div>
+            <span class="type-tag">
+              {{ event.seating_type === 'seated' ? 'Seated' : 'General Admission' }}
             </span>
           </div>
         </div>
         <div class="header-actions">
+          <NuxtLink :to="`/app/events/${event.slug}`" target="_blank" class="btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Preview
+          </NuxtLink>
+          <NuxtLink :to="`/app/admin/events/${event.slug}/edit`" class="btn-secondary">
+            Edit Event
+          </NuxtLink>
           <button
-            v-if="event.status === 'draft'"
+            v-if="event.status === 'draft' && isSetupComplete"
             @click="handlePublish"
             :disabled="actionLoading"
-            class="action-btn success"
+            class="btn-primary"
           >
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-            {{ actionLoading ? 'Publishing...' : 'Publish' }}
+            {{ actionLoading ? 'Publishing...' : 'Publish Event' }}
           </button>
           <button
             v-if="event.status === 'live'"
             @click="handleClose"
             :disabled="actionLoading"
-            class="action-btn warning"
+            class="btn-warning"
           >
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-            </svg>
             {{ actionLoading ? 'Closing...' : 'Close Event' }}
           </button>
-          <NuxtLink :to="`/app/admin/events/${event.slug}/edit`" class="action-btn secondary">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          <button @click="handleDelete" class="btn-icon danger" title="Delete event">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
             </svg>
-            Edit
-          </NuxtLink>
-          <button @click="handleDelete" class="action-btn danger">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Delete
           </button>
         </div>
-      </div>
+      </header>
 
-      <!-- Floor Plan Card (for seated events) -->
-      <div v-if="event.seating_type === 'seated'" class="floor-plan-card">
-        <div class="floor-plan-preview">
-          <div class="preview-grid">
-            <div class="preview-stage">STAGE</div>
-            <div
-              v-for="(table, index) in tables.slice(0, 6)"
-              :key="table.id"
-              :class="['preview-table', { 'is-vip': table.sell_as_whole }]"
-              :style="{ animationDelay: `${index * 0.1}s` }"
-            >
-              <span class="preview-table-name">{{ table.name }}</span>
-            </div>
-            <div v-if="tables.length > 6" class="preview-more">
-              +{{ tables.length - 6 }} more
-            </div>
-          </div>
-        </div>
-        <div class="floor-plan-info">
-          <div class="floor-plan-header">
-            <div class="floor-plan-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+      <!-- Setup Progress -->
+      <div class="progress-section">
+        <div class="progress-steps">
+          <div class="step completed">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
-            <div class="floor-plan-title">
-              <h3>Floor Plan Editor</h3>
-              <p>Drag tables to arrange your event layout</p>
+            <div class="step-content">
+              <span class="step-label">Event Created</span>
+              <span class="step-desc">Basic info saved</span>
             </div>
           </div>
-          <div class="floor-plan-stats">
-            <div class="fp-stat">
-              <span class="fp-stat-value">{{ tables.length }}</span>
-              <span class="fp-stat-label">Tables</span>
-            </div>
-            <div class="fp-stat">
-              <span class="fp-stat-value">{{ totalSeats }}</span>
-              <span class="fp-stat-label">Seats</span>
-            </div>
-            <div class="fp-stat available">
-              <span class="fp-stat-value">{{ availableSeats }}</span>
-              <span class="fp-stat-label">Available</span>
-            </div>
-          </div>
-          <div class="floor-plan-actions">
-            <NuxtLink :to="`/app/admin/events/${event.slug}/floor-plan`" class="fp-primary-btn">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+
+          <div class="step-connector" :class="{ active: isSetupComplete }"></div>
+
+          <div :class="['step', isSetupComplete ? 'completed' : 'pending']">
+            <div class="step-icon">
+              <svg v-if="isSetupComplete" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
               </svg>
-              Open Editor
-            </NuxtLink>
-            <NuxtLink :to="`/app/admin/events/${event.slug}/tables`" class="fp-secondary-btn">
-              Manage Tables
-            </NuxtLink>
+              <span v-else class="step-number">2</span>
+            </div>
+            <div class="step-content">
+              <span class="step-label">{{ event.seating_type === 'seated' ? 'Tables & Seats' : 'Ticket Pricing' }}</span>
+              <span class="step-desc">{{ isSetupComplete ? 'Configured' : 'Action required' }}</span>
+            </div>
+          </div>
+
+          <div class="step-connector" :class="{ active: event.status === 'live' }"></div>
+
+          <div :class="['step', event.status === 'live' ? 'completed' : (isSetupComplete ? 'ready' : 'locked')]">
+            <div class="step-icon">
+              <svg v-if="event.status === 'live'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span v-else class="step-number">3</span>
+            </div>
+            <div class="step-content">
+              <span class="step-label">{{ event.status === 'live' ? 'Published' : 'Ready to Publish' }}</span>
+              <span class="step-desc">{{ event.status === 'live' ? 'Event is live' : (isSetupComplete ? 'Click publish above' : 'Complete step 2 first') }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Management Card (for non-seated events or as secondary link) -->
-      <div v-if="event.seating_type !== 'seated'" class="management-card">
-        <div class="management-content">
-          <div class="management-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+      <!-- Setup Required Alert -->
+      <div v-if="!isSetupComplete" class="setup-alert">
+        <div class="alert-content">
+          <div class="alert-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <div class="management-text">
-            <h3 class="management-title">Manage Ticket Tiers</h3>
-            <p class="management-subtitle">Create pricing tiers with early bird options</p>
+          <div class="alert-text">
+            <h3>{{ event.seating_type === 'seated' ? 'Set up your tables' : 'Add ticket pricing' }}</h3>
+            <p v-if="event.seating_type === 'seated'">
+              Configure tables and seating before you can publish this event and start selling.
+            </p>
+            <p v-else>
+              Create at least one ticket tier with pricing before you can publish this event.
+            </p>
           </div>
         </div>
-        <NuxtLink :to="`/app/admin/events/${event.slug}/tiers`" class="management-btn">
-          Manage Tiers
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+        <NuxtLink
+          :to="event.seating_type === 'seated'
+            ? `/app/admin/events/${event.slug}/tables`
+            : `/app/admin/events/${event.slug}/tiers`"
+          class="alert-action"
+        >
+          {{ event.seating_type === 'seated' ? 'Set Up Tables' : 'Add Ticket Tiers' }}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
           </svg>
         </NuxtLink>
       </div>
 
-      <!-- Main Content Grid -->
-      <div class="content-grid">
+      <!-- Main Grid -->
+      <div class="main-grid">
         <!-- Left Column -->
-        <div class="main-column">
-          <!-- Event Info Card -->
-          <div class="card">
-            <h2 class="card-title">Event Information</h2>
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">Event Name</span>
-                <span class="info-value">{{ event.name }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Location</span>
-                <span class="info-value">{{ formatLocationDisplay() }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Starts</span>
-                <span class="info-value mono">{{ formatEventDateTime(event.starts_at) }}</span>
-              </div>
-              <div v-if="event.ends_at" class="info-item">
-                <span class="info-label">Ends</span>
-                <span class="info-value mono">{{ formatEventDateTime(event.ends_at) }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Timezone</span>
-                <span class="info-value">{{ event.timezone || 'America/Mexico_City' }}</span>
-              </div>
-              <div v-if="event.seating_type === 'seated'" class="info-item">
-                <span class="info-label">Reservation Time</span>
-                <span class="info-value mono">{{ event.reservation_minutes || 15 }} min</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Visibility</span>
-                <span :class="['info-value', event.is_private ? 'text-muted' : 'text-success']">
-                  {{ event.is_private ? 'Private' : 'Public' }}
-                </span>
+        <div class="col-main">
+          <!-- Event Card -->
+          <div class="event-card">
+            <div v-if="event.image_url" class="event-image">
+              <img :src="event.image_url" :alt="event.name" />
+            </div>
+            <div class="event-body">
+              <h2 class="section-title">About</h2>
+              <p class="event-description">{{ event.description || 'No description provided.' }}</p>
+
+              <div v-if="event.organizer_name" class="organizer">
+                <span class="label">Organized by</span>
+                <span class="value">{{ event.organizer_name }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Event Details Card -->
-          <div class="card">
-            <h2 class="card-title">Event Details</h2>
-            <div class="design-section">
-              <div v-if="event.image_url" class="design-item">
-                <span class="design-label">Event Image</span>
-                <img :src="event.image_url" alt="Event" class="hero-preview" />
+          <!-- Gallery Preview -->
+          <div v-if="event.media?.images?.length" class="gallery-card">
+            <h2 class="section-title">Gallery</h2>
+            <div class="gallery-preview">
+              <div
+                v-for="(img, i) in event.media.images.slice(0, 4)"
+                :key="i"
+                class="gallery-thumb"
+              >
+                <img :src="img.url" :alt="`Gallery ${i + 1}`" />
               </div>
-              <div class="design-item">
-                <span class="design-label">Description</span>
-                <p class="design-value description">{{ event.description || '—' }}</p>
+              <div v-if="event.media.images.length > 4" class="gallery-more">
+                +{{ event.media.images.length - 4 }}
               </div>
-              <div v-if="event.organizer_name" class="design-item">
-                <span class="design-label">Organizer</span>
-                <p class="design-value">{{ event.organizer_name }}</p>
+            </div>
+          </div>
+
+          <!-- Event Details -->
+          <div class="details-card">
+            <h2 class="section-title">Event Details</h2>
+            <div class="details-grid">
+              <div class="detail-item">
+                <span class="label">Start</span>
+                <span class="value">{{ formatEventDateTime(event.starts_at) }}</span>
+              </div>
+              <div v-if="event.ends_at" class="detail-item">
+                <span class="label">End</span>
+                <span class="value">{{ formatEventDateTime(event.ends_at) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Timezone</span>
+                <span class="value">{{ event.timezone || 'America/Mexico_City' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Location</span>
+                <span class="value">{{ formatLocationDisplay() }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Visibility</span>
+                <span :class="['value', event.is_private ? 'muted' : 'success']">
+                  {{ event.is_private ? 'Private' : 'Public' }}
+                </span>
+              </div>
+              <div v-if="event.seating_type === 'seated'" class="detail-item">
+                <span class="label">Reservation Hold</span>
+                <span class="value">{{ event.reservation_minutes || 15 }} minutes</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Right Column -->
-        <div class="side-column">
+        <div class="col-side">
           <!-- Stats Card -->
-          <div class="card stats-card">
-            <h2 class="card-title">Sales Statistics</h2>
-
-            <div class="stat-main">
-              <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats Sold' : 'Tickets Sold' }}</span>
+          <div class="stats-card">
+            <h2 class="section-title">Sales Overview</h2>
+            <div class="stat-hero">
               <span class="stat-value">{{ event.seating_type === 'seated' ? soldSeats : (event.tickets_sold || 0) }}</span>
+              <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats Sold' : 'Tickets Sold' }}</span>
             </div>
-
             <div class="stat-row">
               <div class="stat-item">
-                <span class="stat-label">Available</span>
-                <span class="stat-number success">{{ event.seating_type === 'seated' ? availableSeats : (event.tickets_available || '—') }}</span>
+                <span class="stat-num success">{{ event.seating_type === 'seated' ? availableSeats : (event.tickets_available || 0) }}</span>
+                <span class="stat-lbl">Available</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Total Revenue</span>
-                <span class="stat-number">${{ (event.total_revenue || 0).toLocaleString() }}</span>
+                <span class="stat-num">${{ (event.total_revenue || 0).toLocaleString() }}</span>
+                <span class="stat-lbl">Revenue</span>
               </div>
             </div>
           </div>
 
-          <!-- Quick Links Card -->
-          <div class="card">
-            <h2 class="card-title">Quick Links</h2>
-            <div class="quick-links">
+          <!-- Quick Actions -->
+          <div class="actions-card">
+            <h2 class="section-title">Manage</h2>
+            <div class="action-links">
               <NuxtLink
                 :to="event.seating_type === 'seated'
                   ? `/app/admin/events/${event.slug}/tables`
                   : `/app/admin/events/${event.slug}/tiers`"
-                class="quick-link"
+                class="action-link"
               >
-                <span>{{ event.seating_type === 'seated' ? 'Tables & Seats' : 'Ticket Tiers' }}</span>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+                <div class="action-icon">
+                  <svg v-if="event.seating_type === 'seated'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                  </svg>
+                </div>
+                <div class="action-text">
+                  <span class="action-title">{{ event.seating_type === 'seated' ? 'Tables & Seats' : 'Ticket Tiers' }}</span>
+                  <span class="action-desc">
+                    {{ event.seating_type === 'seated'
+                      ? `${tables.length} tables · ${totalSeats} seats`
+                      : `${event.active_ticket_tiers?.length || 0} active tiers`
+                    }}
+                  </span>
+                </div>
+                <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </NuxtLink>
-              <NuxtLink :to="`/app/events/${event.slug}`" target="_blank" class="quick-link external">
-                <span>View Public Page</span>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+
+              <NuxtLink
+                v-if="event.seating_type === 'seated'"
+                :to="`/app/admin/events/${event.slug}/floor-plan`"
+                class="action-link"
+              >
+                <div class="action-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                  </svg>
+                </div>
+                <div class="action-text">
+                  <span class="action-title">Floor Plan Editor</span>
+                  <span class="action-desc">Arrange table layout visually</span>
+                </div>
+                <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </NuxtLink>
+
+              <NuxtLink :to="`/app/events/${event.slug}`" target="_blank" class="action-link external">
+                <div class="action-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </div>
+                <div class="action-text">
+                  <span class="action-title">Public Event Page</span>
+                  <span class="action-desc">View as attendees see it</span>
+                </div>
+                <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </NuxtLink>
             </div>
@@ -272,21 +350,23 @@
 
     <!-- Delete Modal -->
     <Teleport to="body">
-      <div v-if="deleteModalOpen" class="modal-overlay" @click.self="deleteModalOpen = false">
-        <div class="modal-content">
-          <div class="modal-icon danger">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </div>
-          <h3 class="modal-title">Delete Event</h3>
-          <p class="modal-message">Are you sure you want to delete this event? This action cannot be undone.</p>
-          <div class="modal-actions">
-            <button @click="deleteModalOpen = false" class="modal-btn secondary">Cancel</button>
-            <button @click="confirmDelete" class="modal-btn danger">Delete</button>
+      <Transition name="modal">
+        <div v-if="deleteModalOpen" class="modal-backdrop" @click.self="deleteModalOpen = false">
+          <div class="modal-box">
+            <div class="modal-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </div>
+            <h3>Delete Event</h3>
+            <p>This will permanently delete "{{ event.name }}" and all associated data. This cannot be undone.</p>
+            <div class="modal-buttons">
+              <button @click="deleteModalOpen = false" class="btn-secondary">Cancel</button>
+              <button @click="confirmDelete" class="btn-danger">Delete Event</button>
+            </div>
           </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
@@ -294,7 +374,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { formatLocation, getPlatformLabel } from '~/utils/location'
-import { formatDateTime } from '~/utils/dateTime'
 
 definePageMeta({
   layout: 'admin',
@@ -313,20 +392,18 @@ const error = ref('')
 const actionLoading = ref(false)
 const deleteModalOpen = ref(false)
 
-const statusLabel = computed(() => {
-  const labels = {
-    draft: 'Draft',
-    live: 'Live',
-    closed: 'Closed'
+// Computed
+const isSetupComplete = computed(() => {
+  if (!event.value) return false
+  if (event.value.seating_type === 'seated') {
+    return tables.value.length > 0
   }
-  return labels[event.value?.status] || 'Draft'
+  return (event.value.active_ticket_tiers?.length || 0) > 0
 })
 
 const totalSeats = computed(() => {
   return tables.value.reduce((total, table) => {
-    if (table.sell_as_whole) {
-      return total + table.capacity
-    }
+    if (table.sell_as_whole) return total + table.capacity
     return total + (table.seats?.length || 0)
   }, 0)
 })
@@ -349,15 +426,13 @@ const soldSeats = computed(() => {
   }, 0)
 })
 
+// Methods
 const fetchEvent = async () => {
   loading.value = true
   error.value = ''
-
   try {
     const response = await getEvent(route.params.slug)
     event.value = response.event
-
-    // Fetch tables if seated event
     if (response.event.seating_type === 'seated') {
       await fetchTables()
     }
@@ -377,10 +452,26 @@ const fetchTables = async () => {
   }
 }
 
+const formatEventDate = (dateStr) => {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+const formatEventTime = (dateStr) => {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}
+
 const formatEventDateTime = (dateStr) => {
   if (!dateStr) return '—'
-  const date = new Date(dateStr)
-  return date.toLocaleString('en-US', {
+  return new Date(dateStr).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -390,12 +481,23 @@ const formatEventDateTime = (dateStr) => {
   })
 }
 
+const formatLocationShort = () => {
+  if (!event.value) return '—'
+  if (event.value.location_type === 'online') {
+    return getPlatformLabel(event.value.location?.platform) || 'Online'
+  }
+  return event.value.location?.name || event.value.location?.city || '—'
+}
+
 const formatLocationDisplay = () => {
   if (!event.value) return '—'
   if (event.value.location_type === 'online') {
     return getPlatformLabel(event.value.location?.platform) || 'Online Event'
   }
-  return formatLocation(event.value.location, 'venue') || '—'
+  const loc = event.value.location
+  if (!loc) return '—'
+  const parts = [loc.name, loc.address, loc.city, loc.state].filter(Boolean)
+  return parts.join(', ') || '—'
 }
 
 const handlePublish = async () => {
@@ -404,7 +506,7 @@ const handlePublish = async () => {
     await publishEvent(event.value.slug)
     await fetchEvent()
   } catch (e) {
-    error.value = e.message || 'Failed to publish event'
+    error.value = e.message || 'Failed to publish'
   } finally {
     actionLoading.value = false
   }
@@ -416,7 +518,7 @@ const handleClose = async () => {
     await closeEvent(event.value.slug)
     await fetchEvent()
   } catch (e) {
-    error.value = e.message || 'Failed to close event'
+    error.value = e.message || 'Failed to close'
   } finally {
     actionLoading.value = false
   }
@@ -431,132 +533,127 @@ const confirmDelete = async () => {
     await deleteEvent(event.value.slug)
     router.push('/app/admin/events')
   } catch (e) {
-    error.value = e.message || 'Failed to delete event'
+    error.value = e.message || 'Failed to delete'
   }
   deleteModalOpen.value = false
 }
 
-onMounted(() => {
-  fetchEvent()
-})
+onMounted(fetchEvent)
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+.event-dashboard {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'SF Mono', 'Fira Code', monospace;
 
-.event-detail-page {
-  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
+  --gray-50: #fafafa;
+  --gray-100: #f4f4f5;
+  --gray-200: #e4e4e7;
+  --gray-300: #d4d4d8;
+  --gray-400: #a1a1aa;
+  --gray-500: #71717a;
+  --gray-600: #52525b;
+  --gray-700: #3f3f46;
+  --gray-800: #27272a;
+  --gray-900: #18181b;
 
-  --color-text: #0a0a0a;
-  --color-text-secondary: #525252;
-  --color-text-muted: #a1a1aa;
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-border: #e4e4e7;
-  --color-border-light: #f4f4f5;
+  --indigo: #6366f1;
+  --indigo-dark: #4f46e5;
+  --indigo-light: #eef2ff;
 
-  --color-primary: #6366f1;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  --amber: #f59e0b;
+  --amber-light: #fef3c7;
+  --amber-dark: #d97706;
 
-  font-family: var(--font-sans);
-  padding: 24px;
-  max-width: 1400px;
+  --emerald: #10b981;
+  --emerald-light: #d1fae5;
+
+  --red: #ef4444;
+  --red-light: #fee2e2;
+
+  font-family: var(--font);
+  background: var(--gray-50);
+  min-height: 100vh;
+  padding: 24px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-/* Back Link */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  margin-bottom: 24px;
-  transition: color 0.15s;
-}
-
-.back-link:hover {
-  color: var(--color-text);
-}
-
-.back-link svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* States */
-.state-container {
+/* Loading & Error */
+.loading-state, .error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  min-height: 400px;
+  gap: 16px;
+  color: var(--gray-500);
 }
 
-.state-container.error {
-  border-color: #fecaca;
-  background: #fef2f2;
-}
-
-.loading-spinner {
+.loader {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--indigo);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-bottom: 16px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.state-icon {
+.error-icon {
   width: 48px;
   height: 48px;
-  color: var(--color-text-muted);
-  margin-bottom: 16px;
-}
-
-.state-container.error .state-icon {
-  color: var(--color-danger);
-}
-
-.state-text {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  margin: 0;
+  background: var(--red-light);
+  color: var(--red);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .retry-btn {
-  margin-top: 16px;
   padding: 10px 20px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
+  background: var(--gray-900);
   color: white;
-  background: var(--color-text);
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
-.retry-btn:hover {
-  background: #262626;
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.breadcrumb a {
+  color: var(--gray-500);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--gray-700);
+}
+
+.breadcrumb .sep {
+  color: var(--gray-300);
+}
+
+.breadcrumb .current {
+  color: var(--gray-700);
+  font-weight: 500;
 }
 
 /* Header */
-.page-header {
+.event-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -564,684 +661,654 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 12px 0;
+.header-main {
+  flex: 1;
+  min-width: 0;
 }
 
-.badges-row {
+.title-row {
   display: flex;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.title-row h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.badges {
+  display: flex;
   gap: 8px;
 }
 
-/* Status Badge */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
-  border-radius: 50px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
 }
 
 .status-badge.draft {
-  color: var(--color-warning);
-  background: #fef3c7;
-}
-
-.status-badge.draft .status-dot {
-  background: var(--color-warning);
+  background: var(--amber-light);
+  color: var(--amber-dark);
 }
 
 .status-badge.live {
-  color: var(--color-success);
-  background: #d1fae5;
-}
-
-.status-badge.live .status-dot {
-  background: var(--color-success);
-  animation: pulse 2s infinite;
+  background: var(--emerald-light);
+  color: var(--emerald);
 }
 
 .status-badge.closed {
-  color: var(--color-text-muted);
-  background: var(--color-border-light);
+  background: var(--gray-100);
+  color: var(--gray-500);
 }
 
-.status-badge.closed .status-dot {
-  background: var(--color-text-muted);
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Group Badge */
 .group-badge {
-  display: inline-flex;
-  padding: 4px 12px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--group-color, var(--color-primary));
-  background: color-mix(in srgb, var(--group-color, var(--color-primary)) 12%, transparent);
-  border-radius: 50px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 15%, white);
+  color: var(--accent);
 }
 
-/* Type Badge */
-.type-badge {
-  display: inline-flex;
-  padding: 4px 12px;
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.meta-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--gray-400);
+}
+
+.type-tag {
+  padding: 4px 8px;
   font-size: 11px;
-  font-weight: 600;
-  border-radius: 50px;
+  font-weight: 500;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border-radius: 4px;
 }
 
-.type-badge.seated {
-  color: #7c3aed;
-  background: #ede9fe;
-}
-
-.type-badge.general_admission {
-  color: #2563eb;
-  background: #dbeafe;
-}
-
-/* Header Actions */
 .header-actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.action-btn {
+/* Buttons */
+.btn-ghost, .btn-secondary, .btn-primary, .btn-warning, .btn-danger, .btn-icon {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
-  font-family: var(--font-sans);
+  padding: 8px 14px;
+  font-family: var(--font);
   font-size: 13px;
   font-weight: 500;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s;
 }
 
-.action-btn svg {
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-600);
+}
+
+.btn-ghost:hover {
+  background: var(--gray-100);
+}
+
+.btn-ghost svg {
   width: 16px;
   height: 16px;
 }
 
-.action-btn.success {
+.btn-secondary {
+  background: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.btn-primary {
+  background: var(--indigo);
   color: white;
-  background: var(--color-success);
 }
 
-.action-btn.success:hover:not(:disabled) {
-  background: #059669;
+.btn-primary:hover:not(:disabled) {
+  background: var(--indigo-dark);
 }
 
-.action-btn.warning {
-  color: white;
-  background: var(--color-warning);
-}
-
-.action-btn.warning:hover:not(:disabled) {
-  background: #d97706;
-}
-
-.action-btn.secondary {
-  color: var(--color-text-secondary);
-  background: var(--color-border-light);
-}
-
-.action-btn.secondary:hover {
-  background: var(--color-border);
-}
-
-.action-btn.danger {
-  color: var(--color-danger);
-  background: #fee2e2;
-}
-
-.action-btn.danger:hover {
-  background: #fecaca;
-}
-
-.action-btn:disabled {
+.btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* Floor Plan Card */
-.floor-plan-card {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+.btn-warning {
+  background: var(--amber);
+  color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: var(--amber-dark);
+}
+
+.btn-icon {
+  padding: 8px;
+  background: transparent;
+  color: var(--gray-400);
+}
+
+.btn-icon:hover {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.btn-icon.danger:hover {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Progress Steps */
+.progress-section {
+  background: white;
+  border: 1px solid var(--gray-200);
   border-radius: 12px;
-  overflow: hidden;
+  padding: 20px 24px;
   margin-bottom: 24px;
 }
 
-.floor-plan-preview {
-  background: #1a1a2e;
-  padding: 24px;
+.progress-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.preview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: 100%;
-}
-
-.preview-stage {
-  grid-column: 1 / -1;
-  padding: 8px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(124, 58, 237, 0.4) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.5);
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 600;
-  color: rgba(255,255,255,0.7);
-  text-align: center;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-}
-
-.preview-table {
-  padding: 10px 8px;
-  background: rgba(255,255,255,0.9);
-  border-radius: 6px;
-  text-align: center;
-  animation: fadeIn 0.3s ease-out both;
-}
-
-.preview-table.is-vip {
-  border: 2px solid var(--color-warning);
-  background: rgba(245, 158, 11, 0.15);
-}
-
-.preview-table-name {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.preview-table.is-vip .preview-table-name {
-  color: var(--color-warning);
-}
-
-.preview-more {
-  grid-column: 1 / -1;
-  padding: 8px;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.5);
-  text-align: center;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.floor-plan-info {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.floor-plan-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.floor-plan-icon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #eef2ff;
-  border-radius: 10px;
-  color: var(--color-primary);
   flex-shrink: 0;
-}
-
-.floor-plan-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.floor-plan-title h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 4px 0;
-}
-
-.floor-plan-title p {
   font-size: 13px;
-  color: var(--color-text-muted);
-  margin: 0;
+  font-weight: 600;
 }
 
-.floor-plan-stats {
-  display: flex;
-  gap: 24px;
+.step.completed .step-icon {
+  background: var(--emerald);
+  color: white;
 }
 
-.fp-stat {
+.step.completed .step-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.step.pending .step-icon {
+  background: var(--amber-light);
+  color: var(--amber-dark);
+}
+
+.step.ready .step-icon {
+  background: var(--indigo-light);
+  color: var(--indigo);
+}
+
+.step.locked .step-icon {
+  background: var(--gray-100);
+  color: var(--gray-400);
+}
+
+.step-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.fp-stat-value {
-  font-family: var(--font-mono);
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.fp-stat-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.fp-stat.available .fp-stat-value {
-  color: var(--color-success);
-}
-
-.floor-plan-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: auto;
-}
-
-.fp-primary-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  font-family: var(--font-sans);
+.step-label {
   font-size: 13px;
   font-weight: 600;
-  color: white;
-  background: var(--color-primary);
-  border-radius: 8px;
-  text-decoration: none;
-  transition: background 0.15s;
+  color: var(--gray-800);
 }
 
-.fp-primary-btn:hover {
-  background: #4f46e5;
+.step-desc {
+  font-size: 12px;
+  color: var(--gray-500);
 }
 
-.fp-primary-btn svg {
-  width: 16px;
-  height: 16px;
+.step.pending .step-desc {
+  color: var(--amber-dark);
 }
 
-.fp-secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 12px 20px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background: var(--color-border-light);
-  border-radius: 8px;
-  text-decoration: none;
-  transition: background 0.15s;
+.step-connector {
+  flex: 0 0 40px;
+  height: 2px;
+  background: var(--gray-200);
+  margin: 0 8px;
 }
 
-.fp-secondary-btn:hover {
-  background: var(--color-border);
+.step-connector.active {
+  background: var(--emerald);
 }
 
-/* Management Card */
-.management-card {
+/* Setup Alert */
+.setup-alert {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   gap: 24px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  border: 1px solid #c7d2fe;
-  border-radius: 10px;
   margin-bottom: 24px;
 }
 
-.management-content {
+.alert-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 }
 
-.management-icon {
-  width: 48px;
-  height: 48px;
+.alert-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border-radius: 10px;
-  color: var(--color-primary);
+  flex-shrink: 0;
+  color: var(--amber);
 }
 
-.management-icon svg {
-  width: 24px;
-  height: 24px;
+.alert-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
-.management-title {
-  font-size: 16px;
+.alert-text h3 {
+  font-size: 15px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--gray-900);
   margin: 0 0 4px 0;
 }
 
-.management-subtitle {
+.alert-text p {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--gray-600);
   margin: 0;
+  max-width: 400px;
 }
 
-.management-btn {
+.alert-action {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
+  background: var(--gray-900);
   color: white;
-  background: var(--color-primary);
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.management-btn:hover {
-  background: #4f46e5;
-}
-
-.management-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Content Grid */
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 24px;
-}
-
-.main-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.side-column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* Cards */
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 24px;
-}
-
-.card-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 20px 0;
+  border-radius: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.15s;
 }
 
-/* Info Grid */
-.info-grid {
+.alert-action:hover {
+  background: var(--gray-800);
+}
+
+.alert-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Main Grid */
+.main-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+}
+
+.col-main, .col-side {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-.info-item {
+/* Section Title */
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-400);
+  margin: 0 0 16px 0;
+}
+
+/* Event Card */
+.event-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.event-image {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-body {
+  padding: 24px;
+}
+
+.event-description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--gray-600);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.organizer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-100);
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.info-label {
-  font-size: 10px;
+.organizer .label {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
+  color: var(--gray-400);
 }
 
-.info-value {
+.organizer .value {
   font-size: 14px;
-  color: var(--color-text);
+  color: var(--gray-700);
 }
 
-.info-value.mono {
-  font-family: var(--font-mono);
+/* Gallery Card */
+.gallery-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 24px;
 }
 
-.info-value.text-success {
-  color: var(--color-success);
+.gallery-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 
-.info-value.text-muted {
-  color: var(--color-text-muted);
-}
-
-/* Design Section */
-.design-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.design-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.design-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.design-value {
-  font-size: 14px;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.design-value.description {
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
-
-.hero-preview {
-  width: 100%;
-  max-width: 400px;
+.gallery-thumb {
+  aspect-ratio: 1;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-more {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+/* Details Card */
+.details-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item .label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-400);
+}
+
+.detail-item .value {
+  font-size: 14px;
+  color: var(--gray-700);
+}
+
+.detail-item .value.success {
+  color: var(--emerald);
+}
+
+.detail-item .value.muted {
+  color: var(--gray-400);
 }
 
 /* Stats Card */
-.stats-card .stat-main {
-  text-align: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--color-border-light);
-  margin-bottom: 16px;
+.stats-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 24px;
 }
 
-.stat-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.stat-hero {
+  text-align: center;
+  padding-bottom: 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--gray-100);
 }
 
 .stat-value {
-  font-family: var(--font-mono);
-  font-size: 48px;
-  font-weight: 500;
-  color: var(--color-primary);
   display: block;
-  margin: 8px 0 4px 0;
+  font-family: var(--mono);
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--indigo);
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
-.stat-sub {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.progress-bar {
-  height: 6px;
-  background: var(--color-border-light);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 3px;
-  transition: width 0.3s;
-}
-
-.progress-label {
+.stat-label {
   font-size: 12px;
-  color: var(--color-text-muted);
-  text-align: center;
-  margin: 0 0 20px 0;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .stat-item {
   text-align: center;
 }
 
-.stat-number {
-  font-family: var(--font-mono);
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--color-text);
+.stat-num {
   display: block;
-  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 2px;
 }
 
-.stat-number.success {
-  color: var(--color-success);
+.stat-num.success {
+  color: var(--emerald);
 }
 
-/* Quick Links */
-.quick-links {
+.stat-lbl {
+  font-size: 11px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Actions Card */
+.actions-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.action-links {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.quick-link {
+.action-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--color-border-light);
-  border-radius: 8px;
+  gap: 12px;
+  padding: 12px;
+  background: var(--gray-50);
+  border-radius: 10px;
   text-decoration: none;
-  transition: background 0.15s;
+  transition: all 0.15s;
 }
 
-.quick-link:hover {
-  background: var(--color-border);
+.action-link:hover {
+  background: var(--gray-100);
 }
 
-.quick-link span {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+.action-link.external:hover {
+  background: var(--indigo-light);
 }
 
-.quick-link svg {
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-muted);
+.action-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.quick-link.external {
-  background: #eef2ff;
+.action-icon svg {
+  width: 20px;
+  height: 20px;
+  color: var(--gray-500);
 }
 
-.quick-link.external:hover {
-  background: #e0e7ff;
+.action-link.external .action-icon {
+  border-color: var(--indigo);
 }
 
-.quick-link.external span {
-  color: var(--color-primary);
+.action-link.external .action-icon svg {
+  color: var(--indigo);
 }
 
-.quick-link.external svg {
-  color: var(--color-primary);
+.action-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.action-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.action-arrow {
+  width: 18px;
+  height: 18px;
+  color: var(--gray-300);
+  flex-shrink: 0;
 }
 
 /* Modal */
-.modal-overlay {
+.modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -1252,156 +1319,148 @@ onMounted(() => {
   padding: 24px;
 }
 
-.modal-content {
+.modal-box {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 32px;
   max-width: 400px;
   width: 100%;
   text-align: center;
 }
 
-.modal-icon {
+.modal-box .modal-icon {
   width: 56px;
   height: 56px;
+  background: var(--red-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
+  color: var(--red);
 }
 
-.modal-icon.danger {
-  background: #fee2e2;
-  color: var(--color-danger);
+.modal-box .modal-icon svg {
+  width: 26px;
+  height: 26px;
 }
 
-.modal-icon svg {
-  width: 28px;
-  height: 28px;
-}
-
-.modal-title {
+.modal-box h3 {
   font-size: 18px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--gray-900);
   margin: 0 0 8px 0;
 }
 
-.modal-message {
+.modal-box p {
   font-size: 14px;
-  color: var(--color-text-secondary);
+  color: var(--gray-600);
   line-height: 1.5;
   margin: 0 0 24px 0;
 }
 
-.modal-actions {
+.modal-buttons {
   display: flex;
   gap: 12px;
 }
 
-.modal-btn {
+.modal-buttons button {
   flex: 1;
   padding: 12px 20px;
-  font-family: var(--font-sans);
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 500;
-  border: none;
   border-radius: 8px;
+  border: none;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.modal-btn.secondary {
-  color: var(--color-text-secondary);
-  background: var(--color-border-light);
-}
-
-.modal-btn.secondary:hover {
-  background: var(--color-border);
-}
-
-.modal-btn.danger {
+.btn-danger {
+  background: var(--red);
   color: white;
-  background: var(--color-danger);
 }
 
-.modal-btn.danger:hover {
+.btn-danger:hover {
   background: #dc2626;
+}
+
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.2s;
+}
+
+.modal-enter-from, .modal-leave-to {
+  opacity: 0;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .content-grid {
+  .main-grid {
     grid-template-columns: 1fr;
   }
 
-  .side-column {
+  .col-side {
     order: -1;
-  }
-
-  .floor-plan-card {
-    grid-template-columns: 1fr;
-  }
-
-  .floor-plan-preview {
-    display: none;
   }
 }
 
 @media (max-width: 768px) {
-  .event-detail-page {
+  .event-dashboard {
     padding: 16px;
   }
 
-  .page-header {
+  .event-header {
     flex-direction: column;
-    align-items: stretch;
+    gap: 16px;
   }
 
   .header-actions {
     width: 100%;
+    flex-wrap: wrap;
   }
 
-  .action-btn {
+  .header-actions > * {
     flex: 1;
     justify-content: center;
   }
 
-  .floor-plan-info {
-    padding: 20px;
+  .header-actions .btn-icon {
+    flex: 0;
   }
 
-  .floor-plan-stats {
+  .progress-steps {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 16px;
   }
 
-  .floor-plan-actions {
-    flex-direction: column;
+  .step-connector {
+    width: 2px;
+    height: 24px;
+    margin: 0 0 0 15px;
   }
 
-  .fp-primary-btn,
-  .fp-secondary-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .management-card {
+  .setup-alert {
     flex-direction: column;
     text-align: center;
   }
 
-  .management-content {
+  .alert-content {
     flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
-  .management-btn {
-    width: 100%;
-    justify-content: center;
+  .alert-text p {
+    max-width: none;
   }
 
-  .info-grid {
+  .details-grid {
     grid-template-columns: 1fr;
+  }
+
+  .gallery-preview {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 </style>

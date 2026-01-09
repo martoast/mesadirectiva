@@ -932,7 +932,7 @@ const autoSaveDraft = async () => {
 
 // Navigation
 const nextStep = async () => {
-  if (canProceed.value && currentStep.value < steps.length - 1) {
+  if (canProceed.value && currentStep.value < steps.value.length - 1) {
     // Auto-save after Location step (step 2)
     if (currentStep.value === 2 && !eventSlug.value) {
       await autoSaveDraft()

@@ -166,6 +166,8 @@ const existingVideo = ref(null)
 // Initialize with existing data
 // API returns: { image_url, media: { images: [...], videos: [...] } }
 watch(() => props.initialData, (data) => {
+  if (!data) return
+
   if (data.image_url) {
     existingImageUrl.value = data.image_url
   }
@@ -191,7 +193,7 @@ watch(() => props.initialData, (data) => {
   } else if (data.video_url) {
     videoUrl.value = data.video_url
   }
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 // Extract YouTube video ID
 const videoEmbedId = computed(() => {

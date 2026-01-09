@@ -93,25 +93,6 @@
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta">
-      <div class="cta-inner">
-        <div class="cta-content">
-          <span class="section-label light">Get Started</span>
-          <h2>Ready to Experience Something New?</h2>
-          <p>Whether you're looking to attend events or organize your own, we make it simple.</p>
-        </div>
-        <div class="cta-actions">
-          <NuxtLink to="/app/events" class="btn-cta-primary">
-            Explore Events
-          </NuxtLink>
-          <NuxtLink v-if="isAuthenticated" to="/app/admin/events/create" class="btn-cta-outline">
-            Create an Event
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
       <div class="footer-inner">
@@ -354,10 +335,6 @@ const totalTickets = computed(() => 245)
   margin-bottom: 12px;
 }
 
-.section-label.light {
-  color: var(--color-primary-light);
-}
-
 .features-header h2 {
   font-size: 28px;
   font-weight: 600;
@@ -422,76 +399,6 @@ const totalTickets = computed(() => 245)
   font-size: 14px;
   color: var(--color-text-secondary);
   line-height: 1.6;
-}
-
-/* CTA Section */
-.cta {
-  background: var(--color-bg-dark);
-  padding: 72px 24px;
-}
-
-.cta-inner {
-  max-width: 560px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.cta-content {
-  margin-bottom: 36px;
-}
-
-.cta h2 {
-  font-size: 26px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  margin-bottom: 14px;
-}
-
-.cta p {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.6;
-}
-
-.cta-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.btn-cta-primary,
-.btn-cta-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 28px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.15s ease;
-}
-
-.btn-cta-primary {
-  background: var(--color-primary);
-  color: #ffffff;
-}
-
-.btn-cta-primary:hover {
-  background: var(--color-primary-light);
-}
-
-.btn-cta-outline {
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.btn-cta-outline:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Footer */
@@ -599,19 +506,6 @@ const totalTickets = computed(() => 245)
   .stat-value {
     font-size: 32px;
   }
-
-  .cta {
-    padding: 88px 40px;
-  }
-
-  .cta h2 {
-    font-size: 30px;
-  }
-
-  .cta-actions {
-    flex-direction: row;
-    justify-content: center;
-  }
 }
 
 /* Desktop */
@@ -637,10 +531,6 @@ const totalTickets = computed(() => 245)
 
   .feature-card {
     padding: 36px 32px;
-  }
-
-  .cta {
-    padding: 100px 40px;
   }
 }
 </style>

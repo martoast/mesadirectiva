@@ -112,15 +112,6 @@
             </a>
           </form>
 
-          <!-- Back to Home -->
-          <div class="form-footer">
-            <NuxtLink to="/" class="back-link">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to home
-            </NuxtLink>
-          </div>
         </div>
       </div>
     </div>
@@ -504,32 +495,6 @@ const handleSubmit = async () => {
 .btn-google svg {
   width: 18px;
   height: 18px;
-}
-
-/* Form Footer */
-.form-footer {
-  margin-top: 32px;
-  text-align: center;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.back-link:hover {
-  color: var(--color-text);
-}
-
-.back-link svg {
-  width: 14px;
-  height: 14px;
 }
 
 /* Tablet and Desktop */

@@ -6,25 +6,25 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-dot"></span>
-          <span>Event Ticketing Platform</span>
+          <span>{{ t.ticketingPlatform }}</span>
         </div>
-        <h1>Discover & Book<br>Unforgettable Events</h1>
-        <p>Find tickets to the best experiences near you. From concerts to conferences, we've got you covered.</p>
+        <h1 v-html="t.heroTitle"></h1>
+        <p>{{ t.heroDescription }}</p>
         <div class="hero-actions">
           <NuxtLink to="/app/events" class="btn-primary">
             <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Browse Events
+            {{ t.browseEvents }}
           </NuxtLink>
           <NuxtLink v-if="isAuthenticated" to="/app/admin/events" class="btn-secondary">
-            Dashboard
+            {{ t.dashboard }}
             <svg class="btn-icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </NuxtLink>
           <NuxtLink v-else to="/login" class="btn-secondary">
-            Sign In
+            {{ t.signIn }}
             <svg class="btn-icon-right" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -38,17 +38,17 @@
       <div class="stats-inner">
         <div class="stat-item">
           <span class="stat-value">{{ totalEvents }}</span>
-          <span class="stat-label">Events</span>
+          <span class="stat-label">{{ t.events }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <span class="stat-value">{{ liveEvents }}</span>
-          <span class="stat-label">Live Now</span>
+          <span class="stat-label">{{ t.liveNow }}</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <span class="stat-value">{{ totalTickets }}</span>
-          <span class="stat-label">Tickets Sold</span>
+          <span class="stat-label">{{ t.ticketsSold }}</span>
         </div>
       </div>
     </section>
@@ -56,8 +56,8 @@
     <!-- Features Section -->
     <section class="features">
       <div class="features-header">
-        <span class="section-label">How It Works</span>
-        <h2>Simple & Seamless Experience</h2>
+        <span class="section-label">{{ t.howItWorks }}</span>
+        <h2>{{ t.simpleExperience }}</h2>
       </div>
       <div class="features-grid">
         <div class="feature-card">
@@ -67,8 +67,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h3>Discover Events</h3>
-          <p>Browse upcoming events by category, date, or location to find your next experience.</p>
+          <h3>{{ t.discoverEvents }}</h3>
+          <p>{{ t.discoverDescription }}</p>
         </div>
         <div class="feature-card">
           <div class="feature-number">02</div>
@@ -77,8 +77,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             </svg>
           </div>
-          <h3>Select Your Seats</h3>
-          <p>Choose your preferred tickets or seats with our interactive selection system.</p>
+          <h3>{{ t.selectSeats }}</h3>
+          <p>{{ t.selectDescription }}</p>
         </div>
         <div class="feature-card">
           <div class="feature-number">03</div>
@@ -87,8 +87,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
-          <h3>Secure Checkout</h3>
-          <p>Complete your purchase with encrypted payment processing and instant confirmation.</p>
+          <h3>{{ t.secureCheckout }}</h3>
+          <p>{{ t.checkoutDescription }}</p>
         </div>
       </div>
     </section>
@@ -101,11 +101,11 @@
           <span>MesaDirectiva</span>
         </div>
         <div class="footer-links">
-          <NuxtLink to="/app/events">Events</NuxtLink>
+          <NuxtLink to="/app/events">{{ t.events }}</NuxtLink>
           <span class="link-dot"></span>
-          <NuxtLink to="/login">Sign In</NuxtLink>
+          <NuxtLink to="/login">{{ t.signIn }}</NuxtLink>
         </div>
-        <p class="footer-copy">© 2025 MesaDirectiva. All rights reserved.</p>
+        <p class="footer-copy">© 2025 MesaDirectiva. {{ t.allRightsReserved }}</p>
       </div>
     </footer>
   </div>
@@ -119,6 +119,31 @@ definePageMeta({
 })
 
 const { user, isAuthenticated } = useAuth()
+const { t: createT } = useLanguage()
+
+// Translations
+const translations = {
+  ticketingPlatform: { es: 'Plataforma de Eventos', en: 'Event Ticketing Platform' },
+  heroTitle: { es: 'Descubre y Reserva<br>Eventos Inolvidables', en: 'Discover & Book<br>Unforgettable Events' },
+  heroDescription: { es: 'Encuentra boletos para las mejores experiencias cerca de ti. De conciertos a conferencias, estamos aquí para ti.', en: 'Find tickets to the best experiences near you. From concerts to conferences, we\'ve got you covered.' },
+  browseEvents: { es: 'Ver Eventos', en: 'Browse Events' },
+  dashboard: { es: 'Panel', en: 'Dashboard' },
+  signIn: { es: 'Iniciar Sesión', en: 'Sign In' },
+  events: { es: 'Eventos', en: 'Events' },
+  liveNow: { es: 'En Vivo', en: 'Live Now' },
+  ticketsSold: { es: 'Boletos Vendidos', en: 'Tickets Sold' },
+  howItWorks: { es: 'Cómo Funciona', en: 'How It Works' },
+  simpleExperience: { es: 'Experiencia Simple y Perfecta', en: 'Simple & Seamless Experience' },
+  discoverEvents: { es: 'Descubre Eventos', en: 'Discover Events' },
+  discoverDescription: { es: 'Explora próximos eventos por categoría, fecha o ubicación para encontrar tu próxima experiencia.', en: 'Browse upcoming events by category, date, or location to find your next experience.' },
+  selectSeats: { es: 'Selecciona tus Asientos', en: 'Select Your Seats' },
+  selectDescription: { es: 'Elige tus boletos o asientos preferidos con nuestro sistema de selección interactivo.', en: 'Choose your preferred tickets or seats with our interactive selection system.' },
+  secureCheckout: { es: 'Pago Seguro', en: 'Secure Checkout' },
+  checkoutDescription: { es: 'Completa tu compra con procesamiento de pago encriptado y confirmación instantánea.', en: 'Complete your purchase with encrypted payment processing and instant confirmation.' },
+  allRightsReserved: { es: 'Todos los derechos reservados.', en: 'All rights reserved.' }
+}
+
+const t = createT(translations)
 
 // Mock stats - replace with actual API calls if needed
 const totalEvents = computed(() => 12)

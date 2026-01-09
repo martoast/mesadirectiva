@@ -3,21 +3,21 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-content">
-        <h1>Discover Events</h1>
-        <p>Find your next unforgettable experience</p>
+        <h1>{{ t.discoverEvents }}</h1>
+        <p>{{ t.findExperience }}</p>
       </div>
     </section>
 
     <!-- Filters -->
     <section class="filters">
       <div class="filters-inner">
-        <span class="results-count">{{ meta.total || 0 }} events</span>
+        <span class="results-count">{{ meta.total || 0 }} {{ t.events }}</span>
         <div class="filter-pills">
           <button
             :class="['pill', selectedGroup === null && 'active']"
             @click="selectGroup(null)"
           >
-            All
+            {{ t.all }}
           </button>
           <button
             v-for="group in groups"
@@ -48,15 +48,15 @@
 
         <!-- Error -->
         <div v-else-if="error" class="empty-state">
-          <h2>Something went wrong</h2>
+          <h2>{{ t.somethingWrong }}</h2>
           <p>{{ error }}</p>
-          <button @click="fetchEvents" class="retry-btn">Try Again</button>
+          <button @click="fetchEvents" class="retry-btn">{{ t.tryAgain }}</button>
         </div>
 
         <!-- Empty -->
         <div v-else-if="events.length === 0" class="empty-state">
-          <h2>No events found</h2>
-          <p>Check back soon for upcoming events</p>
+          <h2>{{ t.noEventsFound }}</h2>
+          <p>{{ t.checkBackSoon }}</p>
         </div>
 
         <!-- Grid -->
@@ -72,7 +72,7 @@
                 {{ event.group.name }}
               </span>
               <span v-if="event.location_type === 'online'" class="card-type-badge">
-                Online
+                {{ t.online }}
               </span>
             </div>
             <div class="card-content">
@@ -97,7 +97,7 @@
               </div>
               <div class="card-footer">
                 <div v-if="event.show_remaining && event.tickets_available !== undefined" class="card-availability">
-                  <span class="availability-text">{{ event.tickets_available }} left</span>
+                  <span class="availability-text">{{ event.tickets_available }} {{ t.left }}</span>
                 </div>
               </div>
             </div>
@@ -127,6 +127,24 @@ import { formatLocation } from '~/utils/location'
 definePageMeta({
   layout: 'public'
 })
+
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  discoverEvents: { es: 'Descubre Eventos', en: 'Discover Events' },
+  findExperience: { es: 'Encuentra tu próxima experiencia inolvidable', en: 'Find your next unforgettable experience' },
+  events: { es: 'eventos', en: 'events' },
+  all: { es: 'Todos', en: 'All' },
+  online: { es: 'En línea', en: 'Online' },
+  somethingWrong: { es: 'Algo salió mal', en: 'Something went wrong' },
+  tryAgain: { es: 'Intentar de Nuevo', en: 'Try Again' },
+  noEventsFound: { es: 'No se encontraron eventos', en: 'No events found' },
+  checkBackSoon: { es: 'Vuelve pronto para ver próximos eventos', en: 'Check back soon for upcoming events' },
+  left: { es: 'disponibles', en: 'left' }
+}
+
+const t = createT(translations)
 
 const { getPublicEvents } = useEvents()
 const { getGroups } = useGroups()

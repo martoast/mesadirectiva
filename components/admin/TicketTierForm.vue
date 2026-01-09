@@ -1,18 +1,18 @@
 <template>
   <form @submit.prevent="handleSubmit" class="ticket-tier-form">
     <h3 class="form-title">
-      {{ tier ? 'Edit Ticket Tier' : 'Add Ticket Tier' }}
+      {{ tier ? t.editTicketTier : t.addTicketTier }}
     </h3>
 
     <!-- Basic Info -->
     <div class="form-section">
       <div class="form-field">
-        <label for="tier-name">Tier Name <span class="required">*</span></label>
+        <label for="tier-name">{{ t.tierName }} <span class="required">*</span></label>
         <input
           id="tier-name"
           v-model="form.name"
           type="text"
-          placeholder="e.g., General, VIP, Premium"
+          :placeholder="t.tierNamePlaceholder"
           required
           :class="{ 'has-error': errors.name }"
         />
@@ -20,22 +20,22 @@
       </div>
 
       <div class="form-field">
-        <label for="tier-description">Description</label>
+        <label for="tier-description">{{ t.description }}</label>
         <textarea
           id="tier-description"
           v-model="form.description"
           rows="2"
-          placeholder="Describe what's included with this tier"
+          :placeholder="t.descriptionPlaceholder"
         ></textarea>
       </div>
     </div>
 
     <!-- Pricing & Quantity -->
     <div class="form-section">
-      <div class="section-title">Pricing & Quantity</div>
+      <div class="section-title">{{ t.pricingAndQuantity }}</div>
       <div class="form-row">
         <div class="form-field">
-          <label for="tier-price">Price <span class="required">*</span></label>
+          <label for="tier-price">{{ t.price }} <span class="required">*</span></label>
           <div class="input-with-prefix">
             <span class="prefix">$</span>
             <input
@@ -53,13 +53,13 @@
         </div>
 
         <div class="form-field">
-          <label for="tier-quantity">Total Quantity</label>
+          <label for="tier-quantity">{{ t.totalQuantity }}</label>
           <input
             id="tier-quantity"
             v-model="form.quantity"
             type="number"
             min="0"
-            placeholder="Leave empty for unlimited"
+            :placeholder="t.quantityPlaceholder"
             :class="{ 'has-error': errors.quantity }"
           />
           <span v-if="errors.quantity" class="field-error">{{ errors.quantity[0] }}</span>
@@ -70,38 +70,38 @@
     <!-- Sales Window -->
     <div class="form-section">
       <div class="section-header">
-        <div class="section-title">Sales Window</div>
+        <div class="section-title">{{ t.salesWindow }}</div>
         <button
           type="button"
           class="toggle-btn"
           :class="{ active: showSalesWindow }"
           @click="showSalesWindow = !showSalesWindow"
         >
-          {{ showSalesWindow ? 'Enabled' : 'Disabled' }}
+          {{ showSalesWindow ? t.enabled : t.disabled }}
         </button>
       </div>
 
       <div v-if="showSalesWindow" class="form-row">
         <div class="form-field">
-          <label for="tier-sales-start">Sales Start</label>
+          <label for="tier-sales-start">{{ t.salesStart }}</label>
           <input
             id="tier-sales-start"
             v-model="form.sales_start"
             type="datetime-local"
             :class="{ 'has-error': errors.sales_start }"
           />
-          <span class="field-hint">When tickets become available</span>
+          <span class="field-hint">{{ t.salesStartHint }}</span>
         </div>
 
         <div class="form-field">
-          <label for="tier-sales-end">Sales End</label>
+          <label for="tier-sales-end">{{ t.salesEnd }}</label>
           <input
             id="tier-sales-end"
             v-model="form.sales_end"
             type="datetime-local"
             :class="{ 'has-error': errors.sales_end }"
           />
-          <span class="field-hint">When tickets stop selling</span>
+          <span class="field-hint">{{ t.salesEndHint }}</span>
         </div>
       </div>
     </div>
@@ -109,20 +109,20 @@
     <!-- Order Constraints -->
     <div class="form-section">
       <div class="section-header">
-        <div class="section-title">Order Limits</div>
+        <div class="section-title">{{ t.orderLimits }}</div>
         <button
           type="button"
           class="toggle-btn"
           :class="{ active: showOrderLimits }"
           @click="showOrderLimits = !showOrderLimits"
         >
-          {{ showOrderLimits ? 'Enabled' : 'Default' }}
+          {{ showOrderLimits ? t.enabled : t.default }}
         </button>
       </div>
 
       <div v-if="showOrderLimits" class="form-row">
         <div class="form-field">
-          <label for="tier-min">Min per Order</label>
+          <label for="tier-min">{{ t.minPerOrder }}</label>
           <input
             id="tier-min"
             v-model="form.min_per_order"
@@ -133,7 +133,7 @@
         </div>
 
         <div class="form-field">
-          <label for="tier-max">Max per Order</label>
+          <label for="tier-max">{{ t.maxPerOrder }}</label>
           <input
             id="tier-max"
             v-model="form.max_per_order"
@@ -147,10 +147,10 @@
 
     <!-- Options -->
     <div class="form-section">
-      <div class="section-title">Options</div>
+      <div class="section-title">{{ t.options }}</div>
       <div class="form-row">
         <div class="form-field">
-          <label for="tier-sort-order">Sort Order</label>
+          <label for="tier-sort-order">{{ t.sortOrder }}</label>
           <input
             id="tier-sort-order"
             v-model="form.sort_order"
@@ -163,15 +163,15 @@
         <div class="form-field checkbox-group">
           <label class="checkbox-option">
             <input type="checkbox" v-model="form.is_active" />
-            <span>Active</span>
+            <span>{{ t.active }}</span>
           </label>
           <label class="checkbox-option">
             <input type="checkbox" v-model="form.is_hidden" />
-            <span>Hidden</span>
+            <span>{{ t.hidden }}</span>
           </label>
           <label class="checkbox-option">
             <input type="checkbox" v-model="form.show_description" />
-            <span>Show Description</span>
+            <span>{{ t.showDescription }}</span>
           </label>
         </div>
       </div>
@@ -180,10 +180,10 @@
     <!-- Actions -->
     <div class="form-actions">
       <button type="button" class="btn-cancel" @click="$emit('cancel')">
-        Cancel
+        {{ t.cancel }}
       </button>
       <button type="submit" class="btn-submit" :disabled="loading">
-        {{ loading ? 'Saving...' : (tier ? 'Update Tier' : 'Create Tier') }}
+        {{ loading ? t.saving : (tier ? t.updateTier : t.createTier) }}
       </button>
     </div>
   </form>
@@ -192,6 +192,50 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { isoToLocal, localToISO } from '~/utils/dateTime'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Form titles
+  editTicketTier: { es: 'Editar Nivel de Boleto', en: 'Edit Ticket Tier' },
+  addTicketTier: { es: 'Agregar Nivel de Boleto', en: 'Add Ticket Tier' },
+  // Labels
+  tierName: { es: 'Nombre del Nivel', en: 'Tier Name' },
+  tierNamePlaceholder: { es: 'ej., General, VIP, Premium', en: 'e.g., General, VIP, Premium' },
+  description: { es: 'Descripción', en: 'Description' },
+  descriptionPlaceholder: { es: 'Describe lo que incluye este nivel', en: 'Describe what\'s included with this tier' },
+  // Pricing & Quantity
+  pricingAndQuantity: { es: 'Precio y Cantidad', en: 'Pricing & Quantity' },
+  price: { es: 'Precio', en: 'Price' },
+  totalQuantity: { es: 'Cantidad Total', en: 'Total Quantity' },
+  quantityPlaceholder: { es: 'Dejar vacío para ilimitado', en: 'Leave empty for unlimited' },
+  // Sales Window
+  salesWindow: { es: 'Ventana de Ventas', en: 'Sales Window' },
+  enabled: { es: 'Habilitado', en: 'Enabled' },
+  disabled: { es: 'Deshabilitado', en: 'Disabled' },
+  salesStart: { es: 'Inicio de Ventas', en: 'Sales Start' },
+  salesEnd: { es: 'Fin de Ventas', en: 'Sales End' },
+  salesStartHint: { es: 'Cuando los boletos estarán disponibles', en: 'When tickets become available' },
+  salesEndHint: { es: 'Cuando los boletos dejan de venderse', en: 'When tickets stop selling' },
+  // Order Limits
+  orderLimits: { es: 'Límites de Orden', en: 'Order Limits' },
+  default: { es: 'Por defecto', en: 'Default' },
+  minPerOrder: { es: 'Mín. por Orden', en: 'Min per Order' },
+  maxPerOrder: { es: 'Máx. por Orden', en: 'Max per Order' },
+  // Options
+  options: { es: 'Opciones', en: 'Options' },
+  sortOrder: { es: 'Orden de Clasificación', en: 'Sort Order' },
+  active: { es: 'Activo', en: 'Active' },
+  hidden: { es: 'Oculto', en: 'Hidden' },
+  showDescription: { es: 'Mostrar Descripción', en: 'Show Description' },
+  // Actions
+  cancel: { es: 'Cancelar', en: 'Cancel' },
+  saving: { es: 'Guardando...', en: 'Saving...' },
+  updateTier: { es: 'Actualizar Nivel', en: 'Update Tier' },
+  createTier: { es: 'Crear Nivel', en: 'Create Tier' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   tier: {

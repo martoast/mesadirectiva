@@ -3,17 +3,17 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Orders</h1>
-        <p class="page-subtitle">View and manage all ticket orders</p>
+        <h1 class="page-title">{{ t.pageTitle }}</h1>
+        <p class="page-subtitle">{{ t.pageSubtitle }}</p>
       </div>
       <div class="header-stats">
         <div class="mini-stat">
           <span class="mini-stat-value">{{ summary.total_orders || 0 }}</span>
-          <span class="mini-stat-label">Total</span>
+          <span class="mini-stat-label">{{ t.total }}</span>
         </div>
         <div class="mini-stat">
           <span class="mini-stat-value">${{ formatCurrency(summary.total_revenue || 0) }}</span>
-          <span class="mini-stat-label">Revenue</span>
+          <span class="mini-stat-label">{{ t.revenue }}</span>
         </div>
       </div>
     </div>
@@ -27,16 +27,16 @@
         <input
           v-model="search"
           type="text"
-          placeholder="Search by name, email, or order #"
+          :placeholder="t.searchPlaceholder"
           class="search-input"
           @input="debouncedSearch"
         />
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Event</label>
+        <label class="filter-label">{{ t.event }}</label>
         <select v-model="filterEvent" class="filter-select">
-          <option value="">All Events</option>
+          <option value="">{{ t.allEvents }}</option>
           <option v-for="event in events" :key="event.id" :value="event.id">
             {{ event.name }}
           </option>
@@ -44,23 +44,23 @@
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Status</label>
+        <label class="filter-label">{{ t.status }}</label>
         <select v-model="filterStatus" class="filter-select">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
+          <option value="">{{ t.allStatus }}</option>
+          <option value="pending">{{ t.pending }}</option>
+          <option value="completed">{{ t.completed }}</option>
+          <option value="failed">{{ t.failed }}</option>
+          <option value="refunded">{{ t.refunded }}</option>
         </select>
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">From</label>
+        <label class="filter-label">{{ t.from }}</label>
         <input v-model="dateFrom" type="date" class="filter-input" />
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">To</label>
+        <label class="filter-label">{{ t.to }}</label>
         <input v-model="dateTo" type="date" class="filter-input" />
       </div>
 
@@ -68,14 +68,14 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        Clear
+        {{ t.clear }}
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="state-container">
       <div class="loading-spinner"></div>
-      <p class="state-text">Loading orders...</p>
+      <p class="state-text">{{ t.loadingOrders }}</p>
     </div>
 
     <!-- Error State -->
@@ -84,7 +84,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <p class="state-text">{{ error }}</p>
-      <button @click="fetchOrders" class="retry-btn">Try Again</button>
+      <button @click="fetchOrders" class="retry-btn">{{ t.tryAgain }}</button>
     </div>
 
     <!-- Empty State -->
@@ -92,8 +92,8 @@
       <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
       </svg>
-      <p class="state-text">No orders found</p>
-      <p class="state-hint">Try adjusting your filters</p>
+      <p class="state-text">{{ t.noOrdersFound }}</p>
+      <p class="state-hint">{{ t.tryAdjustingFilters }}</p>
     </div>
 
     <!-- Orders Table -->
@@ -101,15 +101,15 @@
       <table class="orders-table">
         <thead>
           <tr>
-            <th class="col-order">Order #</th>
-            <th class="col-customer">Customer</th>
-            <th class="col-event">Event</th>
-            <th class="col-type">Type</th>
-            <th class="col-items">Items</th>
-            <th class="col-total">Total</th>
-            <th class="col-status">Status</th>
-            <th class="col-date">Date</th>
-            <th class="col-actions">Actions</th>
+            <th class="col-order">{{ t.orderNumber }}</th>
+            <th class="col-customer">{{ t.customer }}</th>
+            <th class="col-event">{{ t.event }}</th>
+            <th class="col-type">{{ t.type }}</th>
+            <th class="col-items">{{ t.items }}</th>
+            <th class="col-total">{{ t.total }}</th>
+            <th class="col-status">{{ t.status }}</th>
+            <th class="col-date">{{ t.date }}</th>
+            <th class="col-actions">{{ t.actions }}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,15 +131,15 @@
             </td>
             <td class="col-items">
               <div v-if="order.tables?.length > 0 || order.seats?.length > 0" class="items-list">
-                <span v-if="order.tables?.length > 0">{{ order.tables.length }} table(s)</span>
-                <span v-if="order.seats?.length > 0">{{ order.seats.length }} seat(s)</span>
+                <span v-if="order.tables?.length > 0">{{ order.tables.length }} {{ t.tables }}</span>
+                <span v-if="order.seats?.length > 0">{{ order.seats.length }} {{ t.seats }}</span>
               </div>
               <div v-else-if="order.tier_items?.length > 0" class="items-list">
                 <span v-for="tier in order.tier_items" :key="tier.tier_id">
                   {{ tier.tier_name }}: {{ tier.quantity }}
                 </span>
               </div>
-              <span v-else class="items-count">{{ order.ticket_count }} ticket(s)</span>
+              <span v-else class="items-count">{{ order.ticket_count }} {{ t.tickets }}</span>
             </td>
             <td class="col-total">
               <span class="total-amount">${{ order.total?.toFixed(2) }}</span>
@@ -184,21 +184,21 @@
 
         <div class="card-details">
           <div class="detail-item">
-            <span class="detail-label">Event</span>
+            <span class="detail-label">{{ t.event }}</span>
             <span class="detail-value">{{ order.event?.name || '—' }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Total</span>
+            <span class="detail-label">{{ t.total }}</span>
             <span class="detail-value total">${{ order.total?.toFixed(2) }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Date</span>
+            <span class="detail-label">{{ t.date }}</span>
             <span class="detail-value">{{ formatDate(order.created_at) }}</span>
           </div>
         </div>
 
         <NuxtLink :to="`/app/admin/orders/${order.order_number}`" class="card-action">
-          View Details
+          {{ t.viewDetails }}
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
           </svg>
@@ -215,6 +215,47 @@ definePageMeta({
   layout: 'admin',
   middleware: ['auth', 'admin']
 })
+
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  pageTitle: { es: 'Órdenes', en: 'Orders' },
+  pageSubtitle: { es: 'Ver y gestionar todas las órdenes de boletos', en: 'View and manage all ticket orders' },
+  total: { es: 'Total', en: 'Total' },
+  revenue: { es: 'Ingresos', en: 'Revenue' },
+  searchPlaceholder: { es: 'Buscar por nombre, correo o # de orden', en: 'Search by name, email, or order #' },
+  event: { es: 'Evento', en: 'Event' },
+  allEvents: { es: 'Todos los Eventos', en: 'All Events' },
+  status: { es: 'Estado', en: 'Status' },
+  allStatus: { es: 'Todos los Estados', en: 'All Status' },
+  pending: { es: 'Pendiente', en: 'Pending' },
+  completed: { es: 'Completada', en: 'Completed' },
+  failed: { es: 'Fallida', en: 'Failed' },
+  refunded: { es: 'Reembolsada', en: 'Refunded' },
+  from: { es: 'Desde', en: 'From' },
+  to: { es: 'Hasta', en: 'To' },
+  clear: { es: 'Limpiar', en: 'Clear' },
+  loadingOrders: { es: 'Cargando órdenes...', en: 'Loading orders...' },
+  noOrdersFound: { es: 'No se encontraron órdenes', en: 'No orders found' },
+  tryAdjustingFilters: { es: 'Intenta ajustar tus filtros', en: 'Try adjusting your filters' },
+  tryAgain: { es: 'Intentar de Nuevo', en: 'Try Again' },
+  orderNumber: { es: 'Orden #', en: 'Order #' },
+  customer: { es: 'Cliente', en: 'Customer' },
+  type: { es: 'Tipo', en: 'Type' },
+  items: { es: 'Artículos', en: 'Items' },
+  date: { es: 'Fecha', en: 'Date' },
+  actions: { es: 'Acciones', en: 'Actions' },
+  seated: { es: 'Con Asientos', en: 'Seated' },
+  tiered: { es: 'Por Niveles', en: 'Tiered' },
+  general: { es: 'General', en: 'General' },
+  tables: { es: 'mesa(s)', en: 'table(s)' },
+  seats: { es: 'asiento(s)', en: 'seat(s)' },
+  tickets: { es: 'boleto(s)', en: 'ticket(s)' },
+  viewDetails: { es: 'Ver Detalles', en: 'View Details' }
+}
+
+const t = createT(translations)
 
 const { getOrdersReport } = useReports()
 const { getEvents } = useEvents()
@@ -303,18 +344,18 @@ const formatCurrency = (amount) => {
 
 const statusLabel = (status) => {
   const labels = {
-    pending: 'Pending',
-    completed: 'Completed',
-    failed: 'Failed',
-    refunded: 'Refunded'
+    pending: t.pending,
+    completed: t.completed,
+    failed: t.failed,
+    refunded: t.refunded
   }
   return labels[status] || status
 }
 
 const getOrderType = (order) => {
-  if (order.tables?.length > 0 || order.seats?.length > 0) return 'Seated'
-  if (order.tier_items?.length > 0) return 'Tiered'
-  return 'General'
+  if (order.tables?.length > 0 || order.seats?.length > 0) return t.seated
+  if (order.tier_items?.length > 0) return t.tiered
+  return t.general
 }
 
 const getOrderTypeClass = (order) => {

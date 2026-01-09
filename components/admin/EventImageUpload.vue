@@ -9,13 +9,13 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
-          Remove
+          {{ t.remove }}
         </button>
         <button type="button" class="overlay-btn" @click="triggerFileInput">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Replace
+          {{ t.replace }}
         </button>
       </div>
     </div>
@@ -35,9 +35,9 @@
           </svg>
         </div>
         <p class="dropzone-text">
-          <span class="text-primary">Click to upload</span> or drag and drop
+          <span class="text-primary">{{ t.clickToUpload }}</span> {{ t.orDragDrop }}
         </p>
-        <p class="dropzone-hint">PNG, JPG, or WEBP (max 5MB)</p>
+        <p class="dropzone-hint">{{ t.fileHint }}</p>
       </div>
     </div>
 
@@ -55,7 +55,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-        {{ showUrlInput ? 'Hide URL input' : 'Or use image URL' }}
+        {{ showUrlInput ? t.hideUrlInput : t.orUseImageUrl }}
       </button>
 
       <div v-if="showUrlInput" class="url-input-wrapper">
@@ -68,7 +68,7 @@
           @keyup.enter="handleUrlInput"
         />
         <button type="button" class="url-apply-btn" @click="handleUrlInput" :disabled="!urlInput">
-          Apply
+          {{ t.apply }}
         </button>
       </div>
     </div>
@@ -81,13 +81,32 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: `${uploadProgress}%` }"></div>
       </div>
-      <span class="progress-text">Uploading... {{ uploadProgress }}%</span>
+      <span class="progress-text">{{ t.uploading }} {{ uploadProgress }}%</span>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+
+const { t: createT } = useLanguage()
+
+const translations = {
+  remove: { es: 'Eliminar', en: 'Remove' },
+  replace: { es: 'Reemplazar', en: 'Replace' },
+  clickToUpload: { es: 'Haz clic para subir', en: 'Click to upload' },
+  orDragDrop: { es: 'o arrastra y suelta', en: 'or drag and drop' },
+  fileHint: { es: 'PNG, JPG o WEBP (máx 5MB)', en: 'PNG, JPG, or WEBP (max 5MB)' },
+  hideUrlInput: { es: 'Ocultar entrada de URL', en: 'Hide URL input' },
+  orUseImageUrl: { es: 'O usa URL de imagen', en: 'Or use image URL' },
+  apply: { es: 'Aplicar', en: 'Apply' },
+  invalidImageType: { es: 'Por favor sube una imagen PNG, JPG o WEBP', en: 'Please upload a PNG, JPG, or WEBP image' },
+  imageTooLarge: { es: 'La imagen debe ser menor a 5MB', en: 'Image must be less than 5MB' },
+  invalidUrl: { es: 'Por favor ingresa una URL válida', en: 'Please enter a valid URL' },
+  uploading: { es: 'Subiendo...', en: 'Uploading...' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   modelValue: {
@@ -145,10 +164,10 @@ const validateFile = (file) => {
   const maxSize = 5 * 1024 * 1024 // 5MB
 
   if (!validTypes.includes(file.type)) {
-    return 'Please upload a PNG, JPG, or WEBP image'
+    return t.invalidImageType
   }
   if (file.size > maxSize) {
-    return 'Image must be less than 5MB'
+    return t.imageTooLarge
   }
   return null
 }
@@ -195,7 +214,7 @@ const handleUrlInput = () => {
   try {
     new URL(urlInput.value)
   } catch {
-    errorMessage.value = 'Please enter a valid URL'
+    errorMessage.value = t.invalidUrl
     return
   }
 

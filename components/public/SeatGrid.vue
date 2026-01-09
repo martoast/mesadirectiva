@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center">
       <div>
         <h3 class="font-semibold text-gray-900">{{ table.name }}</h3>
-        <p class="text-sm text-gray-500">Select individual seats</p>
+        <p class="text-sm text-gray-500">{{ t.selectIndividualSeats }}</p>
       </div>
       <button
         type="button"
@@ -21,19 +21,19 @@
     <div class="flex flex-wrap gap-4 text-sm">
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-success-500"></div>
-        <span>Available</span>
+        <span>{{ t.available }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-primary-500"></div>
-        <span>Selected</span>
+        <span>{{ t.selected }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-warning-500"></div>
-        <span>Reserved</span>
+        <span>{{ t.reserved }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-gray-300"></div>
-        <span>Sold</span>
+        <span>{{ t.sold }}</span>
       </div>
     </div>
 
@@ -69,13 +69,13 @@
     <!-- Selection Summary -->
     <div v-if="selectedSeats.length > 0" class="border-t pt-4">
       <div class="flex justify-between items-center mb-2">
-        <span class="text-gray-600">{{ selectedSeats.length }} seat{{ selectedSeats.length !== 1 ? 's' : '' }} selected</span>
+        <span class="text-gray-600">{{ selectedSeats.length }} {{ selectedSeats.length !== 1 ? t.seatsSelected : t.seatSelected }}</span>
         <button
           type="button"
           @click="clearSelection"
           class="text-sm text-primary-600 hover:text-primary-700"
         >
-          Clear all
+          {{ t.clearAll }}
         </button>
       </div>
 
@@ -99,7 +99,7 @@
       </div>
 
       <div class="flex justify-between items-center text-lg font-semibold">
-        <span>Total</span>
+        <span>{{ t.total }}</span>
         <span class="text-primary-600">${{ formatPrice(totalPrice) }}</span>
       </div>
     </div>
@@ -107,6 +107,22 @@
 </template>
 
 <script setup>
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  selectIndividualSeats: { es: 'Selecciona asientos individuales', en: 'Select individual seats' },
+  available: { es: 'Disponible', en: 'Available' },
+  selected: { es: 'Seleccionado', en: 'Selected' },
+  reserved: { es: 'Reservado', en: 'Reserved' },
+  sold: { es: 'Vendido', en: 'Sold' },
+  seatsSelected: { es: 'asientos seleccionados', en: 'seats selected' },
+  seatSelected: { es: 'asiento seleccionado', en: 'seat selected' },
+  clearAll: { es: 'Limpiar todo', en: 'Clear all' },
+  total: { es: 'Total', en: 'Total' }
+}
+
+const t = createT(translations)
+
 const props = defineProps({
   table: {
     type: Object,

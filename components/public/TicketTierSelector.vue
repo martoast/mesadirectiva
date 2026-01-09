@@ -2,9 +2,9 @@
   <div class="space-y-4">
     <!-- Header -->
     <div v-if="showHeader" class="flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-900">Select Tickets</h3>
+      <h3 class="text-lg font-semibold text-gray-900">{{ t.selectTickets }}</h3>
       <span v-if="totalTickets > 0" class="text-sm text-gray-500">
-        {{ totalTickets }} ticket{{ totalTickets !== 1 ? 's' : '' }} selected
+        {{ totalTickets }} {{ totalTickets !== 1 ? t.ticketsSelected : t.ticketSelected }}
       </span>
     </div>
 
@@ -21,7 +21,7 @@
 
     <!-- Empty State -->
     <div v-else-if="tiers.length === 0" class="text-center py-8 text-gray-500">
-      No ticket options available for this event.
+      {{ t.noTicketsAvailable }}
     </div>
 
     <!-- Tier List -->
@@ -39,7 +39,7 @@
     <!-- Total Summary -->
     <div v-if="totalTickets > 0" class="border-t pt-4 mt-4">
       <div class="flex justify-between items-center text-lg font-semibold">
-        <span class="text-gray-900">Total</span>
+        <span class="text-gray-900">{{ t.total }}</span>
         <span class="text-primary-600">${{ formatPrice(totalAmount) }}</span>
       </div>
     </div>
@@ -48,6 +48,18 @@
 
 <script setup>
 import { computed } from 'vue'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  selectTickets: { es: 'Seleccionar Boletos', en: 'Select Tickets' },
+  ticketSelected: { es: 'boleto seleccionado', en: 'ticket selected' },
+  ticketsSelected: { es: 'boletos seleccionados', en: 'tickets selected' },
+  noTicketsAvailable: { es: 'No hay opciones de boletos disponibles para este evento.', en: 'No ticket options available for this event.' },
+  total: { es: 'Total', en: 'Total' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   tiers: {

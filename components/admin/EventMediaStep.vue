@@ -5,11 +5,11 @@
     <!-- Main Event Image -->
     <div class="media-section">
       <div class="section-header">
-        <h3>Main Event Image</h3>
-        <span class="badge required">Required</span>
+        <h3>{{ t.mainEventImage }}</h3>
+        <span class="badge required">{{ t.required }}</span>
       </div>
       <p class="section-description">
-        This is the primary image shown on your event page and in listings. Use a high-quality image that represents your event.
+        {{ t.mainImageDescription }}
       </p>
       <AdminEventImageUpload
         v-model="mainImage"
@@ -25,11 +25,11 @@
     <!-- Gallery Images -->
     <div class="media-section">
       <div class="section-header">
-        <h3>Gallery Images</h3>
-        <span class="badge optional">Optional</span>
+        <h3>{{ t.galleryImages }}</h3>
+        <span class="badge optional">{{ t.optional }}</span>
       </div>
       <p class="section-description">
-        Add additional images to showcase your venue, past events, or what attendees can expect.
+        {{ t.galleryDescription }}
       </p>
 
       <div class="gallery-grid">
@@ -55,7 +55,7 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
           </svg>
-          <span>Add Image</span>
+          <span>{{ t.addImage }}</span>
         </button>
       </div>
 
@@ -67,17 +67,17 @@
         multiple
         @change="handleGallerySelect"
       />
-      <p class="hint">Up to 6 images. PNG, JPG, or WEBP (max 5MB each)</p>
+      <p class="hint">{{ t.galleryHint }}</p>
     </div>
 
     <!-- YouTube Video -->
     <div class="media-section">
       <div class="section-header">
-        <h3>Video</h3>
-        <span class="badge optional">Optional</span>
+        <h3>{{ t.video }}</h3>
+        <span class="badge optional">{{ t.optional }}</span>
       </div>
       <p class="section-description">
-        Add a YouTube video to give attendees a preview of what to expect.
+        {{ t.videoDescription }}
       </p>
 
       <div class="video-input-wrapper">
@@ -108,7 +108,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
-          Remove video
+          {{ t.removeVideo }}
         </button>
       </div>
 
@@ -119,6 +119,25 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+
+const { t: createT } = useLanguage()
+
+const translations = {
+  mainEventImage: { es: 'Imagen Principal del Evento', en: 'Main Event Image' },
+  required: { es: 'Requerido', en: 'Required' },
+  mainImageDescription: { es: 'Esta es la imagen principal que se muestra en tu página de evento y en los listados. Usa una imagen de alta calidad que represente tu evento.', en: 'This is the primary image shown on your event page and in listings. Use a high-quality image that represents your event.' },
+  galleryImages: { es: 'Imágenes de Galería', en: 'Gallery Images' },
+  optional: { es: 'Opcional', en: 'Optional' },
+  galleryDescription: { es: 'Agrega imágenes adicionales para mostrar tu lugar, eventos pasados o lo que pueden esperar los asistentes.', en: 'Add additional images to showcase your venue, past events, or what attendees can expect.' },
+  addImage: { es: 'Agregar Imagen', en: 'Add Image' },
+  galleryHint: { es: 'Hasta 6 imágenes. PNG, JPG o WEBP (máx 5MB cada una)', en: 'Up to 6 images. PNG, JPG, or WEBP (max 5MB each)' },
+  video: { es: 'Video', en: 'Video' },
+  videoDescription: { es: 'Agrega un video de YouTube para dar a los asistentes una vista previa de qué esperar.', en: 'Add a YouTube video to give attendees a preview of what to expect.' },
+  invalidYouTubeUrl: { es: 'Por favor ingresa una URL de YouTube válida', en: 'Please enter a valid YouTube URL' },
+  removeVideo: { es: 'Eliminar video', en: 'Remove video' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   eventSlug: {
@@ -276,7 +295,7 @@ const validateVideoUrl = () => {
   }
 
   if (!videoEmbedId.value) {
-    videoError.value = 'Please enter a valid YouTube URL'
+    videoError.value = t.invalidYouTubeUrl
   } else {
     videoError.value = ''
     // Emit event to add video via API

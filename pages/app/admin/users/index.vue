@@ -3,14 +3,14 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-content">
-        <h1 class="page-title">Users</h1>
-        <p class="page-subtitle">Manage system users and permissions</p>
+        <h1 class="page-title">{{ t.pageTitle }}</h1>
+        <p class="page-subtitle">{{ t.pageSubtitle }}</p>
       </div>
       <NuxtLink to="/app/admin/users/create" class="create-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
         </svg>
-        Create User
+        {{ t.createUser }}
       </NuxtLink>
     </div>
 
@@ -23,19 +23,19 @@
         <input
           v-model="search"
           type="text"
-          placeholder="Search by name or email..."
+          :placeholder="t.searchPlaceholder"
           class="search-input"
           @input="debouncedSearch"
         />
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Role</label>
+        <label class="filter-label">{{ t.role }}</label>
         <select v-model="filterRole" class="filter-select">
-          <option value="">All Roles</option>
-          <option value="super_admin">Super Admin</option>
-          <option value="admin">Admin</option>
-          <option value="viewer">Viewer</option>
+          <option value="">{{ t.allRoles }}</option>
+          <option value="super_admin">{{ t.superAdmin }}</option>
+          <option value="admin">{{ t.admin }}</option>
+          <option value="viewer">{{ t.viewer }}</option>
         </select>
       </div>
 
@@ -43,14 +43,14 @@
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        Clear
+        {{ t.clear }}
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="state-container">
       <div class="loading-spinner"></div>
-      <p class="state-text">Loading users...</p>
+      <p class="state-text">{{ t.loadingUsers }}</p>
     </div>
 
     <!-- Error State -->
@@ -59,7 +59,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <p class="state-text">{{ error }}</p>
-      <button @click="fetchUsers" class="retry-btn">Try Again</button>
+      <button @click="fetchUsers" class="retry-btn">{{ t.tryAgain }}</button>
     </div>
 
     <!-- Empty State -->
@@ -67,8 +67,8 @@
       <svg class="state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
-      <p class="state-text">No users found</p>
-      <p class="state-hint">Try adjusting your filters or create a new user</p>
+      <p class="state-text">{{ t.noUsersFound }}</p>
+      <p class="state-hint">{{ t.tryAdjustingFilters }}</p>
     </div>
 
     <!-- Users Table -->
@@ -76,11 +76,11 @@
       <table class="users-table">
         <thead>
           <tr>
-            <th class="col-user">User</th>
-            <th class="col-role">Role</th>
-            <th class="col-status">Status</th>
-            <th class="col-groups">Groups</th>
-            <th class="col-actions">Actions</th>
+            <th class="col-user">{{ t.user }}</th>
+            <th class="col-role">{{ t.role }}</th>
+            <th class="col-status">{{ t.status }}</th>
+            <th class="col-groups">{{ t.groups }}</th>
+            <th class="col-actions">{{ t.actions }}</th>
           </tr>
         </thead>
         <tbody>
@@ -104,7 +104,7 @@
             <td class="col-status">
               <span :class="['status-badge', user.is_active ? 'active' : 'inactive']">
                 <span class="status-dot"></span>
-                {{ user.is_active ? 'Active' : 'Inactive' }}
+                {{ user.is_active ? t.active : t.inactive }}
               </span>
             </td>
             <td class="col-groups">
@@ -125,7 +125,7 @@
             </td>
             <td class="col-actions">
               <div class="actions-row">
-                <NuxtLink :to="`/app/admin/users/${user.id}`" class="action-btn edit" title="Edit">
+                <NuxtLink :to="`/app/admin/users/${user.id}`" class="action-btn edit" :title="t.edit">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -133,7 +133,7 @@
                 <button
                   @click="handleToggleActive(user)"
                   :class="['action-btn', user.is_active ? 'deactivate' : 'activate']"
-                  :title="user.is_active ? 'Deactivate' : 'Activate'"
+                  :title="user.is_active ? t.deactivate : t.activate"
                 >
                   <svg v-if="user.is_active" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -194,19 +194,19 @@
           </div>
           <span :class="['status-badge', user.is_active ? 'active' : 'inactive']">
             <span class="status-dot"></span>
-            {{ user.is_active ? 'Active' : 'Inactive' }}
+            {{ user.is_active ? t.active : t.inactive }}
           </span>
         </div>
 
         <div class="card-details">
           <div class="detail-item">
-            <span class="detail-label">Role</span>
+            <span class="detail-label">{{ t.role }}</span>
             <span :class="['role-badge', user.role]">
               {{ roleLabel(user.role) }}
             </span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Groups</span>
+            <span class="detail-label">{{ t.groups }}</span>
             <div v-if="user.groups?.length" class="group-list">
               <span
                 v-for="group in user.groups.slice(0, 2)"
@@ -220,7 +220,7 @@
                 +{{ user.groups.length - 2 }}
               </span>
             </div>
-            <span v-else class="no-groups">None</span>
+            <span v-else class="no-groups">{{ t.none }}</span>
           </div>
         </div>
 
@@ -229,7 +229,7 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Edit
+            {{ t.edit }}
           </NuxtLink>
           <button
             @click="handleToggleActive(user)"
@@ -241,7 +241,7 @@
             <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ user.is_active ? 'Deactivate' : 'Activate' }}
+            {{ user.is_active ? t.deactivate : t.activate }}
           </button>
         </div>
       </div>
@@ -253,7 +253,7 @@
           :disabled="currentPage === 1"
           class="page-btn nav"
         >
-          Previous
+          {{ t.previous }}
         </button>
         <span class="page-info">{{ currentPage }} / {{ meta.last_page }}</span>
         <button
@@ -261,7 +261,7 @@
           :disabled="currentPage === meta.last_page"
           class="page-btn nav"
         >
-          Next
+          {{ t.next }}
         </button>
       </div>
     </div>
@@ -275,6 +275,40 @@ definePageMeta({
   layout: 'admin',
   middleware: ['auth', 'super-admin']
 })
+
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  pageTitle: { es: 'Usuarios', en: 'Users' },
+  pageSubtitle: { es: 'Gestionar usuarios del sistema y permisos', en: 'Manage system users and permissions' },
+  createUser: { es: 'Crear Usuario', en: 'Create User' },
+  searchPlaceholder: { es: 'Buscar por nombre o correo...', en: 'Search by name or email...' },
+  role: { es: 'Rol', en: 'Role' },
+  allRoles: { es: 'Todos los Roles', en: 'All Roles' },
+  superAdmin: { es: 'Super Admin', en: 'Super Admin' },
+  admin: { es: 'Admin', en: 'Admin' },
+  viewer: { es: 'Visor', en: 'Viewer' },
+  clear: { es: 'Limpiar', en: 'Clear' },
+  loadingUsers: { es: 'Cargando usuarios...', en: 'Loading users...' },
+  noUsersFound: { es: 'No se encontraron usuarios', en: 'No users found' },
+  tryAdjustingFilters: { es: 'Intenta ajustar tus filtros o crear un nuevo usuario', en: 'Try adjusting your filters or create a new user' },
+  tryAgain: { es: 'Intentar de Nuevo', en: 'Try Again' },
+  user: { es: 'Usuario', en: 'User' },
+  status: { es: 'Estado', en: 'Status' },
+  groups: { es: 'Grupos', en: 'Groups' },
+  actions: { es: 'Acciones', en: 'Actions' },
+  active: { es: 'Activo', en: 'Active' },
+  inactive: { es: 'Inactivo', en: 'Inactive' },
+  none: { es: 'Ninguno', en: 'None' },
+  edit: { es: 'Editar', en: 'Edit' },
+  deactivate: { es: 'Desactivar', en: 'Deactivate' },
+  activate: { es: 'Activar', en: 'Activate' },
+  previous: { es: 'Anterior', en: 'Previous' },
+  next: { es: 'Siguiente', en: 'Next' }
+}
+
+const t = createT(translations)
 
 const { getUsers, toggleActive } = useUsers()
 
@@ -388,9 +422,9 @@ const getAvatarColor = (name) => {
 
 const roleLabel = (role) => {
   const labels = {
-    super_admin: 'Super Admin',
-    admin: 'Admin',
-    viewer: 'Viewer'
+    super_admin: t.superAdmin,
+    admin: t.admin,
+    viewer: t.viewer
   }
   return labels[role] || role
 }

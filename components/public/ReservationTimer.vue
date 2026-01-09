@@ -12,19 +12,29 @@
     </svg>
 
     <span v-if="isExpired">
-      Reservation expired
+      {{ t.reservationExpired }}
     </span>
     <span v-else>
-      Reservation expires in <strong>{{ formattedTime }}</strong>
+      {{ t.reservationExpiresIn }} <strong>{{ formattedTime }}</strong>
     </span>
 
     <span v-if="isExpiringSoon && !isExpired" class="ml-1 animate-pulse">
-      - Complete checkout soon!
+      {{ t.completeCheckoutSoon }}
     </span>
   </div>
 </template>
 
 <script setup>
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  reservationExpired: { es: 'Reservación expirada', en: 'Reservation expired' },
+  reservationExpiresIn: { es: 'La reservación expira en', en: 'Reservation expires in' },
+  completeCheckoutSoon: { es: '- ¡Completa tu compra pronto!', en: '- Complete checkout soon!' }
+}
+
+const t = createT(translations)
+
 const props = defineProps({
   expiresAt: {
     type: String,

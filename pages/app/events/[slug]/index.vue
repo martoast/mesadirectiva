@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
-      <p>Loading event...</p>
+      <p>{{ t.loadingEvent }}</p>
     </div>
 
     <!-- Event Content -->
@@ -26,7 +26,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <div>
-                  <span class="meta-label">Date</span>
+                  <span class="meta-label">{{ t.date }}</span>
                   <span class="meta-value">{{ formattedDate }}</span>
                 </div>
               </div>
@@ -35,7 +35,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                  <span class="meta-label">Time</span>
+                  <span class="meta-label">{{ t.time }}</span>
                   <span class="meta-value">{{ formattedTime }}</span>
                 </div>
               </div>
@@ -48,7 +48,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div>
-                  <span class="meta-label">{{ event.location_type === 'online' ? 'Platform' : 'Location' }}</span>
+                  <span class="meta-label">{{ event.location_type === 'online' ? t.platform : t.location }}</span>
                   <span class="meta-value">{{ formattedLocation }}</span>
                 </div>
               </div>
@@ -83,7 +83,7 @@
           <div class="content-column">
             <!-- About Section -->
             <section class="section about-section">
-              <h2 class="section-title">About This Event</h2>
+              <h2 class="section-title">{{ t.aboutThisEvent }}</h2>
               <div class="about-grid">
                 <div class="about-text">
                   <p class="about-plain">{{ event.description }}</p>
@@ -96,7 +96,7 @@
 
             <!-- Gallery Section -->
             <section v-if="galleryImages.length > 1" class="section gallery-section">
-              <h2 class="section-title centered">Gallery</h2>
+              <h2 class="section-title centered">{{ t.gallery }}</h2>
               <div class="gallery-grid">
                 <button
                   v-for="(img, i) in galleryImages"
@@ -111,7 +111,7 @@
 
             <!-- YouTube Video -->
             <section v-if="youtubeEmbedUrl" class="section video-section">
-              <h2 class="section-title centered">Watch</h2>
+              <h2 class="section-title centered">{{ t.watch }}</h2>
               <div class="video-wrapper">
                 <iframe
                   :src="youtubeEmbedUrl"
@@ -124,7 +124,7 @@
 
             <!-- FAQ Section -->
             <section v-if="event.faq_items?.length" class="section faq-section">
-              <h2 class="section-title centered">Frequently Asked Questions</h2>
+              <h2 class="section-title centered">{{ t.faq }}</h2>
               <div class="faq-list">
                 <div v-for="(faq, i) in event.faq_items" :key="i" class="faq-item">
                   <button class="faq-question" @click="toggleFaq(i)">
@@ -142,7 +142,7 @@
 
             <!-- Venue/Online Section -->
             <section v-if="hasLocationInfo" class="section venue-section">
-              <h2 class="section-title centered">{{ event.location_type === 'online' ? 'Event Details' : 'Venue' }}</h2>
+              <h2 class="section-title centered">{{ event.location_type === 'online' ? t.eventDetails : t.venue }}</h2>
               <div class="venue-card">
                 <div class="venue-grid">
                   <!-- Venue Location -->
@@ -157,7 +157,7 @@
                       <h4 class="venue-name">{{ event.location?.name || 'Venue' }}</h4>
                       <p v-if="fullAddress" class="venue-address">{{ fullAddress }}</p>
                       <a v-if="mapUrl" :href="mapUrl" target="_blank" rel="noopener" class="venue-map-link">
-                        View on Map
+                        {{ t.viewOnMap }}
                       </a>
                     </div>
                   </div>
@@ -172,7 +172,7 @@
                     <div>
                       <h4 class="venue-name">{{ platformLabel }}</h4>
                       <p v-if="event.location?.instructions" class="venue-address">{{ event.location.instructions }}</p>
-                      <p class="venue-note">Join link will be provided after registration</p>
+                      <p class="venue-note">{{ t.joinLinkProvided }}</p>
                     </div>
                   </div>
 
@@ -184,7 +184,7 @@
                       </svg>
                     </div>
                     <div>
-                      <h4 class="contact-title">Organized by</h4>
+                      <h4 class="contact-title">{{ t.organizedBy }}</h4>
                       <p class="organizer-name">{{ event.organizer_name }}</p>
                       <p v-if="event.organizer_description" class="organizer-desc">{{ event.organizer_description }}</p>
                     </div>
@@ -204,7 +204,7 @@
       <!-- Related Events -->
       <section v-if="relatedEvents.length" class="related-section">
         <div class="related-wrapper">
-          <h2 class="section-title">You Might Also Like</h2>
+          <h2 class="section-title">{{ t.youMightAlsoLike }}</h2>
           <div class="related-grid">
             <NuxtLink
               v-for="re in relatedEvents"
@@ -250,9 +250,9 @@
 
     <!-- Not Found -->
     <div v-else-if="notFound" class="not-found">
-      <h1>Event Not Found</h1>
-      <p>Sorry, we couldn't find this event.</p>
-      <NuxtLink to="/app/events" class="back-link">Browse Events</NuxtLink>
+      <h1>{{ t.eventNotFound }}</h1>
+      <p>{{ t.sorryNotFound }}</p>
+      <NuxtLink to="/app/events" class="back-link">{{ t.browseEvents }}</NuxtLink>
     </div>
   </div>
 </template>
@@ -265,6 +265,45 @@ import { formatLocation, formatFullAddress, buildMapUrl, getPlatformLabel } from
 definePageMeta({
   layout: 'public'
 })
+
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  loadingEvent: { es: 'Cargando evento...', en: 'Loading event...' },
+  date: { es: 'Fecha', en: 'Date' },
+  time: { es: 'Hora', en: 'Time' },
+  platform: { es: 'Plataforma', en: 'Platform' },
+  location: { es: 'Ubicación', en: 'Location' },
+  aboutThisEvent: { es: 'Sobre Este Evento', en: 'About This Event' },
+  gallery: { es: 'Galería', en: 'Gallery' },
+  watch: { es: 'Ver', en: 'Watch' },
+  faq: { es: 'Preguntas Frecuentes', en: 'Frequently Asked Questions' },
+  eventDetails: { es: 'Detalles del Evento', en: 'Event Details' },
+  venue: { es: 'Lugar', en: 'Venue' },
+  viewOnMap: { es: 'Ver en Mapa', en: 'View on Map' },
+  joinLinkProvided: { es: 'El enlace se proporcionará después del registro', en: 'Join link will be provided after registration' },
+  organizedBy: { es: 'Organizado por', en: 'Organized by' },
+  youMightAlsoLike: { es: 'También Te Puede Gustar', en: 'You Might Also Like' },
+  eventNotFound: { es: 'Evento No Encontrado', en: 'Event Not Found' },
+  sorryNotFound: { es: 'Lo sentimos, no pudimos encontrar este evento.', en: "Sorry, we couldn't find this event." },
+  browseEvents: { es: 'Ver Eventos', en: 'Browse Events' },
+  tablesFrom: { es: 'Mesas desde', en: 'Tables from' },
+  from: { es: 'Desde', en: 'From' },
+  perTicket: { es: 'Por boleto', en: 'Per ticket' },
+  chooseTable: { es: 'Elegir Mesa', en: 'Choose a Table' },
+  getTickets: { es: 'Obtener Boletos', en: 'Get Tickets' },
+  comingSoon: { es: 'Próximamente', en: 'Coming Soon' },
+  registrationClosed: { es: 'Registro Cerrado', en: 'Registration Closed' },
+  registrationEnded: { es: 'Registro Finalizado', en: 'Registration Ended' },
+  soldOut: { es: 'Agotado', en: 'Sold Out' },
+  noTablesAvailable: { es: 'Sin Mesas Disponibles', en: 'No Tables Available' },
+  noTicketsAvailable: { es: 'Sin Boletos Disponibles', en: 'No Tickets Available' },
+  notAvailable: { es: 'No Disponible', en: 'Not Available' },
+  onlineEvent: { es: 'Evento en Línea', en: 'Online Event' }
+}
+
+const t = createT(translations)
 
 const route = useRoute()
 const { getPublicEvent, checkAvailability, getPublicEvents } = useEvents()
@@ -383,14 +422,14 @@ const displayPrice = computed(() => {
 })
 
 const pricingLabel = computed(() => {
-  if (isSeatedEvent.value) return hasTables.value ? 'Tables from' : 'From'
-  if (activeTiers.value.length > 1) return 'From'
-  return 'Per ticket'
+  if (isSeatedEvent.value) return hasTables.value ? t.tablesFrom : t.from
+  if (activeTiers.value.length > 1) return t.from
+  return t.perTicket
 })
 
 const ctaButtonText = computed(() => {
-  if (isSeatedEvent.value) return 'Choose a Table'
-  return 'Get Tickets'
+  if (isSeatedEvent.value) return t.chooseTable
+  return t.getTickets
 })
 
 const canPurchase = computed(() => {
@@ -400,13 +439,13 @@ const canPurchase = computed(() => {
 const blockedMessage = computed(() => {
   const reason = availability.value?.blocked_reason || event.value?.purchase_blocked_reason
   const messages = {
-    not_live: 'Coming Soon',
-    registration_closed: 'Registration Closed',
-    deadline_passed: 'Registration Ended',
-    sold_out: 'Sold Out',
-    no_available_tickets: isSeatedEvent.value ? 'No Tables Available' : 'No Tickets Available'
+    not_live: t.comingSoon,
+    registration_closed: t.registrationClosed,
+    deadline_passed: t.registrationEnded,
+    sold_out: t.soldOut,
+    no_available_tickets: isSeatedEvent.value ? t.noTablesAvailable : t.noTicketsAvailable
   }
-  return messages[reason] || 'Not Available'
+  return messages[reason] || t.notAvailable
 })
 
 const hasLocationInfo = computed(() => {
@@ -424,7 +463,7 @@ const mapUrl = computed(() => {
 })
 
 const platformLabel = computed(() => {
-  if (!event.value?.location?.platform) return 'Online Event'
+  if (!event.value?.location?.platform) return t.onlineEvent
   return getPlatformLabel(event.value.location.platform)
 })
 

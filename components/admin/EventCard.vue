@@ -11,7 +11,7 @@
           {{ event.group.name }}
         </span>
         <span :class="['type-tag', event.seating_type]">
-          {{ event.seating_type === 'seated' ? 'Seated' : 'GA' }}
+          {{ event.seating_type === 'seated' ? t.seated : t.ga }}
         </span>
       </div>
       <div class="date-badge">
@@ -46,12 +46,12 @@
     <!-- Stats Row -->
     <div class="stats-row">
       <div class="stat-item">
-        <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats' : 'Tickets' }} Sold</span>
+        <span class="stat-label">{{ event.seating_type === 'seated' ? t.seatsSold : t.ticketsSold }}</span>
         <span class="stat-value">{{ event.tickets_sold || 0 }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-label">Revenue</span>
+        <span class="stat-label">{{ t.revenue }}</span>
         <span class="stat-value">${{ (event.total_revenue || 0).toLocaleString() }}</span>
       </div>
     </div>
@@ -63,28 +63,28 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
-        <span>View</span>
+        <span>{{ t.view }}</span>
       </NuxtLink>
 
       <NuxtLink v-if="canEdit()" :to="`/app/admin/events/${event.slug}/edit`" class="action-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-        <span>Edit</span>
+        <span>{{ t.edit }}</span>
       </NuxtLink>
 
       <button v-if="canEdit() && event.status === 'draft'" @click="$emit('publish', event.slug)" class="action-btn action-success">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
         </svg>
-        <span>Publish</span>
+        <span>{{ t.publish }}</span>
       </button>
 
       <button v-if="canManage() && event.status === 'live'" @click="$emit('close', event.slug)" class="action-btn action-warning">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
         </svg>
-        <span>Close</span>
+        <span>{{ t.close }}</span>
       </button>
 
       <button v-if="canManage()" @click="$emit('delete', event.slug)" class="action-btn action-danger">
@@ -98,6 +98,32 @@
 
 <script setup>
 import { getPlatformLabel } from '~/utils/location'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Seating types
+  seated: { es: 'Con asientos', en: 'Seated' },
+  ga: { es: 'Admisión General', en: 'GA' },
+  // Stats
+  seatsSold: { es: 'Asientos Vendidos', en: 'Seats Sold' },
+  ticketsSold: { es: 'Boletos Vendidos', en: 'Tickets Sold' },
+  revenue: { es: 'Ingresos', en: 'Revenue' },
+  // Actions
+  view: { es: 'Ver', en: 'View' },
+  edit: { es: 'Editar', en: 'Edit' },
+  publish: { es: 'Publicar', en: 'Publish' },
+  close: { es: 'Cerrar', en: 'Close' },
+  // Status
+  draft: { es: 'Borrador', en: 'Draft' },
+  live: { es: 'En vivo', en: 'Live' },
+  closed: { es: 'Cerrado', en: 'Closed' },
+  // Location fallback
+  online: { es: 'En línea', en: 'Online' },
+  venue: { es: 'Lugar', en: 'Venue' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   event: {
@@ -150,19 +176,19 @@ const formatTime = (dateStr) => {
 const formatLocationShort = () => {
   const e = props.event
   if (e.location_type === 'online') {
-    return getPlatformLabel(e.location?.platform) || 'Online'
+    return getPlatformLabel(e.location?.platform) || t.online
   }
   if (e.location?.city) {
     return e.location.state ? `${e.location.city}, ${e.location.state}` : e.location.city
   }
-  return e.location?.name || 'Venue'
+  return e.location?.name || t.venue
 }
 
 const statusLabel = (status) => {
   const labels = {
-    draft: 'Draft',
-    live: 'Live',
-    closed: 'Closed'
+    draft: t.draft,
+    live: t.live,
+    closed: t.closed
   }
   return labels[status] || status
 }

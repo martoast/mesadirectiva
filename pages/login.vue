@@ -6,27 +6,27 @@
         <div class="branding-content">
           <AppLogo to="/" variant="light" size="large" />
           <div class="branding-text">
-            <h1>Welcome back</h1>
-            <p>Sign in to access your event management dashboard and continue creating amazing experiences.</p>
+            <h1>{{ t.welcomeBack }}</h1>
+            <p>{{ t.signInDescription }}</p>
           </div>
           <div class="branding-features">
             <div class="feature-item">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Manage events</span>
+              <span>{{ t.manageEvents }}</span>
             </div>
             <div class="feature-item">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>Track sales</span>
+              <span>{{ t.trackSales }}</span>
             </div>
             <div class="feature-item">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span>View analytics</span>
+              <span>{{ t.viewAnalytics }}</span>
             </div>
           </div>
         </div>
@@ -36,8 +36,9 @@
       <div class="login-form-section">
         <div class="form-container">
           <div class="form-header">
-            <h2>Sign in</h2>
-            <p>Enter your credentials to access your account</p>
+            <LanguageToggle class="login-lang-toggle" />
+            <h2>{{ t.signIn }}</h2>
+            <p>{{ t.enterCredentials }}</p>
           </div>
 
           <!-- Error Messages -->
@@ -51,28 +52,28 @@
           <!-- Login Form -->
           <form @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label for="email">Email address</label>
+              <label for="email">{{ t.emailAddress }}</label>
               <input
                 id="email"
                 v-model="form.email"
                 type="email"
                 autocomplete="email"
                 required
-                placeholder="you@example.com"
+                :placeholder="t.emailPlaceholder"
                 :class="{ 'has-error': errors.email }"
               />
               <p v-if="errors.email" class="field-error">{{ errors.email[0] }}</p>
             </div>
 
             <div class="form-group">
-              <label for="password">Password</label>
+              <label for="password">{{ t.password }}</label>
               <input
                 id="password"
                 v-model="form.password"
                 type="password"
                 autocomplete="current-password"
                 required
-                placeholder="Enter your password"
+                :placeholder="t.passwordPlaceholder"
                 :class="{ 'has-error': errors.password }"
               />
               <p v-if="errors.password" class="field-error">{{ errors.password[0] }}</p>
@@ -80,7 +81,7 @@
 
             <div class="form-options">
               <NuxtLink to="/forgot-password" class="forgot-link">
-                Forgot password?
+                {{ t.forgotPassword }}
               </NuxtLink>
             </div>
 
@@ -90,14 +91,14 @@
                   <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" />
                   <path class="spinner-path" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" />
                 </svg>
-                Signing in...
+                {{ t.signingIn }}
               </span>
-              <span v-else>Sign in</span>
+              <span v-else>{{ t.signIn }}</span>
             </button>
 
             <!-- Divider -->
             <div class="divider">
-              <span>or continue with</span>
+              <span>{{ t.orContinueWith }}</span>
             </div>
 
             <!-- Google OAuth Button -->
@@ -108,7 +109,7 @@
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Sign in with Google
+              {{ t.signInWithGoogle }}
             </a>
           </form>
 
@@ -126,8 +127,50 @@ definePageMeta({
 })
 
 const { login, getGoogleRedirectUrl, isAuthenticated } = useAuth()
+const { t: createT, language } = useLanguage()
 const router = useRouter()
 const route = useRoute()
+
+// Translations
+const translations = {
+  welcomeBack: { es: 'Bienvenido de nuevo', en: 'Welcome back' },
+  signInDescription: { es: 'Inicia sesión para acceder a tu panel de administración de eventos.', en: 'Sign in to access your event management dashboard and continue creating amazing experiences.' },
+  manageEvents: { es: 'Gestionar eventos', en: 'Manage events' },
+  trackSales: { es: 'Seguir ventas', en: 'Track sales' },
+  viewAnalytics: { es: 'Ver analíticas', en: 'View analytics' },
+  signIn: { es: 'Iniciar sesión', en: 'Sign in' },
+  enterCredentials: { es: 'Ingresa tus credenciales para acceder a tu cuenta', en: 'Enter your credentials to access your account' },
+  emailAddress: { es: 'Correo electrónico', en: 'Email address' },
+  emailPlaceholder: { es: 'tu@ejemplo.com', en: 'you@example.com' },
+  password: { es: 'Contraseña', en: 'Password' },
+  passwordPlaceholder: { es: 'Ingresa tu contraseña', en: 'Enter your password' },
+  forgotPassword: { es: '¿Olvidaste tu contraseña?', en: 'Forgot password?' },
+  signingIn: { es: 'Iniciando sesión...', en: 'Signing in...' },
+  orContinueWith: { es: 'o continúa con', en: 'or continue with' },
+  signInWithGoogle: { es: 'Iniciar sesión con Google', en: 'Sign in with Google' }
+}
+
+const t = createT(translations)
+
+// Error messages by language
+const errorMessages = {
+  user_not_found: {
+    es: 'No se encontró una cuenta con este correo. Por favor contacta a un administrador.',
+    en: 'No account found with this email. Please contact an administrator.'
+  },
+  account_deactivated: {
+    es: 'Tu cuenta ha sido desactivada. Por favor contacta a un administrador.',
+    en: 'Your account has been deactivated. Please contact an administrator.'
+  },
+  oauth_failed: {
+    es: 'Error de autenticación. Por favor intenta de nuevo.',
+    en: 'Authentication failed. Please try again.'
+  },
+  invalid_credentials: {
+    es: 'Credenciales inválidas. Por favor intenta de nuevo.',
+    en: 'Invalid credentials. Please try again.'
+  }
+}
 
 const form = ref({
   email: '',
@@ -143,12 +186,8 @@ const googleRedirectUrl = getGoogleRedirectUrl()
 // Handle OAuth errors from redirect
 onMounted(() => {
   const error = route.query.error
-  if (error === 'user_not_found') {
-    errorMessage.value = 'No account found with this email. Please contact an administrator.'
-  } else if (error === 'account_deactivated') {
-    errorMessage.value = 'Your account has been deactivated. Please contact an administrator.'
-  } else if (error === 'oauth_failed') {
-    errorMessage.value = 'Authentication failed. Please try again.'
+  if (error && errorMessages[error]) {
+    errorMessage.value = errorMessages[error][language.value]
   }
 
   // Redirect if already authenticated
@@ -169,7 +208,7 @@ const handleSubmit = async () => {
     if (e.errors) {
       errors.value = e.errors
     }
-    errorMessage.value = e.message || 'Invalid credentials. Please try again.'
+    errorMessage.value = e.message || errorMessages.invalid_credentials[language.value]
   } finally {
     loading.value = false
   }
@@ -285,6 +324,10 @@ const handleSubmit = async () => {
 
 .form-header {
   margin-bottom: 32px;
+}
+
+.login-lang-toggle {
+  margin-bottom: 24px;
 }
 
 .form-header h2 {

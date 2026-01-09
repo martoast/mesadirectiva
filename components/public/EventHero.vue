@@ -37,14 +37,14 @@
           <div class="flex items-center gap-2">
             <span class="text-2xl">📅</span>
             <div class="text-left">
-              <p class="text-sm opacity-80">Date & Time</p>
+              <p class="text-sm opacity-80">{{ t.dateTime }}</p>
               <p class="font-semibold">{{ formattedDateTime }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-2xl">{{ event.location_type === 'online' ? '💻' : '📍' }}</span>
             <div class="text-left">
-              <p class="text-sm opacity-80">{{ event.location_type === 'online' ? 'Online Event' : 'Location' }}</p>
+              <p class="text-sm opacity-80">{{ event.location_type === 'online' ? t.onlineEvent : t.location }}</p>
               <p class="font-semibold">{{ formattedLocation }}</p>
             </div>
           </div>
@@ -52,7 +52,7 @@
 
         <!-- Ticket Info -->
         <div v-if="lowestPrice !== null" class="inline-block bg-white bg-opacity-10 backdrop-blur-sm rounded-xl px-8 py-4 border border-white border-opacity-20">
-          <p class="text-gray-200 text-sm mb-1">Starting at</p>
+          <p class="text-gray-200 text-sm mb-1">{{ t.startingAt }}</p>
           <p class="text-4xl font-bold text-white">${{ formatPrice(lowestPrice) }}</p>
         </div>
       </div>
@@ -69,6 +69,17 @@
 import { computed } from 'vue'
 import { formatEventDateTime } from '~/utils/dateTime'
 import { formatLocation } from '~/utils/location'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  dateTime: { es: 'Fecha y Hora', en: 'Date & Time' },
+  onlineEvent: { es: 'Evento en Línea', en: 'Online Event' },
+  location: { es: 'Ubicación', en: 'Location' },
+  startingAt: { es: 'Desde', en: 'Starting at' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   event: {

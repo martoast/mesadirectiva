@@ -3,7 +3,7 @@
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>Loading checkout...</p>
+      <p>{{ t.loadingCheckout }}</p>
     </div>
 
     <!-- Cannot Purchase -->
@@ -14,9 +14,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h1>Cannot Complete Purchase</h1>
+        <h1>{{ t.cannotCompletePurchase }}</h1>
         <p>{{ blockedMessage }}</p>
-        <NuxtLink :to="`/app/events/${route.params.slug}`" class="back-btn">Back to Event</NuxtLink>
+        <NuxtLink :to="`/app/events/${route.params.slug}`" class="back-btn">{{ t.backToEvent }}</NuxtLink>
       </div>
     </div>
 
@@ -28,10 +28,10 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          <span>Back</span>
+          <span>{{ t.back }}</span>
         </NuxtLink>
         <div class="header-info">
-          <h1>Checkout</h1>
+          <h1>{{ t.checkout }}</h1>
           <p>{{ event?.name }}</p>
         </div>
       </header>
@@ -57,26 +57,26 @@
         <div class="form-column">
           <!-- Contact Info -->
           <section class="form-section">
-            <h2>Contact Information</h2>
+            <h2>{{ t.contactInformation }}</h2>
             <div class="form-fields">
               <div class="field">
-                <label for="name">Full Name</label>
-                <input id="name" v-model="form.customer_name" type="text" placeholder="John Doe" required />
+                <label for="name">{{ t.fullName }}</label>
+                <input id="name" v-model="form.customer_name" type="text" :placeholder="t.fullNamePlaceholder" required />
               </div>
               <div class="field">
-                <label for="email">Email</label>
-                <input id="email" v-model="form.customer_email" type="email" placeholder="john@example.com" required />
+                <label for="email">{{ t.email }}</label>
+                <input id="email" v-model="form.customer_email" type="email" :placeholder="t.emailPlaceholder" required />
               </div>
               <div class="field">
-                <label for="phone">Phone</label>
-                <input id="phone" v-model="form.customer_phone" type="tel" placeholder="+1 (555) 000-0000" required />
+                <label for="phone">{{ t.phone }}</label>
+                <input id="phone" v-model="form.customer_phone" type="tel" :placeholder="t.phonePlaceholder" required />
               </div>
             </div>
           </section>
 
           <!-- Ticket Tiers (General Admission) -->
           <section v-if="!isSeatedEvent && availableTiers.length > 0" class="form-section">
-            <h2>Select Tickets</h2>
+            <h2>{{ t.selectTickets }}</h2>
             <PublicTicketTierSelector
               :tiers="availableTiers"
               :selections="tierSelections"
@@ -87,11 +87,11 @@
 
           <!-- Legacy Single-Price -->
           <section v-else-if="!isSeatedEvent && availableTiers.length === 0" class="form-section">
-            <h2>Tickets</h2>
+            <h2>{{ t.tickets }}</h2>
             <div class="ticket-selector">
               <div class="ticket-info">
                 <span class="ticket-name">{{ event?.name }}</span>
-                <span class="ticket-price">${{ event?.price }} each</span>
+                <span class="ticket-price">${{ event?.price }} {{ t.each }}</span>
               </div>
               <div class="quantity-control">
                 <button type="button" @click="form.tickets--" :disabled="form.tickets <= 1" class="qty-btn">−</button>
@@ -99,14 +99,14 @@
                 <button type="button" @click="form.tickets++" :disabled="form.tickets >= maxTickets" class="qty-btn">+</button>
               </div>
             </div>
-            <p class="available-note">{{ availability?.tickets_available }} available</p>
+            <p class="available-note">{{ availability?.tickets_available }} {{ t.available }}</p>
           </section>
 
           <!-- Selected Seats (Seated Events) -->
           <section v-if="isSeatedEvent" class="form-section">
             <div class="section-header">
-              <h2>Your Selection</h2>
-              <NuxtLink :to="`/app/events/${route.params.slug}/select-seats`" class="change-link">Change</NuxtLink>
+              <h2>{{ t.yourSelection }}</h2>
+              <NuxtLink :to="`/app/events/${route.params.slug}/select-seats`" class="change-link">{{ t.change }}</NuxtLink>
             </div>
             <div v-if="selectedTables.length > 0 || selectedSeats.length > 0" class="selection-list">
               <div v-for="tableId in selectedTables" :key="`t-${tableId}`" class="selection-item">
@@ -119,15 +119,15 @@
               </div>
             </div>
             <div v-else class="no-selection">
-              <p>No seats selected</p>
-              <NuxtLink :to="`/app/events/${route.params.slug}/select-seats`" class="select-btn">Select Seats</NuxtLink>
+              <p>{{ t.noSeatsSelected }}</p>
+              <NuxtLink :to="`/app/events/${route.params.slug}/select-seats`" class="select-btn">{{ t.selectSeats }}</NuxtLink>
             </div>
           </section>
 
           <!-- Attendee Information - Tiers -->
           <section v-if="!isSeatedEvent && ticketEntries.length > 0" class="form-section">
-            <h2>Attendee Information</h2>
-            <p class="section-description">Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.</p>
+            <h2>{{ t.attendeeInformation }}</h2>
+            <p class="section-description">{{ t.attendeeDescription }}</p>
             <div class="attendee-list">
               <div v-for="entry in ticketEntries" :key="entry.key" class="attendee-item">
                 <div class="attendee-header">
@@ -135,23 +135,23 @@
                 </div>
                 <div class="attendee-fields">
                   <div class="field">
-                    <label :for="`attendee-name-${entry.key}`">Attendee Name</label>
+                    <label :for="`attendee-name-${entry.key}`">{{ t.attendeeName }}</label>
                     <input
                       :id="`attendee-name-${entry.key}`"
                       :value="getAttendeeValue(entry.key, 'name')"
                       @input="setAttendeeValue(entry.key, 'name', $event.target.value)"
                       type="text"
-                      placeholder="Name of person attending"
+                      :placeholder="t.attendeeNamePlaceholder"
                     />
                   </div>
                   <div class="field">
-                    <label :for="`attendee-note-${entry.key}`">Note (optional)</label>
+                    <label :for="`attendee-note-${entry.key}`">{{ t.noteOptional }}</label>
                     <input
                       :id="`attendee-note-${entry.key}`"
                       :value="getAttendeeValue(entry.key, 'note')"
                       @input="setAttendeeValue(entry.key, 'note', $event.target.value)"
                       type="text"
-                      placeholder="Dietary restrictions, accessibility needs, etc."
+                      :placeholder="t.notePlaceholder"
                     />
                   </div>
                 </div>
@@ -161,8 +161,8 @@
 
           <!-- Attendee Information - Seated Events -->
           <section v-if="isSeatedEvent && (selectedTables.length > 0 || selectedSeats.length > 0)" class="form-section">
-            <h2>Attendee Information</h2>
-            <p class="section-description">Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.</p>
+            <h2>{{ t.attendeeInformation }}</h2>
+            <p class="section-description">{{ t.attendeeDescription }}</p>
             <div class="attendee-list">
               <!-- Tables -->
               <div v-for="tableId in selectedTables" :key="`att-t-${tableId}`" class="attendee-item">
@@ -171,23 +171,23 @@
                 </div>
                 <div class="attendee-fields">
                   <div class="field">
-                    <label :for="`table-attendee-name-${tableId}`">Primary Contact Name</label>
+                    <label :for="`table-attendee-name-${tableId}`">{{ t.primaryContactName }}</label>
                     <input
                       :id="`table-attendee-name-${tableId}`"
                       :value="getTableAttendeeValue(tableId, 'name')"
                       @input="setTableAttendeeValue(tableId, 'name', $event.target.value)"
                       type="text"
-                      placeholder="Name of table host"
+                      :placeholder="t.tableHostPlaceholder"
                     />
                   </div>
                   <div class="field">
-                    <label :for="`table-attendee-note-${tableId}`">Note (optional)</label>
+                    <label :for="`table-attendee-note-${tableId}`">{{ t.noteOptional }}</label>
                     <input
                       :id="`table-attendee-note-${tableId}`"
                       :value="getTableAttendeeValue(tableId, 'note')"
                       @input="setTableAttendeeValue(tableId, 'note', $event.target.value)"
                       type="text"
-                      placeholder="Special requests, etc."
+                      :placeholder="t.specialRequestsPlaceholder"
                     />
                   </div>
                 </div>
@@ -199,23 +199,23 @@
                 </div>
                 <div class="attendee-fields">
                   <div class="field">
-                    <label :for="`seat-attendee-name-${seatId}`">Attendee Name</label>
+                    <label :for="`seat-attendee-name-${seatId}`">{{ t.attendeeName }}</label>
                     <input
                       :id="`seat-attendee-name-${seatId}`"
                       :value="getSeatAttendeeValue(seatId, 'name')"
                       @input="setSeatAttendeeValue(seatId, 'name', $event.target.value)"
                       type="text"
-                      placeholder="Name of person attending"
+                      :placeholder="t.attendeeNamePlaceholder"
                     />
                   </div>
                   <div class="field">
-                    <label :for="`seat-attendee-note-${seatId}`">Note (optional)</label>
+                    <label :for="`seat-attendee-note-${seatId}`">{{ t.noteOptional }}</label>
                     <input
                       :id="`seat-attendee-note-${seatId}`"
                       :value="getSeatAttendeeValue(seatId, 'note')"
                       @input="setSeatAttendeeValue(seatId, 'note', $event.target.value)"
                       type="text"
-                      placeholder="Dietary restrictions, accessibility needs, etc."
+                      :placeholder="t.notePlaceholder"
                     />
                   </div>
                 </div>
@@ -225,7 +225,7 @@
 
           <!-- Extra Items -->
           <section v-if="availableItems.length > 0" class="form-section">
-            <h2>Add-ons</h2>
+            <h2>{{ t.addOns }}</h2>
             <div class="addons-list">
               <div v-for="item in availableItems" :key="item.id" class="addon-item">
                 <div class="addon-info">
@@ -245,7 +245,7 @@
         <!-- Summary Column -->
         <div class="summary-column">
           <div class="summary-card">
-            <h2>Order Summary</h2>
+            <h2>{{ t.orderSummary }}</h2>
 
             <!-- Line Items -->
             <div class="summary-items">
@@ -256,7 +256,7 @@
                 </div>
               </template>
               <div v-else-if="!isSeatedEvent && !hasTierSelections && form.tickets > 0" class="summary-line">
-                <span>Tickets × {{ form.tickets }}</span>
+                <span>{{ t.tickets }} × {{ form.tickets }}</span>
                 <span>${{ legacyTicketSubtotal.toFixed(2) }}</span>
               </div>
               <div v-for="tableId in selectedTables" :key="`sum-t-${tableId}`" class="summary-line">
@@ -275,7 +275,7 @@
 
             <!-- Total -->
             <div class="summary-total">
-              <span>Total</span>
+              <span>{{ t.total }}</span>
               <span class="total-amount">${{ orderTotal.toFixed(2) }}</span>
             </div>
 
@@ -287,16 +287,16 @@
             >
               <span v-if="submitting" class="btn-loading">
                 <span class="btn-spinner"></span>
-                Processing...
+                {{ t.processing }}
               </span>
-              <span v-else>Proceed to Payment</span>
+              <span v-else>{{ t.proceedToPayment }}</span>
             </button>
 
             <p class="secure-note">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Secure payment via Stripe
+              {{ t.securePayment }}
             </p>
           </div>
         </div>
@@ -311,6 +311,73 @@ import { ref, computed, onMounted } from 'vue'
 definePageMeta({
   layout: 'public'
 })
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Loading and blocked states
+  loadingCheckout: { es: 'Cargando pago...', en: 'Loading checkout...' },
+  cannotCompletePurchase: { es: 'No se puede completar la compra', en: 'Cannot Complete Purchase' },
+  backToEvent: { es: 'Volver al Evento', en: 'Back to Event' },
+  back: { es: 'Volver', en: 'Back' },
+  checkout: { es: 'Pago', en: 'Checkout' },
+
+  // Blocked messages
+  notAvailableForPurchase: { es: 'Este evento no está disponible para compra.', en: 'This event is not available for purchase.' },
+  registrationClosed: { es: 'El registro está actualmente cerrado.', en: 'Registration is currently closed.' },
+  deadlinePassed: { es: 'La fecha límite de registro ha pasado.', en: 'The registration deadline has passed.' },
+  soldOut: { es: 'Este evento está agotado.', en: 'This event is sold out.' },
+  notAvailable: { es: 'Este evento no está disponible.', en: 'This event is not available.' },
+
+  // Contact Information
+  contactInformation: { es: 'Información de Contacto', en: 'Contact Information' },
+  fullName: { es: 'Nombre Completo', en: 'Full Name' },
+  fullNamePlaceholder: { es: 'Juan Pérez', en: 'John Doe' },
+  email: { es: 'Correo Electrónico', en: 'Email' },
+  emailPlaceholder: { es: 'juan@ejemplo.com', en: 'john@example.com' },
+  phone: { es: 'Teléfono', en: 'Phone' },
+  phonePlaceholder: { es: '+52 (555) 000-0000', en: '+1 (555) 000-0000' },
+
+  // Tickets
+  selectTickets: { es: 'Seleccionar Boletos', en: 'Select Tickets' },
+  tickets: { es: 'Boletos', en: 'Tickets' },
+  each: { es: 'c/u', en: 'each' },
+  available: { es: 'disponibles', en: 'available' },
+
+  // Seated events
+  yourSelection: { es: 'Tu Selección', en: 'Your Selection' },
+  change: { es: 'Cambiar', en: 'Change' },
+  noSeatsSelected: { es: 'No hay asientos seleccionados', en: 'No seats selected' },
+  selectSeats: { es: 'Seleccionar Asientos', en: 'Select Seats' },
+
+  // Attendee Information
+  attendeeInformation: { es: 'Información del Asistente', en: 'Attendee Information' },
+  attendeeDescription: { es: 'Ingresa el nombre de cada persona que asistirá. Esto es útil cuando el comprador del boleto no es el asistente.', en: 'Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.' },
+  attendeeName: { es: 'Nombre del Asistente', en: 'Attendee Name' },
+  attendeeNamePlaceholder: { es: 'Nombre de la persona que asistirá', en: 'Name of person attending' },
+  noteOptional: { es: 'Nota (opcional)', en: 'Note (optional)' },
+  notePlaceholder: { es: 'Restricciones alimenticias, necesidades de accesibilidad, etc.', en: 'Dietary restrictions, accessibility needs, etc.' },
+  primaryContactName: { es: 'Nombre del Contacto Principal', en: 'Primary Contact Name' },
+  tableHostPlaceholder: { es: 'Nombre del anfitrión de la mesa', en: 'Name of table host' },
+  specialRequestsPlaceholder: { es: 'Solicitudes especiales, etc.', en: 'Special requests, etc.' },
+
+  // Add-ons and Summary
+  addOns: { es: 'Extras', en: 'Add-ons' },
+  orderSummary: { es: 'Resumen del Pedido', en: 'Order Summary' },
+  total: { es: 'Total', en: 'Total' },
+
+  // Submit
+  processing: { es: 'Procesando...', en: 'Processing...' },
+  proceedToPayment: { es: 'Proceder al Pago', en: 'Proceed to Payment' },
+  securePayment: { es: 'Pago seguro vía Stripe', en: 'Secure payment via Stripe' },
+
+  // Errors
+  reservationExpired: { es: 'Tu reservación ha expirado. Por favor selecciona tus asientos de nuevo.', en: 'Your reservation has expired. Please select your seats again.' },
+  failedToLoadEvent: { es: 'Error al cargar el evento', en: 'Failed to load event' },
+  failedToCreateSession: { es: 'Error al crear la sesión de pago', en: 'Failed to create checkout session' }
+}
+
+const t = createT(translations)
 
 const route = useRoute()
 const router = useRouter()
@@ -385,7 +452,7 @@ onMounted(async () => {
       }
     }
   } catch (e) {
-    error.value = e.message || 'Failed to load event'
+    error.value = e.message || t.failedToLoadEvent
   } finally {
     loading.value = false
   }
@@ -396,12 +463,12 @@ const canPurchase = computed(() => availability.value?.can_purchase ?? false)
 
 const blockedMessage = computed(() => {
   const messages = {
-    not_live: 'This event is not available for purchase.',
-    registration_closed: 'Registration is currently closed.',
-    deadline_passed: 'The registration deadline has passed.',
-    sold_out: 'This event is sold out.'
+    not_live: t.notAvailableForPurchase,
+    registration_closed: t.registrationClosed,
+    deadline_passed: t.deadlinePassed,
+    sold_out: t.soldOut
   }
-  return messages[availability.value?.blocked_reason] || 'This event is not available.'
+  return messages[availability.value?.blocked_reason] || t.notAvailable
 })
 
 const maxTickets = computed(() => Math.min(availability.value?.tickets_available || 0, 10))
@@ -544,7 +611,7 @@ const setSeatAttendeeValue = (seatId, field, value) => {
 }
 
 const handleReservationExpired = () => {
-  error.value = 'Your reservation has expired. Please select your seats again.'
+  error.value = t.reservationExpired
   sessionStorage.removeItem(`reservation_${route.params.slug}`)
   selectedTables.value = []
   selectedSeats.value = []
@@ -611,7 +678,7 @@ const handleSubmit = async () => {
     if (isSeatedEvent.value) sessionStorage.removeItem(`reservation_${route.params.slug}`)
     if (response.checkout_url) window.location.href = response.checkout_url
   } catch (e) {
-    error.value = e.message || 'Failed to create checkout session'
+    error.value = e.message || t.failedToCreateSession
     submitting.value = false
   }
 }

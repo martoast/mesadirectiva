@@ -4,10 +4,10 @@
     <header class="page-header">
       <div class="header-content">
         <div class="header-title-group">
-          <h1>Events</h1>
+          <h1>{{ t.title }}</h1>
           <span class="header-badge">{{ meta.total }}</span>
         </div>
-        <p class="header-subtitle">Manage your events and track performance</p>
+        <p class="header-subtitle">{{ t.subtitle }}</p>
       </div>
       <NuxtLink to="/app/admin/events/create" class="btn-create">
         <span class="btn-icon">
@@ -15,7 +15,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
         </span>
-        <span class="btn-label">New Event</span>
+        <span class="btn-label">{{ t.newEvent }}</span>
       </NuxtLink>
     </header>
 
@@ -29,10 +29,10 @@
         </div>
         <div class="stat-info">
           <span class="stat-number">{{ meta.total }}</span>
-          <span class="stat-title">Total Events</span>
+          <span class="stat-title">{{ t.totalEvents }}</span>
         </div>
         <div class="stat-trend neutral">
-          <span>All time</span>
+          <span>{{ t.allTime }}</span>
         </div>
       </div>
 
@@ -45,13 +45,13 @@
         </div>
         <div class="stat-info">
           <span class="stat-number live">{{ liveCount }}</span>
-          <span class="stat-title">Live Now</span>
+          <span class="stat-title">{{ t.liveNow }}</span>
         </div>
         <div class="stat-trend positive" v-if="liveCount > 0">
           <svg fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/>
           </svg>
-          <span>Active</span>
+          <span>{{ t.active }}</span>
         </div>
       </div>
 
@@ -63,10 +63,10 @@
         </div>
         <div class="stat-info">
           <span class="stat-number">{{ draftCount }}</span>
-          <span class="stat-title">Drafts</span>
+          <span class="stat-title">{{ t.drafts }}</span>
         </div>
         <div class="stat-trend neutral" v-if="draftCount > 0">
-          <span>Pending review</span>
+          <span>{{ t.pendingReview }}</span>
         </div>
       </div>
 
@@ -78,13 +78,13 @@
         </div>
         <div class="stat-info">
           <span class="stat-number">{{ formatNumber(totalTicketsSold) }}</span>
-          <span class="stat-title">Tickets Sold</span>
+          <span class="stat-title">{{ t.ticketsSold }}</span>
         </div>
         <div class="stat-trend positive" v-if="totalTicketsSold > 0">
           <svg fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
           </svg>
-          <span>Revenue active</span>
+          <span>{{ t.revenueActive }}</span>
         </div>
       </div>
     </div>
@@ -93,13 +93,13 @@
     <div class="toolbar">
       <div class="filter-group">
         <div class="filter-item">
-          <label class="filter-label">Status</label>
+          <label class="filter-label">{{ t.status }}</label>
           <div class="select-wrapper">
             <select v-model="filterStatus" class="filter-select">
-              <option value="">All Status</option>
-              <option value="draft">Draft</option>
-              <option value="live">Live</option>
-              <option value="closed">Closed</option>
+              <option value="">{{ t.allStatus }}</option>
+              <option value="draft">{{ t.draft }}</option>
+              <option value="live">{{ t.live }}</option>
+              <option value="closed">{{ t.closed }}</option>
             </select>
             <svg class="select-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -107,10 +107,10 @@
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">Group</label>
+          <label class="filter-label">{{ t.group }}</label>
           <div class="select-wrapper">
             <select v-model="filterGroup" class="filter-select">
-              <option value="">All Groups</option>
+              <option value="">{{ t.allGroups }}</option>
               <option v-for="group in groups" :key="group.id" :value="group.id">
                 {{ group.name }}
               </option>
@@ -123,7 +123,7 @@
       </div>
 
       <div class="view-controls">
-        <span class="results-count">{{ meta.total }} {{ meta.total === 1 ? 'event' : 'events' }}</span>
+        <span class="results-count">{{ meta.total }} {{ eventsLabel }}</span>
       </div>
     </div>
 
@@ -135,7 +135,7 @@
           <div class="spinner-ring"></div>
           <div class="spinner-ring"></div>
         </div>
-        <span class="loading-text">Loading events...</span>
+        <span class="loading-text">{{ t.loadingEvents }}</span>
       </div>
     </div>
 
@@ -147,13 +147,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 class="error-title">Unable to load events</h3>
+        <h3 class="error-title">{{ t.unableToLoad }}</h3>
         <p class="error-message">{{ error }}</p>
         <button @click="fetchEvents" class="btn-retry">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Try Again
+          {{ t.tryAgain }}
         </button>
       </div>
     </div>
@@ -180,13 +180,13 @@
             </div>
             <div class="empty-decoration"></div>
           </div>
-          <h3 class="empty-title">No events yet</h3>
-          <p class="empty-description">Create your first event to start selling tickets and managing attendees.</p>
+          <h3 class="empty-title">{{ t.noEventsYet }}</h3>
+          <p class="empty-description">{{ t.createFirstDescription }}</p>
           <NuxtLink to="/app/admin/events/create" class="btn-create-empty">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Create your first event
+            {{ t.createFirstEvent }}
           </NuxtLink>
         </div>
       </div>
@@ -211,10 +211,10 @@
               </svg>
             </div>
           </div>
-          <h3 class="empty-title">No events yet</h3>
-          <p class="empty-description">Create your first event to get started.</p>
+          <h3 class="empty-title">{{ t.noEventsYet }}</h3>
+          <p class="empty-description">{{ t.createFirstShort }}</p>
           <NuxtLink to="/app/admin/events/create" class="btn-create-empty">
-            Create Event
+            {{ t.createEvent }}
           </NuxtLink>
         </div>
       </div>
@@ -258,10 +258,10 @@
     <!-- Delete Confirmation Modal -->
     <UiConfirmModal
       :is-open="deleteModalOpen"
-      title="Delete Event"
-      message="Are you sure you want to delete this event? This action cannot be undone."
-      confirm-text="Delete"
-      cancel-text="Cancel"
+      :title="t.deleteEvent"
+      :message="t.deleteConfirmMessage"
+      :confirm-text="t.delete"
+      :cancel-text="t.cancel"
       @confirm="confirmDelete"
       @cancel="deleteModalOpen = false"
     />
@@ -279,6 +279,53 @@ definePageMeta({
 const { getEvents, deleteEvent, publishEvent, closeEvent } = useEvents()
 const { getGroups } = useGroups()
 const { hasPermission, isSuperAdmin } = useAuth()
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  title: { es: 'Eventos', en: 'Events' },
+  subtitle: { es: 'Administra tus eventos y monitorea el rendimiento', en: 'Manage your events and track performance' },
+  newEvent: { es: 'Nuevo Evento', en: 'New Event' },
+  totalEvents: { es: 'Total de Eventos', en: 'Total Events' },
+  allTime: { es: 'Todo el tiempo', en: 'All time' },
+  liveNow: { es: 'En Vivo', en: 'Live Now' },
+  active: { es: 'Activo', en: 'Active' },
+  drafts: { es: 'Borradores', en: 'Drafts' },
+  pendingReview: { es: 'Pendiente de revisión', en: 'Pending review' },
+  ticketsSold: { es: 'Boletos Vendidos', en: 'Tickets Sold' },
+  revenueActive: { es: 'Ingresos activos', en: 'Revenue active' },
+  status: { es: 'Estado', en: 'Status' },
+  allStatus: { es: 'Todos los Estados', en: 'All Status' },
+  draft: { es: 'Borrador', en: 'Draft' },
+  live: { es: 'En Vivo', en: 'Live' },
+  closed: { es: 'Cerrado', en: 'Closed' },
+  group: { es: 'Grupo', en: 'Group' },
+  allGroups: { es: 'Todos los Grupos', en: 'All Groups' },
+  loadingEvents: { es: 'Cargando eventos...', en: 'Loading events...' },
+  unableToLoad: { es: 'No se pueden cargar los eventos', en: 'Unable to load events' },
+  tryAgain: { es: 'Intentar de nuevo', en: 'Try Again' },
+  noEventsYet: { es: 'Sin eventos aún', en: 'No events yet' },
+  createFirstDescription: { es: 'Crea tu primer evento para comenzar a vender boletos y gestionar asistentes.', en: 'Create your first event to start selling tickets and managing attendees.' },
+  createFirstEvent: { es: 'Crea tu primer evento', en: 'Create your first event' },
+  createFirstShort: { es: 'Crea tu primer evento para comenzar.', en: 'Create your first event to get started.' },
+  createEvent: { es: 'Crear Evento', en: 'Create Event' },
+  deleteEvent: { es: 'Eliminar Evento', en: 'Delete Event' },
+  deleteConfirmMessage: { es: '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.', en: 'Are you sure you want to delete this event? This action cannot be undone.' },
+  delete: { es: 'Eliminar', en: 'Delete' },
+  cancel: { es: 'Cancelar', en: 'Cancel' },
+  event: { es: 'evento', en: 'event' },
+  events: { es: 'eventos', en: 'events' }
+}
+
+const t = createT(translations)
+
+// Computed label for events count
+const eventsLabel = computed(() => {
+  if (language.value === 'es') {
+    return meta.value.total === 1 ? 'evento' : 'eventos'
+  }
+  return meta.value.total === 1 ? 'event' : 'events'
+})
 
 const events = ref([])
 const groups = ref([])

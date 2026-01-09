@@ -8,7 +8,7 @@
           <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
         </svg>
       </div>
-      <p>Loading seating...</p>
+      <p>{{ t.loadingSeating }}</p>
     </div>
 
     <!-- Not a Seated Event -->
@@ -19,10 +19,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1>Not a Seated Event</h1>
-        <p>This event uses general admission tickets.</p>
+        <h1>{{ t.notSeatedEvent }}</h1>
+        <p>{{ t.usesGeneralAdmission }}</p>
         <NuxtLink :to="`/app/events/${route.params.slug}/checkout`" class="btn-primary">
-          Go to Checkout
+          {{ t.goToCheckout }}
         </NuxtLink>
       </div>
     </div>
@@ -35,10 +35,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h1>Cannot Select Seats</h1>
+        <h1>{{ t.cannotSelectSeats }}</h1>
         <p>{{ blockedMessage }}</p>
         <NuxtLink :to="`/app/events/${route.params.slug}`" class="btn-primary">
-          Back to Event
+          {{ t.backToEvent }}
         </NuxtLink>
       </div>
     </div>
@@ -51,10 +51,10 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Event
+          {{ t.backToEvent }}
         </NuxtLink>
         <div class="header-content">
-          <h1>Select Your Seats</h1>
+          <h1>{{ t.selectYourSeats }}</h1>
           <p v-if="event?.name">{{ event.name }}</p>
         </div>
       </header>
@@ -85,15 +85,15 @@
           <div class="map-legend">
             <div class="legend-item">
               <span class="legend-dot available"></span>
-              <span>Available</span>
+              <span>{{ t.available }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-dot selected"></span>
-              <span>Selected</span>
+              <span>{{ t.selected }}</span>
             </div>
             <div class="legend-item">
               <span class="legend-dot sold"></span>
-              <span>Sold</span>
+              <span>{{ t.sold }}</span>
             </div>
           </div>
         </div>
@@ -101,22 +101,22 @@
         <!-- Selection Summary -->
         <div class="summary-section">
           <div class="summary-card">
-            <h2>Your Selection</h2>
+            <h2>{{ t.yourSelection }}</h2>
 
             <!-- Empty State -->
             <div v-if="!hasSelections" class="empty-selection">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
               </svg>
-              <p class="empty-title">No seats selected</p>
-              <p class="empty-desc">Click on tables or seats to select them</p>
+              <p class="empty-title">{{ t.noSeatsSelected }}</p>
+              <p class="empty-desc">{{ t.clickToSelect }}</p>
             </div>
 
             <!-- Selected Items -->
             <div v-else class="selection-list">
               <!-- Tables -->
               <div v-if="selectedTables.length > 0" class="selection-group">
-                <span class="group-label">Tables</span>
+                <span class="group-label">{{ t.tables }}</span>
                 <div class="selection-items">
                   <div v-for="tableId in selectedTables" :key="tableId" class="selection-item">
                     <span class="item-name">{{ getTableName(tableId) }}</span>
@@ -132,7 +132,7 @@
 
               <!-- Seats -->
               <div v-if="selectedSeats.length > 0" class="selection-group">
-                <span class="group-label">Seats</span>
+                <span class="group-label">{{ t.seats }}</span>
                 <div class="selection-items">
                   <div v-for="seatId in selectedSeats" :key="seatId" class="selection-item">
                     <span class="item-name">{{ getSeatInfo(seatId) }}</span>
@@ -149,12 +149,12 @@
               <!-- Total -->
               <div class="selection-total">
                 <div class="total-row">
-                  <span class="total-label">Total</span>
+                  <span class="total-label">{{ t.total }}</span>
                   <span class="total-value">${{ totalPrice.toFixed(2) }}</span>
                 </div>
 
                 <p class="hold-notice">
-                  Your selection will be held for {{ event?.reservation_minutes || 15 }} minutes after you proceed.
+                  {{ holdNoticeText }}
                 </p>
 
                 <button
@@ -167,9 +167,9 @@
                       <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25" />
                       <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
                     </svg>
-                    Reserving...
+                    {{ t.reserving }}
                   </span>
-                  <span v-else>Continue to Checkout</span>
+                  <span v-else>{{ t.continueToCheckout }}</span>
                 </button>
               </div>
             </div>
@@ -186,6 +186,59 @@ import { ref, computed, onMounted } from 'vue'
 definePageMeta({
   layout: 'public'
 })
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Loading
+  loadingSeating: { es: 'Cargando asientos...', en: 'Loading seating...' },
+
+  // Not seated event
+  notSeatedEvent: { es: 'No es un Evento con Asientos', en: 'Not a Seated Event' },
+  usesGeneralAdmission: { es: 'Este evento usa boletos de admisión general.', en: 'This event uses general admission tickets.' },
+  goToCheckout: { es: 'Ir al Pago', en: 'Go to Checkout' },
+
+  // Cannot purchase
+  cannotSelectSeats: { es: 'No se pueden seleccionar asientos', en: 'Cannot Select Seats' },
+  backToEvent: { es: 'Volver al Evento', en: 'Back to Event' },
+
+  // Blocked messages
+  notAvailableForPurchase: { es: 'Este evento no está disponible para compra.', en: 'This event is not available for purchase.' },
+  registrationClosed: { es: 'El registro para este evento está actualmente cerrado.', en: 'Registration for this event is currently closed.' },
+  deadlinePassed: { es: 'La fecha límite de registro ha pasado.', en: 'The registration deadline has passed.' },
+  soldOut: { es: 'Este evento está agotado.', en: 'This event is sold out.' },
+  notAvailable: { es: 'Este evento no está disponible para compra.', en: 'This event is not available for purchase.' },
+
+  // Header
+  selectYourSeats: { es: 'Selecciona tus Asientos', en: 'Select Your Seats' },
+
+  // Legend
+  available: { es: 'Disponible', en: 'Available' },
+  selected: { es: 'Seleccionado', en: 'Selected' },
+  sold: { es: 'Vendido', en: 'Sold' },
+
+  // Summary
+  yourSelection: { es: 'Tu Selección', en: 'Your Selection' },
+  noSeatsSelected: { es: 'No hay asientos seleccionados', en: 'No seats selected' },
+  clickToSelect: { es: 'Haz clic en las mesas o asientos para seleccionarlos', en: 'Click on tables or seats to select them' },
+  tables: { es: 'Mesas', en: 'Tables' },
+  seats: { es: 'Asientos', en: 'Seats' },
+
+  // Total
+  total: { es: 'Total', en: 'Total' },
+  holdNotice: { es: 'Tu selección se mantendrá reservada por {minutes} minutos después de continuar.', en: 'Your selection will be held for {minutes} minutes after you proceed.' },
+
+  // Buttons
+  reserving: { es: 'Reservando...', en: 'Reserving...' },
+  continueToCheckout: { es: 'Continuar al Pago', en: 'Continue to Checkout' },
+
+  // Errors
+  failedToLoadSeating: { es: 'Error al cargar la información de asientos', en: 'Failed to load seating information' },
+  failedToLoadEvent: { es: 'Error al cargar el evento', en: 'Failed to load event' },
+  failedToReserve: { es: 'Error al reservar los asientos. Por favor intenta de nuevo.', en: 'Failed to reserve seats. Please try again.' }
+}
+
+const t = createT(translations)
 
 const route = useRoute()
 const router = useRouter()
@@ -221,13 +274,13 @@ onMounted(async () => {
         const tablesResponse = await getPublicTables(route.params.slug)
         tables.value = tablesResponse.tables || []
       } catch (e) {
-        error.value = 'Failed to load seating information'
+        error.value = t.failedToLoadSeating
       } finally {
         tablesLoading.value = false
       }
     }
   } catch (e) {
-    error.value = e.message || 'Failed to load event'
+    error.value = e.message || t.failedToLoadEvent
   } finally {
     loading.value = false
   }
@@ -239,12 +292,17 @@ const canPurchase = computed(() => availability.value?.can_purchase ?? false)
 
 const blockedMessage = computed(() => {
   const messages = {
-    not_live: 'This event is not available for purchase.',
-    registration_closed: 'Registration for this event is currently closed.',
-    deadline_passed: 'The registration deadline has passed.',
-    sold_out: 'This event is sold out.'
+    not_live: t.notAvailableForPurchase,
+    registration_closed: t.registrationClosed,
+    deadline_passed: t.deadlinePassed,
+    sold_out: t.soldOut
   }
-  return messages[availability.value?.blocked_reason] || 'This event is not available for purchase.'
+  return messages[availability.value?.blocked_reason] || t.notAvailable
+})
+
+const holdNoticeText = computed(() => {
+  const minutes = event.value?.reservation_minutes || 15
+  return t.holdNotice.replace('{minutes}', minutes)
 })
 
 const hasSelections = computed(() => {
@@ -339,7 +397,7 @@ const handleContinue = async () => {
     // Navigate to checkout
     router.push(`/app/events/${route.params.slug}/checkout`)
   } catch (e) {
-    error.value = e.message || 'Failed to reserve seats. Please try again.'
+    error.value = e.message || t.failedToReserve
     reserving.value = false
   }
 }

@@ -32,16 +32,16 @@
           <p class="text-sm font-semibold text-gray-600 uppercase mb-2">{{ priceLabel }}</p>
           <p class="text-5xl font-bold text-primary-600 mb-1">${{ displayPrice }}</p>
           <p v-if="isSeatedEvent && hasTables" class="text-sm text-gray-600">
-            {{ tablesAvailableCount }} {{ tablesAvailableCount === 1 ? 'table' : 'tables' }} available
+            {{ tablesAvailableCount }} {{ tablesAvailableCount === 1 ? t.tableAvailable : t.tablesAvailable }}
           </p>
-          <p v-else-if="isSeatedEvent" class="text-sm text-gray-600">Table reservations</p>
-          <p v-else-if="hasTiers && activeTiers.length > 1" class="text-sm text-gray-600">Multiple tiers available</p>
-          <p v-else class="text-sm text-gray-600">Individual ticket</p>
+          <p v-else-if="isSeatedEvent" class="text-sm text-gray-600">{{ t.tableReservations }}</p>
+          <p v-else-if="hasTiers && activeTiers.length > 1" class="text-sm text-gray-600">{{ t.multipleTiersAvailable }}</p>
+          <p v-else class="text-sm text-gray-600">{{ t.individualTicket }}</p>
         </div>
 
         <!-- Tables Preview (Seated Events) -->
         <div v-if="isSeatedEvent && hasTables" class="mb-6">
-          <p class="text-sm font-semibold text-gray-700 mb-3">Available Tables:</p>
+          <p class="text-sm font-semibold text-gray-700 mb-3">{{ t.availableTables }}</p>
           <div class="space-y-2">
             <div
               v-for="table in displayTables"
@@ -50,19 +50,19 @@
             >
               <div>
                 <span class="text-sm font-medium text-gray-900">{{ table.name }}</span>
-                <span class="ml-2 text-xs text-gray-500">{{ table.capacity }} seats</span>
+                <span class="ml-2 text-xs text-gray-500">{{ table.capacity }} {{ t.seats }}</span>
               </div>
               <span class="font-semibold text-primary-600">${{ formatPrice(table.price) }}</span>
             </div>
             <p v-if="activeTables.length > 3" class="text-xs text-gray-500 text-center mt-2">
-              +{{ activeTables.length - 3 }} more tables
+              +{{ activeTables.length - 3 }} {{ t.moreTables }}
             </p>
           </div>
         </div>
 
         <!-- Ticket Tiers Preview (General Admission with Tiers) -->
         <div v-else-if="hasTiers && !isSeatedEvent" class="mb-6">
-          <p class="text-sm font-semibold text-gray-700 mb-3">Available Tiers:</p>
+          <p class="text-sm font-semibold text-gray-700 mb-3">{{ t.availableTiers }}</p>
           <div class="space-y-2">
             <div
               v-for="tier in displayTiers"
@@ -71,12 +71,12 @@
             >
               <div>
                 <span class="text-sm font-medium text-gray-900">{{ tier.name }}</span>
-                <span v-if="tier.available === 0" class="ml-2 text-xs text-red-600 font-semibold">SOLD OUT</span>
+                <span v-if="tier.available === 0" class="ml-2 text-xs text-red-600 font-semibold">{{ t.soldOut }}</span>
               </div>
               <span class="font-semibold text-primary-600">${{ formatPrice(tier.price) }}</span>
             </div>
             <p v-if="activeTiers.length > 3" class="text-xs text-gray-500 text-center mt-2">
-              +{{ activeTiers.length - 3 }} more tiers
+              +{{ activeTiers.length - 3 }} {{ t.moreTiers }}
             </p>
           </div>
         </div>
@@ -84,7 +84,7 @@
         <!-- Availability Info (GA events only) -->
         <div v-if="showAvailabilityBar" class="bg-gray-50 rounded-lg p-4 mb-6">
           <p class="text-sm text-gray-600 mb-2">
-            {{ ticketsAvailable }} / {{ totalCapacity }} tickets remaining
+            {{ ticketsAvailable }} / {{ totalCapacity }} {{ t.ticketsRemaining }}
           </p>
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div
@@ -98,7 +98,7 @@
 
         <!-- Extra Items Preview (only show when can purchase) -->
         <div v-if="hasExtraItems && canPurchase" class="mb-6">
-          <p class="text-sm font-semibold text-gray-700 mb-2">Available Add-ons:</p>
+          <p class="text-sm font-semibold text-gray-700 mb-2">{{ t.availableAddOns }}</p>
           <div class="space-y-2">
             <div
               v-for="item in extraItems.slice(0, 3)"
@@ -127,7 +127,7 @@
         </div>
 
         <p v-if="canPurchase" class="text-xs text-gray-500 text-center">
-          Secure payment powered by Stripe
+          {{ t.securePayment }}
         </p>
 
         <!-- Event Quick Info -->
@@ -166,6 +166,52 @@
 import { ref, computed, onMounted } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
 import { formatLocation } from '~/utils/location'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Price labels
+  tablesFrom: { es: 'Mesas desde', en: 'Tables from' },
+  tableReservations: { es: 'Reservaciones de mesa', en: 'Table reservations' },
+  startingFrom: { es: 'Desde', en: 'Starting from' },
+  pricePerTicket: { es: 'Precio por Boleto', en: 'Price per Ticket' },
+
+  // Availability
+  tablesAvailable: { es: 'mesas disponibles', en: 'tables available' },
+  tableAvailable: { es: 'mesa disponible', en: 'table available' },
+  multipleTiersAvailable: { es: 'Múltiples niveles disponibles', en: 'Multiple tiers available' },
+  individualTicket: { es: 'Boleto individual', en: 'Individual ticket' },
+  availableTables: { es: 'Mesas Disponibles:', en: 'Available Tables:' },
+  availableTiers: { es: 'Niveles Disponibles:', en: 'Available Tiers:' },
+  availableAddOns: { es: 'Extras Disponibles:', en: 'Available Add-ons:' },
+  seats: { es: 'asientos', en: 'seats' },
+  moreTables: { es: 'más mesas', en: 'more tables' },
+  moreTiers: { es: 'más niveles', en: 'more tiers' },
+  soldOut: { es: 'AGOTADO', en: 'SOLD OUT' },
+  ticketsRemaining: { es: 'boletos restantes', en: 'tickets remaining' },
+
+  // CTA
+  chooseTable: { es: 'Elegir Mesa', en: 'Choose a Table' },
+  buyTicketsNow: { es: 'Comprar Boletos', en: 'Buy Tickets Now' },
+  securePayment: { es: 'Pago seguro con Stripe', en: 'Secure payment powered by Stripe' },
+
+  // Blocked messages
+  eventNotAvailable: { es: 'Evento no disponible', en: 'Event not available' },
+  registrationClosed: { es: 'Registro cerrado', en: 'Registration closed' },
+  deadlinePassed: { es: 'Fecha límite pasada', en: 'Registration deadline passed' },
+  soldOutStatus: { es: 'Agotado', en: 'Sold out' },
+  noTablesAvailable: { es: 'No hay mesas disponibles', en: 'No tables available' },
+  noTicketsAvailable: { es: 'No hay boletos disponibles', en: 'No tickets available' },
+  notAvailable: { es: 'No disponible', en: 'Not available' },
+
+  // Event info
+  seatedEvent: { es: 'Evento con Asientos', en: 'Seated Event' },
+  totalCapacity: { es: 'Capacidad Total', en: 'Total Capacity' },
+  generalAdmission: { es: 'Admisión General', en: 'General Admission' },
+  tables: { es: 'mesas', en: 'tables' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   event: {
@@ -238,15 +284,15 @@ const displayPrice = computed(() => {
 
 const priceLabel = computed(() => {
   if (isSeatedEvent.value) {
-    return hasTables.value ? 'Tables from' : 'Table reservations'
+    return hasTables.value ? t.tablesFrom : t.tableReservations
   }
-  if (hasTiers.value && activeTiers.value.length > 1) return 'Starting from'
-  return 'Price per Ticket'
+  if (hasTiers.value && activeTiers.value.length > 1) return t.startingFrom
+  return t.pricePerTicket
 })
 
 const ctaText = computed(() => {
-  if (isSeatedEvent.value) return 'Choose a Table'
-  return 'Buy Tickets Now'
+  if (isSeatedEvent.value) return t.chooseTable
+  return t.buyTicketsNow
 })
 
 const canPurchase = computed(() => {
@@ -259,13 +305,13 @@ const blockedReason = computed(() => {
 
 const blockedMessage = computed(() => {
   const messages = {
-    not_live: 'Event not available',
-    registration_closed: 'Registration closed',
-    deadline_passed: 'Registration deadline passed',
-    sold_out: 'Sold out',
-    no_available_tickets: isSeatedEvent.value ? 'No tables available' : 'No tickets available'
+    not_live: t.eventNotAvailable,
+    registration_closed: t.registrationClosed,
+    deadline_passed: t.deadlinePassed,
+    sold_out: t.soldOutStatus,
+    no_available_tickets: isSeatedEvent.value ? t.noTablesAvailable : t.noTicketsAvailable
   }
-  return messages[blockedReason.value] || 'Not available'
+  return messages[blockedReason.value] || t.notAvailable
 })
 
 const ticketsAvailable = computed(() => {
@@ -307,13 +353,13 @@ const hasExtraItems = computed(() => extraItems.value.length > 0)
 const seatingTypeLabel = computed(() => {
   if (isSeatedEvent.value) {
     if (hasTables.value) {
-      const totalSeats = activeTables.value.reduce((sum, t) => sum + (t.capacity || 0), 0)
-      return `${tablesAvailableCount.value} tables · ${totalSeats} seats`
+      const totalSeats = activeTables.value.reduce((sum, tbl) => sum + (tbl.capacity || 0), 0)
+      return `${tablesAvailableCount.value} ${t.tables} · ${totalSeats} ${t.seats}`
     }
-    return 'Seated Event'
+    return t.seatedEvent
   }
-  if (totalCapacity.value > 0) return `${totalCapacity.value} Total Capacity`
-  return 'General Admission'
+  if (totalCapacity.value > 0) return `${totalCapacity.value} ${t.totalCapacity}`
+  return t.generalAdmission
 })
 
 // Formatted date/time/location

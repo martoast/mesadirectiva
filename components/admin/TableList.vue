@@ -5,8 +5,8 @@
       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
       </svg>
-      <p>No tables yet</p>
-      <p class="text-sm">Add tables for your seated event</p>
+      <p>{{ t.noTablesYet }}</p>
+      <p class="text-sm">{{ t.addTablesForEvent }}</p>
     </div>
 
     <!-- Tables Grid -->
@@ -28,9 +28,9 @@
               </span>
             </div>
             <p class="text-sm text-gray-500 mt-1">
-              {{ table.capacity }} seats
+              {{ table.capacity }} {{ t.seats }}
               <template v-if="!table.sell_as_whole">
-                (individual)
+                ({{ t.individual }})
               </template>
             </p>
           </div>
@@ -42,7 +42,7 @@
               type="button"
               @click="$emit('manage-seats', table)"
               class="p-2 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-gray-100"
-              title="Manage Seats"
+              :title="t.manageSeats"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -53,7 +53,7 @@
               type="button"
               @click="$emit('edit', table)"
               class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
-              title="Edit"
+              :title="t.edit"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -65,7 +65,7 @@
               @click="$emit('delete', table)"
               :disabled="table.status === 'sold'"
               class="p-2 text-gray-400 hover:text-danger-600 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Delete"
+              :title="t.delete"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -82,14 +82,14 @@
         <!-- Seats info for individual seat tables -->
         <div v-if="!table.sell_as_whole" class="mt-2 text-sm text-gray-500">
           <template v-if="table.seats_count !== undefined">
-            {{ table.available_seats_count || 0 }} / {{ table.seats_count }} seats available
+            {{ table.available_seats_count || 0 }} / {{ table.seats_count }} {{ t.seatsAvailable }}
           </template>
           <template v-else>
             <NuxtLink
               :to="`/app/admin/events/${eventSlug}/tables/${table.id}/seats`"
               class="text-primary-600 hover:text-primary-700"
             >
-              Set up seats
+              {{ t.setUpSeats }}
             </NuxtLink>
           </template>
         </div>
@@ -97,7 +97,7 @@
         <!-- Inactive badge -->
         <div v-if="!table.is_active" class="mt-2">
           <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-            Inactive
+            {{ t.inactive }}
           </span>
         </div>
       </div>
@@ -106,6 +106,30 @@
 </template>
 
 <script setup>
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Empty state
+  noTablesYet: { es: 'Aún no hay mesas', en: 'No tables yet' },
+  addTablesForEvent: { es: 'Agrega mesas para tu evento con asientos', en: 'Add tables for your seated event' },
+  // Labels
+  seats: { es: 'asientos', en: 'seats' },
+  individual: { es: 'individual', en: 'individual' },
+  seatsAvailable: { es: 'asientos disponibles', en: 'seats available' },
+  setUpSeats: { es: 'Configurar asientos', en: 'Set up seats' },
+  inactive: { es: 'Inactivo', en: 'Inactive' },
+  // Status
+  sold: { es: 'Vendido', en: 'Sold' },
+  reserved: { es: 'Reservado', en: 'Reserved' },
+  available: { es: 'Disponible', en: 'Available' },
+  // Action titles
+  manageSeats: { es: 'Administrar Asientos', en: 'Manage Seats' },
+  edit: { es: 'Editar', en: 'Edit' },
+  delete: { es: 'Eliminar', en: 'Delete' }
+}
+
+const t = createT(translations)
+
 const props = defineProps({
   tables: {
     type: Array,
@@ -120,9 +144,9 @@ const props = defineProps({
 defineEmits(['edit', 'delete', 'manage-seats'])
 
 const statusLabel = (table) => {
-  if (table.status === 'sold') return 'Sold'
-  if (table.status === 'reserved') return 'Reserved'
-  return 'Available'
+  if (table.status === 'sold') return t.sold
+  if (table.status === 'reserved') return t.reserved
+  return t.available
 }
 
 const statusBadgeClasses = (table) => {

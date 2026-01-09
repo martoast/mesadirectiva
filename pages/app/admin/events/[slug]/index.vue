@@ -3,21 +3,21 @@
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="loader"></div>
-      <span>Loading event...</span>
+      <span>{{ t.loadingEvent }}</span>
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="error-state">
       <div class="error-icon">!</div>
       <p>{{ error }}</p>
-      <button @click="fetchEvent" class="retry-btn">Try Again</button>
+      <button @click="fetchEvent" class="retry-btn">{{ t.tryAgain }}</button>
     </div>
 
     <!-- Content -->
     <template v-else-if="event">
       <!-- Breadcrumb -->
       <nav class="breadcrumb">
-        <NuxtLink to="/app/admin/events">Events</NuxtLink>
+        <NuxtLink to="/app/admin/events">{{ t.events }}</NuxtLink>
         <span class="sep">/</span>
         <span class="current">{{ event.name }}</span>
       </nav>
@@ -59,7 +59,7 @@
               <span>{{ formatLocationShort() }}</span>
             </div>
             <span class="type-tag">
-              {{ event.seating_type === 'seated' ? 'Seated' : 'General Admission' }}
+              {{ event.seating_type === 'seated' ? t.seated : t.generalAdmission }}
             </span>
           </div>
         </div>
@@ -70,10 +70,10 @@
               <polyline points="15 3 21 3 21 9"/>
               <line x1="10" y1="14" x2="21" y2="3"/>
             </svg>
-            Preview
+            {{ t.preview }}
           </NuxtLink>
           <NuxtLink :to="`/app/admin/events/${event.slug}/edit`" class="btn-secondary">
-            Edit Event
+            {{ t.editEvent }}
           </NuxtLink>
           <button
             v-if="event.status === 'draft' && isSetupComplete"
@@ -81,7 +81,7 @@
             :disabled="actionLoading"
             class="btn-primary"
           >
-            {{ actionLoading ? 'Publishing...' : 'Publish Event' }}
+            {{ actionLoading ? t.publishing : t.publishEvent }}
           </button>
           <button
             v-if="event.status === 'live'"
@@ -89,9 +89,9 @@
             :disabled="actionLoading"
             class="btn-warning"
           >
-            {{ actionLoading ? 'Closing...' : 'Close Event' }}
+            {{ actionLoading ? t.closing : t.closeEvent }}
           </button>
-          <button @click="handleDelete" class="btn-icon danger" title="Delete event">
+          <button @click="handleDelete" class="btn-icon danger" :title="t.deleteEvent">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
             </svg>
@@ -109,8 +109,8 @@
               </svg>
             </div>
             <div class="step-content">
-              <span class="step-label">Event Created</span>
-              <span class="step-desc">Basic info saved</span>
+              <span class="step-label">{{ t.eventCreated }}</span>
+              <span class="step-desc">{{ t.basicInfoSaved }}</span>
             </div>
           </div>
 
@@ -124,8 +124,8 @@
               <span v-else class="step-number">2</span>
             </div>
             <div class="step-content">
-              <span class="step-label">{{ event.seating_type === 'seated' ? 'Tables & Seats' : 'Ticket Pricing' }}</span>
-              <span class="step-desc">{{ isSetupComplete ? 'Configured' : 'Action required' }}</span>
+              <span class="step-label">{{ event.seating_type === 'seated' ? t.tablesAndSeats : t.ticketPricing }}</span>
+              <span class="step-desc">{{ isSetupComplete ? t.configured : t.actionRequired }}</span>
             </div>
           </div>
 
@@ -139,8 +139,8 @@
               <span v-else class="step-number">3</span>
             </div>
             <div class="step-content">
-              <span class="step-label">{{ event.status === 'live' ? 'Published' : 'Ready to Publish' }}</span>
-              <span class="step-desc">{{ event.status === 'live' ? 'Event is live' : (isSetupComplete ? 'Click publish above' : 'Complete step 2 first') }}</span>
+              <span class="step-label">{{ event.status === 'live' ? t.published : t.readyToPublish }}</span>
+              <span class="step-desc">{{ event.status === 'live' ? t.eventIsLive : (isSetupComplete ? t.clickPublishAbove : t.completeStep2First) }}</span>
             </div>
           </div>
         </div>
@@ -157,12 +157,12 @@
             </svg>
           </div>
           <div class="alert-text">
-            <h3>{{ event.seating_type === 'seated' ? 'Set up your tables' : 'Add ticket pricing' }}</h3>
+            <h3>{{ event.seating_type === 'seated' ? t.setupTables : t.addTicketPricing }}</h3>
             <p v-if="event.seating_type === 'seated'">
-              Configure tables and seating before you can publish this event and start selling.
+              {{ t.setupTablesDesc }}
             </p>
             <p v-else>
-              Create at least one ticket tier with pricing before you can publish this event.
+              {{ t.addTicketTiersDesc }}
             </p>
           </div>
         </div>
@@ -172,7 +172,7 @@
             : `/app/admin/events/${event.slug}/tiers`"
           class="alert-action"
         >
-          {{ event.seating_type === 'seated' ? 'Set Up Tables' : 'Add Ticket Tiers' }}
+          {{ event.seating_type === 'seated' ? t.setUpTablesBtn : t.addTicketTiersBtn }}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="5" y1="12" x2="19" y2="12"/>
             <polyline points="12 5 19 12 12 19"/>
@@ -190,11 +190,11 @@
               <img :src="event.image_url" :alt="event.name" />
             </div>
             <div class="event-body">
-              <h2 class="section-title">About</h2>
-              <p class="event-description">{{ event.description || 'No description provided.' }}</p>
+              <h2 class="section-title">{{ t.about }}</h2>
+              <p class="event-description">{{ event.description || t.noDescription }}</p>
 
               <div v-if="event.organizer_name" class="organizer">
-                <span class="label">Organized by</span>
+                <span class="label">{{ t.organizedBy }}</span>
                 <span class="value">{{ event.organizer_name }}</span>
               </div>
             </div>
@@ -202,7 +202,7 @@
 
           <!-- Gallery Preview -->
           <div v-if="event.media?.images?.length" class="gallery-card">
-            <h2 class="section-title">Gallery</h2>
+            <h2 class="section-title">{{ t.gallery }}</h2>
             <div class="gallery-preview">
               <div
                 v-for="(img, i) in event.media.images.slice(0, 4)"
@@ -219,33 +219,33 @@
 
           <!-- Event Details -->
           <div class="details-card">
-            <h2 class="section-title">Event Details</h2>
+            <h2 class="section-title">{{ t.eventDetails }}</h2>
             <div class="details-grid">
               <div class="detail-item">
-                <span class="label">Start</span>
+                <span class="label">{{ t.start }}</span>
                 <span class="value">{{ formatEventDateTime(event.starts_at) }}</span>
               </div>
               <div v-if="event.ends_at" class="detail-item">
-                <span class="label">End</span>
+                <span class="label">{{ t.end }}</span>
                 <span class="value">{{ formatEventDateTime(event.ends_at) }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">Timezone</span>
+                <span class="label">{{ t.timezone }}</span>
                 <span class="value">{{ event.timezone || 'America/Mexico_City' }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">Location</span>
+                <span class="label">{{ t.location }}</span>
                 <span class="value">{{ formatLocationDisplay() }}</span>
               </div>
               <div class="detail-item">
-                <span class="label">Visibility</span>
+                <span class="label">{{ t.visibility }}</span>
                 <span :class="['value', event.is_private ? 'muted' : 'success']">
-                  {{ event.is_private ? 'Private' : 'Public' }}
+                  {{ event.is_private ? t.private : t.public }}
                 </span>
               </div>
               <div v-if="event.seating_type === 'seated'" class="detail-item">
-                <span class="label">Reservation Hold</span>
-                <span class="value">{{ event.reservation_minutes || 15 }} minutes</span>
+                <span class="label">{{ t.reservationHold }}</span>
+                <span class="value">{{ event.reservation_minutes || 15 }} {{ t.minutes }}</span>
               </div>
             </div>
           </div>
@@ -255,26 +255,26 @@
         <div class="col-side">
           <!-- Stats Card -->
           <div class="stats-card">
-            <h2 class="section-title">Sales Overview</h2>
+            <h2 class="section-title">{{ t.salesOverview }}</h2>
             <div class="stat-hero">
               <span class="stat-value">{{ event.seating_type === 'seated' ? soldSeats : (event.tickets_sold || 0) }}</span>
-              <span class="stat-label">{{ event.seating_type === 'seated' ? 'Seats Sold' : 'Tickets Sold' }}</span>
+              <span class="stat-label">{{ event.seating_type === 'seated' ? t.seatsSold : t.ticketsSold }}</span>
             </div>
             <div class="stat-row">
               <div class="stat-item">
                 <span class="stat-num success">{{ event.seating_type === 'seated' ? availableSeats : (event.tickets_available || 0) }}</span>
-                <span class="stat-lbl">Available</span>
+                <span class="stat-lbl">{{ t.available }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-num">${{ (event.total_revenue || 0).toLocaleString() }}</span>
-                <span class="stat-lbl">Revenue</span>
+                <span class="stat-lbl">{{ t.revenue }}</span>
               </div>
             </div>
           </div>
 
           <!-- Quick Actions -->
           <div class="actions-card">
-            <h2 class="section-title">Manage</h2>
+            <h2 class="section-title">{{ t.manage }}</h2>
             <div class="action-links">
               <NuxtLink
                 :to="event.seating_type === 'seated'
@@ -294,11 +294,11 @@
                   </svg>
                 </div>
                 <div class="action-text">
-                  <span class="action-title">{{ event.seating_type === 'seated' ? 'Tables & Seats' : 'Ticket Tiers' }}</span>
+                  <span class="action-title">{{ event.seating_type === 'seated' ? t.tablesAndSeats : t.ticketTiers }}</span>
                   <span class="action-desc">
                     {{ event.seating_type === 'seated'
-                      ? `${tables.length} tables · ${totalSeats} seats`
-                      : `${event.active_ticket_tiers?.length || 0} active tiers`
+                      ? `${tables.length} ${t.tables} · ${totalSeats} ${t.seats}`
+                      : `${event.active_ticket_tiers?.length || 0} ${t.activeTiers}`
                     }}
                   </span>
                 </div>
@@ -318,8 +318,8 @@
                   </svg>
                 </div>
                 <div class="action-text">
-                  <span class="action-title">Floor Plan Editor</span>
-                  <span class="action-desc">Arrange table layout visually</span>
+                  <span class="action-title">{{ t.floorPlanEditor }}</span>
+                  <span class="action-desc">{{ t.arrangeTableLayout }}</span>
                 </div>
                 <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <polyline points="9 18 15 12 9 6"/>
@@ -335,8 +335,8 @@
                   </svg>
                 </div>
                 <div class="action-text">
-                  <span class="action-title">Public Event Page</span>
-                  <span class="action-desc">View as attendees see it</span>
+                  <span class="action-title">{{ t.publicEventPage }}</span>
+                  <span class="action-desc">{{ t.viewAsAttendees }}</span>
                 </div>
                 <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <polyline points="9 18 15 12 9 6"/>
@@ -358,11 +358,11 @@
                 <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
               </svg>
             </div>
-            <h3>Delete Event</h3>
-            <p>This will permanently delete "{{ event.name }}" and all associated data. This cannot be undone.</p>
+            <h3>{{ t.deleteEvent }}</h3>
+            <p>{{ t.deleteConfirm }} "{{ event.name }}" {{ t.andAllData }}</p>
             <div class="modal-buttons">
-              <button @click="deleteModalOpen = false" class="btn-secondary">Cancel</button>
-              <button @click="confirmDelete" class="btn-danger">Delete Event</button>
+              <button @click="deleteModalOpen = false" class="btn-secondary">{{ t.cancel }}</button>
+              <button @click="confirmDelete" class="btn-danger">{{ t.deleteEvent }}</button>
             </div>
           </div>
         </div>
@@ -379,6 +379,74 @@ definePageMeta({
   layout: 'admin',
   middleware: ['auth', 'admin']
 })
+
+const { t: createT, language } = useLanguage()
+
+// Translations
+const translations = {
+  loadingEvent: { es: 'Cargando evento...', en: 'Loading event...' },
+  tryAgain: { es: 'Intentar de Nuevo', en: 'Try Again' },
+  events: { es: 'Eventos', en: 'Events' },
+  preview: { es: 'Vista Previa', en: 'Preview' },
+  editEvent: { es: 'Editar Evento', en: 'Edit Event' },
+  publishEvent: { es: 'Publicar Evento', en: 'Publish Event' },
+  publishing: { es: 'Publicando...', en: 'Publishing...' },
+  closeEvent: { es: 'Cerrar Evento', en: 'Close Event' },
+  closing: { es: 'Cerrando...', en: 'Closing...' },
+  seated: { es: 'Con Asientos', en: 'Seated' },
+  generalAdmission: { es: 'Admisión General', en: 'General Admission' },
+  eventCreated: { es: 'Evento Creado', en: 'Event Created' },
+  basicInfoSaved: { es: 'Información básica guardada', en: 'Basic info saved' },
+  tablesAndSeats: { es: 'Mesas y Asientos', en: 'Tables & Seats' },
+  ticketPricing: { es: 'Precios de Boletos', en: 'Ticket Pricing' },
+  configured: { es: 'Configurado', en: 'Configured' },
+  actionRequired: { es: 'Acción requerida', en: 'Action required' },
+  published: { es: 'Publicado', en: 'Published' },
+  readyToPublish: { es: 'Listo para Publicar', en: 'Ready to Publish' },
+  eventIsLive: { es: 'El evento está en vivo', en: 'Event is live' },
+  clickPublishAbove: { es: 'Haz clic en publicar arriba', en: 'Click publish above' },
+  completeStep2First: { es: 'Completa el paso 2 primero', en: 'Complete step 2 first' },
+  setupTables: { es: 'Configura tus mesas', en: 'Set up your tables' },
+  addTicketPricing: { es: 'Agrega precios de boletos', en: 'Add ticket pricing' },
+  setupTablesDesc: { es: 'Configura las mesas y asientos antes de publicar este evento y comenzar a vender.', en: 'Configure tables and seating before you can publish this event and start selling.' },
+  addTicketTiersDesc: { es: 'Crea al menos un nivel de boletos con precios antes de publicar este evento.', en: 'Create at least one ticket tier with pricing before you can publish this event.' },
+  setUpTablesBtn: { es: 'Configurar Mesas', en: 'Set Up Tables' },
+  addTicketTiersBtn: { es: 'Agregar Niveles de Boletos', en: 'Add Ticket Tiers' },
+  about: { es: 'Acerca de', en: 'About' },
+  noDescription: { es: 'Sin descripción.', en: 'No description provided.' },
+  organizedBy: { es: 'Organizado por', en: 'Organized by' },
+  gallery: { es: 'Galería', en: 'Gallery' },
+  eventDetails: { es: 'Detalles del Evento', en: 'Event Details' },
+  start: { es: 'Inicio', en: 'Start' },
+  end: { es: 'Fin', en: 'End' },
+  timezone: { es: 'Zona Horaria', en: 'Timezone' },
+  location: { es: 'Ubicación', en: 'Location' },
+  visibility: { es: 'Visibilidad', en: 'Visibility' },
+  private: { es: 'Privado', en: 'Private' },
+  public: { es: 'Público', en: 'Public' },
+  reservationHold: { es: 'Tiempo de Reserva', en: 'Reservation Hold' },
+  minutes: { es: 'minutos', en: 'minutes' },
+  salesOverview: { es: 'Resumen de Ventas', en: 'Sales Overview' },
+  seatsSold: { es: 'Asientos Vendidos', en: 'Seats Sold' },
+  ticketsSold: { es: 'Boletos Vendidos', en: 'Tickets Sold' },
+  available: { es: 'Disponibles', en: 'Available' },
+  revenue: { es: 'Ingresos', en: 'Revenue' },
+  manage: { es: 'Administrar', en: 'Manage' },
+  ticketTiers: { es: 'Niveles de Boletos', en: 'Ticket Tiers' },
+  tables: { es: 'mesas', en: 'tables' },
+  seats: { es: 'asientos', en: 'seats' },
+  activeTiers: { es: 'niveles activos', en: 'active tiers' },
+  floorPlanEditor: { es: 'Editor de Plano', en: 'Floor Plan Editor' },
+  arrangeTableLayout: { es: 'Organiza el diseño de mesas visualmente', en: 'Arrange table layout visually' },
+  publicEventPage: { es: 'Página Pública del Evento', en: 'Public Event Page' },
+  viewAsAttendees: { es: 'Ver como lo ven los asistentes', en: 'View as attendees see it' },
+  deleteEvent: { es: 'Eliminar Evento', en: 'Delete Event' },
+  deleteConfirm: { es: 'Esto eliminará permanentemente', en: 'This will permanently delete' },
+  andAllData: { es: 'y todos los datos asociados. Esto no se puede deshacer.', en: 'and all associated data. This cannot be undone.' },
+  cancel: { es: 'Cancelar', en: 'Cancel' }
+}
+
+const t = createT(translations)
 
 const route = useRoute()
 const router = useRouter()

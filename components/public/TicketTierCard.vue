@@ -21,7 +21,7 @@
 
       <!-- Sales Window Info -->
       <p v-if="tier.sales_end && !isSalesEnded" class="text-xs text-primary-600 mt-1">
-        Sale ends {{ formatDate(tier.sales_end) }}
+        {{ t.saleEnds }} {{ formatDate(tier.sales_end) }}
       </p>
     </div>
 
@@ -31,13 +31,13 @@
         {{ availabilityMessage }}
       </span>
       <span v-else-if="tier.available !== null && tier.available <= 10" class="text-sm text-warning-600">
-        Only {{ tier.available }} left
+        {{ t.onlyLeft }} {{ tier.available }} {{ t.left }}
       </span>
       <span v-else-if="tier.available !== null" class="text-sm text-gray-500">
-        {{ tier.available }} available
+        {{ tier.available }} {{ t.available }}
       </span>
       <span v-else class="text-sm text-gray-500">
-        Available
+        {{ t.availableLabel }}
       </span>
 
       <!-- Quantity Selector -->
@@ -75,7 +75,7 @@
 
     <!-- Line Total -->
     <div v-if="quantity > 0" class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-      <span class="text-sm text-gray-600">Subtotal</span>
+      <span class="text-sm text-gray-600">{{ t.subtotal }}</span>
       <span class="font-semibold text-gray-900">${{ formatPrice(lineTotal) }}</span>
     </div>
   </div>
@@ -83,6 +83,26 @@
 
 <script setup>
 import { computed } from 'vue'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  soldOut: { es: 'Agotado', en: 'Sold Out' },
+  notYetAvailable: { es: 'Aún No Disponible', en: 'Not Yet Available' },
+  saleEnded: { es: 'Venta Finalizada', en: 'Sale Ended' },
+  unavailable: { es: 'No Disponible', en: 'Unavailable' },
+  onlyLeft: { es: 'Solo quedan', en: 'Only' },
+  left: { es: '', en: 'left' },
+  available: { es: 'disponibles', en: 'available' },
+  availableLabel: { es: 'Disponible', en: 'Available' },
+  saleEnds: { es: 'La venta termina', en: 'Sale ends' },
+  subtotal: { es: 'Subtotal', en: 'Subtotal' },
+  perOrder: { es: 'por pedido', en: 'per order' },
+  minimum: { es: 'Mínimo', en: 'Minimum' },
+  maximum: { es: 'Máximo', en: 'Maximum' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   tier: {
@@ -122,11 +142,11 @@ const isSalesEnded = computed(() => {
 })
 
 const availabilityMessage = computed(() => {
-  if (props.tier.available !== null && props.tier.available <= 0) return 'Sold Out'
-  if (props.tier.sales_start && new Date(props.tier.sales_start) > new Date()) return 'Not Yet Available'
-  if (isSalesEnded.value) return 'Sale Ended'
-  if (!props.tier.is_active) return 'Unavailable'
-  return 'Unavailable'
+  if (props.tier.available !== null && props.tier.available <= 0) return t.soldOut
+  if (props.tier.sales_start && new Date(props.tier.sales_start) > new Date()) return t.notYetAvailable
+  if (isSalesEnded.value) return t.saleEnded
+  if (!props.tier.is_active) return t.unavailable
+  return t.unavailable
 })
 
 const maxQuantity = computed(() => {
@@ -144,9 +164,9 @@ const orderLimitsText = computed(() => {
   const min = props.tier.min_per_order
   const max = props.tier.max_per_order
 
-  if (min && max) return `${min}-${max} per order`
-  if (min) return `Minimum ${min} per order`
-  if (max) return `Maximum ${max} per order`
+  if (min && max) return `${min}-${max} ${t.perOrder}`
+  if (min) return `${t.minimum} ${min} ${t.perOrder}`
+  if (max) return `${t.maximum} ${max} ${t.perOrder}`
   return ''
 })
 

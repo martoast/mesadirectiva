@@ -7,7 +7,7 @@
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
       </svg>
-      Draft saved
+      {{ t.draftSaved }}
     </div>
 
     <!-- Step Indicator -->
@@ -33,35 +33,35 @@
       <!-- Step 1: Basic Info -->
       <div v-show="currentStep === 0" class="step-panel">
         <div class="panel-header">
-          <h2>Basic Information</h2>
-          <p>Start with the essentials for your event</p>
+          <h2>{{ t.basicInformation }}</h2>
+          <p>{{ t.basicInfoSubtitle }}</p>
         </div>
 
         <div class="form-grid">
           <!-- Group Selection -->
           <div class="form-field full-width">
-            <label for="group_id">Group <span class="required">*</span></label>
+            <label for="group_id">{{ t.group }} <span class="required">*</span></label>
             <select id="group_id" v-model="form.group_id" required>
-              <option value="">Select a group</option>
+              <option value="">{{ t.selectGroup }}</option>
               <option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
           </div>
 
           <!-- Event Name -->
           <div class="form-field full-width">
-            <label for="name">Event Name <span class="required">*</span></label>
+            <label for="name">{{ t.eventName }} <span class="required">*</span></label>
             <input
               id="name"
               v-model="form.name"
               type="text"
-              placeholder="e.g., Annual Gala 2025"
+              :placeholder="t.eventNamePlaceholder"
               required
             />
           </div>
 
           <!-- Seating Type -->
           <div class="form-field full-width">
-            <label>Event Type <span class="required">*</span></label>
+            <label>{{ t.eventType }} <span class="required">*</span></label>
             <div class="type-selector">
               <button
                 type="button"
@@ -74,8 +74,8 @@
                   </svg>
                 </div>
                 <div class="type-content">
-                  <strong>General Admission</strong>
-                  <span>Ticket tiers with different pricing</span>
+                  <strong>{{ t.generalAdmission }}</strong>
+                  <span>{{ t.generalAdmissionDesc }}</span>
                 </div>
                 <div v-if="form.seating_type === 'general_admission'" class="type-check">
                   <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
@@ -92,8 +92,8 @@
                   </svg>
                 </div>
                 <div class="type-content">
-                  <strong>Seated Event</strong>
-                  <span>Tables and seat selection</span>
+                  <strong>{{ t.seatedEvent }}</strong>
+                  <span>{{ t.seatedEventDesc }}</span>
                 </div>
                 <div v-if="form.seating_type === 'seated'" class="type-check">
                   <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
@@ -104,7 +104,7 @@
 
           <!-- Seated event options -->
           <div v-if="form.seating_type === 'seated'" class="form-field">
-            <label for="reservation_minutes">Reservation Hold (minutes)</label>
+            <label for="reservation_minutes">{{ t.reservationHold }}</label>
             <input
               id="reservation_minutes"
               v-model.number="form.reservation_minutes"
@@ -113,7 +113,7 @@
               max="60"
               placeholder="15"
             />
-            <span class="field-hint">Time customers have to complete checkout after selecting seats</span>
+            <span class="field-hint">{{ t.reservationHoldHint }}</span>
           </div>
         </div>
       </div>
@@ -121,14 +121,14 @@
       <!-- Step 2: Date & Time -->
       <div v-show="currentStep === 1" class="step-panel">
         <div class="panel-header">
-          <h2>Date & Time</h2>
-          <p>When does your event take place?</p>
+          <h2>{{ t.dateTime }}</h2>
+          <p>{{ t.dateTimeSubtitle }}</p>
         </div>
 
         <div class="form-grid">
           <!-- Start Date/Time -->
           <div class="form-field">
-            <label for="starts_at">Start Date & Time <span class="required">*</span></label>
+            <label for="starts_at">{{ t.startDateTime }} <span class="required">*</span></label>
             <input
               id="starts_at"
               v-model="form.starts_at"
@@ -139,25 +139,25 @@
 
           <!-- End Date/Time -->
           <div class="form-field">
-            <label for="ends_at">End Date & Time</label>
+            <label for="ends_at">{{ t.endDateTime }}</label>
             <input
               id="ends_at"
               v-model="form.ends_at"
               type="datetime-local"
             />
-            <span class="field-hint">Optional - leave empty if unknown</span>
+            <span class="field-hint">{{ t.optionalLeaveEmpty }}</span>
           </div>
 
           <!-- Timezone -->
           <div class="form-field full-width">
-            <label for="timezone">Timezone <span class="required">*</span></label>
+            <label for="timezone">{{ t.timezone }} <span class="required">*</span></label>
             <select id="timezone" v-model="form.timezone" required>
-              <optgroup label="Mexico">
+              <optgroup :label="t.mexico">
                 <option v-for="tz in mexicoTimezones" :key="tz.value" :value="tz.value">
                   {{ tz.label }}
                 </option>
               </optgroup>
-              <optgroup label="Other">
+              <optgroup :label="t.other">
                 <option v-for="tz in otherTimezones" :key="tz.value" :value="tz.value">
                   {{ tz.label }}
                 </option>
@@ -170,14 +170,14 @@
       <!-- Step 3: Location -->
       <div v-show="currentStep === 2" class="step-panel">
         <div class="panel-header">
-          <h2>Location</h2>
-          <p>Where will your event be held?</p>
+          <h2>{{ t.location }}</h2>
+          <p>{{ t.locationSubtitle }}</p>
         </div>
 
         <div class="form-grid">
           <!-- Location Type -->
           <div class="form-field full-width">
-            <label>Location Type <span class="required">*</span></label>
+            <label>{{ t.locationType }} <span class="required">*</span></label>
             <div class="location-type-selector">
               <button
                 type="button"
@@ -188,7 +188,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Physical Venue</span>
+                <span>{{ t.physicalVenue }}</span>
               </button>
               <button
                 type="button"
@@ -198,7 +198,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                <span>Online Event</span>
+                <span>{{ t.onlineEvent }}</span>
               </button>
             </div>
           </div>
@@ -206,69 +206,69 @@
           <!-- Venue Location Fields -->
           <template v-if="form.location_type === 'venue'">
             <div class="form-field full-width">
-              <label for="venue_name">Venue Name <span class="required">*</span></label>
+              <label for="venue_name">{{ t.venueName }} <span class="required">*</span></label>
               <input
                 id="venue_name"
                 v-model="form.location.name"
                 type="text"
-                placeholder="e.g., Grand Ballroom, Hotel Marriott"
+                :placeholder="t.venueNamePlaceholder"
                 required
               />
             </div>
 
             <div class="form-field full-width">
-              <label for="venue_address">Street Address</label>
+              <label for="venue_address">{{ t.streetAddress }}</label>
               <input
                 id="venue_address"
                 v-model="form.location.address"
                 type="text"
-                placeholder="e.g., 123 Main Street"
+                :placeholder="t.streetAddressPlaceholder"
               />
             </div>
 
             <div class="form-field">
-              <label for="venue_city">City <span class="required">*</span></label>
+              <label for="venue_city">{{ t.city }} <span class="required">*</span></label>
               <input
                 id="venue_city"
                 v-model="form.location.city"
                 type="text"
-                placeholder="e.g., Mexico City"
+                :placeholder="t.cityPlaceholder"
                 required
               />
             </div>
 
             <div class="form-field">
-              <label for="venue_state">State</label>
+              <label for="venue_state">{{ t.state }}</label>
               <input
                 id="venue_state"
                 v-model="form.location.state"
                 type="text"
-                placeholder="e.g., CDMX"
+                :placeholder="t.statePlaceholder"
               />
             </div>
 
             <div class="form-field">
-              <label for="venue_country">Country</label>
+              <label for="venue_country">{{ t.country }}</label>
               <input
                 id="venue_country"
                 v-model="form.location.country"
                 type="text"
-                placeholder="Mexico"
+                :placeholder="t.countryPlaceholder"
               />
             </div>
 
             <div class="form-field">
-              <label for="venue_postal_code">Postal Code</label>
+              <label for="venue_postal_code">{{ t.postalCode }}</label>
               <input
                 id="venue_postal_code"
                 v-model="form.location.postal_code"
                 type="text"
-                placeholder="e.g., 06600"
+                :placeholder="t.postalCodePlaceholder"
               />
             </div>
 
             <div class="form-field full-width">
-              <label for="venue_map_url">Google Maps URL (optional)</label>
+              <label for="venue_map_url">{{ t.googleMapsUrl }}</label>
               <input
                 id="venue_map_url"
                 v-model="form.location.map_url"
@@ -281,9 +281,9 @@
           <!-- Online Location Fields -->
           <template v-if="form.location_type === 'online'">
             <div class="form-field">
-              <label for="online_platform">Platform <span class="required">*</span></label>
+              <label for="online_platform">{{ t.platform }} <span class="required">*</span></label>
               <select id="online_platform" v-model="form.location.platform" required>
-                <option value="">Select platform</option>
+                <option value="">{{ t.selectPlatform }}</option>
                 <option v-for="p in onlinePlatforms" :key="p.value" :value="p.value">
                   {{ p.label }}
                 </option>
@@ -291,23 +291,23 @@
             </div>
 
             <div class="form-field">
-              <label for="online_url">Event URL</label>
+              <label for="online_url">{{ t.eventUrl }}</label>
               <input
                 id="online_url"
                 v-model="form.location.url"
                 type="url"
                 placeholder="https://zoom.us/j/..."
               />
-              <span class="field-hint">You can add this later before the event</span>
+              <span class="field-hint">{{ t.addLaterHint }}</span>
             </div>
 
             <div class="form-field full-width">
-              <label for="online_instructions">Access Instructions</label>
+              <label for="online_instructions">{{ t.accessInstructions }}</label>
               <textarea
                 id="online_instructions"
                 v-model="form.location.instructions"
                 rows="3"
-                placeholder="Any special instructions for joining the event..."
+                :placeholder="t.accessInstructionsPlaceholder"
               ></textarea>
             </div>
           </template>
@@ -317,15 +317,15 @@
       <!-- Step 4: Media -->
       <div v-show="currentStep === 3" class="step-panel">
         <div class="panel-header">
-          <h2>Event Media</h2>
-          <p>Add images and video to showcase your event</p>
+          <h2>{{ t.eventMedia }}</h2>
+          <p>{{ t.eventMediaSubtitle }}</p>
         </div>
 
         <div v-if="!eventSlug" class="media-blocked">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-8V7m0 0V5m0 2h2m-2 0H9m12 8a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>Complete the previous steps first to enable media uploads</p>
+          <p>{{ t.completeStepsFirst }}</p>
         </div>
 
         <AdminEventMediaStep
@@ -344,60 +344,60 @@
       <!-- Step 5: Details -->
       <div v-show="currentStep === 4" class="step-panel">
         <div class="panel-header">
-          <h2>Additional Details</h2>
-          <p>Add extra information about your event</p>
+          <h2>{{ t.additionalDetails }}</h2>
+          <p>{{ t.additionalDetailsSubtitle }}</p>
         </div>
 
         <div class="form-grid">
           <!-- Description -->
           <div class="form-field full-width">
-            <label for="description">Event Description <span class="required">*</span></label>
+            <label for="description">{{ t.eventDescription }} <span class="required">*</span></label>
             <textarea
               id="description"
               v-model="form.description"
               rows="6"
-              placeholder="Tell attendees what this event is about, what to expect, and why they should attend..."
+              :placeholder="t.eventDescriptionPlaceholder"
               required
             ></textarea>
           </div>
 
           <!-- Organizer Info -->
           <div class="form-field">
-            <label for="organizer_name">Organizer Name</label>
+            <label for="organizer_name">{{ t.organizerName }}</label>
             <input
               id="organizer_name"
               v-model="form.organizer_name"
               type="text"
-              placeholder="e.g., School Alumni Association"
+              :placeholder="t.organizerNamePlaceholder"
             />
           </div>
 
           <div class="form-field">
-            <label for="organizer_description">Organizer Description</label>
+            <label for="organizer_description">{{ t.organizerDescription }}</label>
             <input
               id="organizer_description"
               v-model="form.organizer_description"
               type="text"
-              placeholder="Brief description of the organizer"
+              :placeholder="t.organizerDescriptionPlaceholder"
             />
           </div>
 
           <!-- Options -->
           <div class="form-field full-width">
-            <label>Event Options</label>
+            <label>{{ t.eventOptions }}</label>
             <div class="checkbox-group">
               <label class="checkbox-option">
                 <input type="checkbox" v-model="form.is_private" />
                 <span class="checkbox-label">
-                  <strong>Private Event</strong>
-                  <span>Only visible via direct link</span>
+                  <strong>{{ t.privateEvent }}</strong>
+                  <span>{{ t.privateEventDesc }}</span>
                 </span>
               </label>
               <label class="checkbox-option">
                 <input type="checkbox" v-model="form.show_remaining" />
                 <span class="checkbox-label">
-                  <strong>Show Remaining Tickets</strong>
-                  <span>Display how many tickets are left</span>
+                  <strong>{{ t.showRemainingTickets }}</strong>
+                  <span>{{ t.showRemainingTicketsDesc }}</span>
                 </span>
               </label>
             </div>
@@ -406,31 +406,31 @@
           <!-- FAQ Section -->
           <div class="form-field full-width">
             <div class="section-header">
-              <label>Frequently Asked Questions</label>
+              <label>{{ t.faq }}</label>
               <button type="button" class="add-btn" @click="addFaqItem" v-if="form.faq_items.length < 20">
-                + Add FAQ
+                {{ t.addFaq }}
               </button>
             </div>
 
             <div v-if="form.faq_items.length === 0" class="empty-state">
-              <p>No FAQs added yet. Add common questions and answers to help attendees.</p>
+              <p>{{ t.noFaqAdded }}</p>
             </div>
 
             <div v-for="(faq, index) in form.faq_items" :key="index" class="list-item">
               <div class="list-item-header">
                 <span>FAQ {{ index + 1 }}</span>
-                <button type="button" @click="removeFaqItem(index)" class="remove-btn">Remove</button>
+                <button type="button" @click="removeFaqItem(index)" class="remove-btn">{{ t.remove }}</button>
               </div>
               <input
                 v-model="faq.question"
                 type="text"
-                placeholder="Question"
+                :placeholder="t.question"
                 class="mb-2"
               />
               <textarea
                 v-model="faq.answer"
                 rows="2"
-                placeholder="Answer"
+                :placeholder="t.answer"
               ></textarea>
             </div>
           </div>
@@ -440,25 +440,25 @@
       <!-- Step 6: Review -->
       <div v-show="currentStep === 5" class="step-panel">
         <div class="panel-header">
-          <h2>Review & Publish</h2>
-          <p>Make sure everything looks good before publishing</p>
+          <h2>{{ t.reviewPublish }}</h2>
+          <p>{{ t.reviewSubtitle }}</p>
         </div>
 
         <div class="review-sections">
           <!-- Basic Info Summary -->
           <div class="review-card">
             <div class="review-card-header">
-              <h3>Basic Information</h3>
-              <button type="button" @click="goToStep(0)" class="edit-btn">Edit</button>
+              <h3>{{ t.basicInformation }}</h3>
+              <button type="button" @click="goToStep(0)" class="edit-btn">{{ t.edit }}</button>
             </div>
             <div class="review-grid">
               <div class="review-item">
-                <span class="review-label">Event Name</span>
+                <span class="review-label">{{ t.eventName }}</span>
                 <span class="review-value">{{ form.name || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Event Type</span>
-                <span class="review-value">{{ form.seating_type === 'seated' ? 'Seated Event' : 'General Admission' }}</span>
+                <span class="review-label">{{ t.eventType }}</span>
+                <span class="review-value">{{ form.seating_type === 'seated' ? t.seatedEvent : t.generalAdmission }}</span>
               </div>
             </div>
           </div>
@@ -466,20 +466,20 @@
           <!-- Date & Time Summary -->
           <div class="review-card">
             <div class="review-card-header">
-              <h3>Date & Time</h3>
-              <button type="button" @click="goToStep(1)" class="edit-btn">Edit</button>
+              <h3>{{ t.dateTime }}</h3>
+              <button type="button" @click="goToStep(1)" class="edit-btn">{{ t.edit }}</button>
             </div>
             <div class="review-grid">
               <div class="review-item">
-                <span class="review-label">Starts</span>
+                <span class="review-label">{{ t.starts }}</span>
                 <span class="review-value">{{ formatReviewDateTime(form.starts_at) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Ends</span>
-                <span class="review-value">{{ form.ends_at ? formatReviewDateTime(form.ends_at) : 'Not specified' }}</span>
+                <span class="review-label">{{ t.ends }}</span>
+                <span class="review-value">{{ form.ends_at ? formatReviewDateTime(form.ends_at) : t.notSpecified }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Timezone</span>
+                <span class="review-label">{{ t.timezone }}</span>
                 <span class="review-value">{{ getTimezoneLabel(form.timezone) }}</span>
               </div>
             </div>
@@ -488,12 +488,12 @@
           <!-- Location Summary -->
           <div class="review-card">
             <div class="review-card-header">
-              <h3>Location</h3>
-              <button type="button" @click="goToStep(2)" class="edit-btn">Edit</button>
+              <h3>{{ t.location }}</h3>
+              <button type="button" @click="goToStep(2)" class="edit-btn">{{ t.edit }}</button>
             </div>
             <div class="review-grid">
               <div class="review-item full-width">
-                <span class="review-label">{{ form.location_type === 'online' ? 'Platform' : 'Venue' }}</span>
+                <span class="review-label">{{ form.location_type === 'online' ? t.platform : t.venue }}</span>
                 <span class="review-value">{{ formatLocationForReview() }}</span>
               </div>
             </div>
@@ -502,21 +502,21 @@
           <!-- Media Summary -->
           <div class="review-card">
             <div class="review-card-header">
-              <h3>Media</h3>
-              <button type="button" @click="goToStep(3)" class="edit-btn">Edit</button>
+              <h3>{{ t.stepMedia }}</h3>
+              <button type="button" @click="goToStep(3)" class="edit-btn">{{ t.edit }}</button>
             </div>
             <div class="review-grid">
               <div class="review-item">
-                <span class="review-label">Main Image</span>
-                <span class="review-value">{{ mediaData.image_url ? 'Uploaded' : 'Not set' }}</span>
+                <span class="review-label">{{ t.mainImage }}</span>
+                <span class="review-value">{{ mediaData.image_url ? t.uploaded : t.notSet }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Gallery</span>
-                <span class="review-value">{{ mediaData.gallery?.length || 0 }} images</span>
+                <span class="review-label">{{ t.gallery }}</span>
+                <span class="review-value">{{ mediaData.gallery?.length || 0 }} {{ t.images }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Video</span>
-                <span class="review-value">{{ mediaData.video_url ? 'Added' : 'None' }}</span>
+                <span class="review-label">{{ t.video }}</span>
+                <span class="review-value">{{ mediaData.video_url ? t.added : t.none }}</span>
               </div>
             </div>
           </div>
@@ -524,23 +524,23 @@
           <!-- Details Summary -->
           <div class="review-card">
             <div class="review-card-header">
-              <h3>Details</h3>
-              <button type="button" @click="goToStep(4)" class="edit-btn">Edit</button>
+              <h3>{{ t.stepDetails }}</h3>
+              <button type="button" @click="goToStep(4)" class="edit-btn">{{ t.edit }}</button>
             </div>
             <div class="review-grid">
               <div class="review-item full-width">
-                <span class="review-label">Description</span>
+                <span class="review-label">{{ t.description }}</span>
                 <span class="review-value description">{{ truncateText(form.description, 200) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">FAQs</span>
-                <span class="review-value">{{ form.faq_items.length }} items</span>
+                <span class="review-label">{{ t.faqs }}</span>
+                <span class="review-value">{{ form.faq_items.length }} {{ t.items }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Options</span>
+                <span class="review-label">{{ t.options }}</span>
                 <span class="review-value">
-                  {{ form.is_private ? 'Private' : 'Public' }}
-                  {{ form.show_remaining ? '• Shows remaining' : '' }}
+                  {{ form.is_private ? t.private : t.public }}
+                  {{ form.show_remaining ? '• ' + t.showsRemaining : '' }}
                 </span>
               </div>
             </div>
@@ -552,8 +552,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <strong>Your event is ready!</strong>
-              <p>Review the details above, then publish to make your event live.</p>
+              <strong>{{ t.eventReady }}</strong>
+              <p>{{ t.reviewDetailsHint }}</p>
             </div>
           </div>
         </div>
@@ -576,7 +576,7 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Back
+        {{ t.back }}
       </button>
       <div v-else></div>
 
@@ -588,7 +588,7 @@
             @click="nextStep"
             :disabled="!canProceed"
           >
-            Next
+            {{ t.next }}
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -601,7 +601,7 @@
             @click="handleSaveDraft"
             :disabled="submitting"
           >
-            {{ submitting ? 'Saving...' : 'Save as Draft' }}
+            {{ submitting ? t.saving : t.saveAsDraft }}
           </button>
           <button
             type="button"
@@ -609,7 +609,7 @@
             @click="handlePublish"
             :disabled="submitting"
           >
-            {{ submitting ? 'Publishing...' : 'Publish Event' }}
+            {{ submitting ? t.publishing : t.publishEvent }}
           </button>
         </template>
       </div>
@@ -621,6 +621,143 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { MEXICO_TIMEZONES, ALL_TIMEZONES, getTimezoneLabel as getTzLabel, isoToLocal, localToISO } from '~/utils/dateTime'
 import { ONLINE_PLATFORMS, getEmptyVenueLocation, getEmptyOnlineLocation, formatLocation, getPlatformLabel } from '~/utils/location'
+
+const { t: createT } = useLanguage()
+
+const translations = {
+  // Draft indicator
+  draftSaved: { es: 'Borrador guardado', en: 'Draft saved' },
+
+  // Steps
+  stepBasics: { es: 'Básico', en: 'Basics' },
+  stepDate: { es: 'Fecha', en: 'Date' },
+  stepLocation: { es: 'Ubicación', en: 'Location' },
+  stepMedia: { es: 'Media', en: 'Media' },
+  stepDetails: { es: 'Detalles', en: 'Details' },
+  stepReview: { es: 'Revisar', en: 'Review' },
+
+  // Step 1: Basic Info
+  basicInformation: { es: 'Información Básica', en: 'Basic Information' },
+  basicInfoSubtitle: { es: 'Comienza con lo esencial para tu evento', en: 'Start with the essentials for your event' },
+  group: { es: 'Grupo', en: 'Group' },
+  selectGroup: { es: 'Selecciona un grupo', en: 'Select a group' },
+  eventName: { es: 'Nombre del Evento', en: 'Event Name' },
+  eventNamePlaceholder: { es: 'ej., Gala Anual 2025', en: 'e.g., Annual Gala 2025' },
+  eventType: { es: 'Tipo de Evento', en: 'Event Type' },
+  generalAdmission: { es: 'Admisión General', en: 'General Admission' },
+  generalAdmissionDesc: { es: 'Niveles de boletos con diferentes precios', en: 'Ticket tiers with different pricing' },
+  seatedEvent: { es: 'Evento con Asientos', en: 'Seated Event' },
+  seatedEventDesc: { es: 'Mesas y selección de asientos', en: 'Tables and seat selection' },
+  reservationHold: { es: 'Tiempo de Reservación (minutos)', en: 'Reservation Hold (minutes)' },
+  reservationHoldHint: { es: 'Tiempo que los clientes tienen para completar la compra después de seleccionar asientos', en: 'Time customers have to complete checkout after selecting seats' },
+
+  // Step 2: Date & Time
+  dateTime: { es: 'Fecha y Hora', en: 'Date & Time' },
+  dateTimeSubtitle: { es: '¿Cuándo se llevará a cabo tu evento?', en: 'When does your event take place?' },
+  startDateTime: { es: 'Fecha y Hora de Inicio', en: 'Start Date & Time' },
+  endDateTime: { es: 'Fecha y Hora de Fin', en: 'End Date & Time' },
+  optionalLeaveEmpty: { es: 'Opcional - dejar vacío si no se sabe', en: 'Optional - leave empty if unknown' },
+  timezone: { es: 'Zona Horaria', en: 'Timezone' },
+  mexico: { es: 'México', en: 'Mexico' },
+  other: { es: 'Otro', en: 'Other' },
+
+  // Step 3: Location
+  location: { es: 'Ubicación', en: 'Location' },
+  locationSubtitle: { es: '¿Dónde se llevará a cabo tu evento?', en: 'Where will your event be held?' },
+  locationType: { es: 'Tipo de Ubicación', en: 'Location Type' },
+  physicalVenue: { es: 'Lugar Físico', en: 'Physical Venue' },
+  onlineEvent: { es: 'Evento en Línea', en: 'Online Event' },
+  venueName: { es: 'Nombre del Lugar', en: 'Venue Name' },
+  venueNamePlaceholder: { es: 'ej., Gran Salón, Hotel Marriott', en: 'e.g., Grand Ballroom, Hotel Marriott' },
+  streetAddress: { es: 'Dirección', en: 'Street Address' },
+  streetAddressPlaceholder: { es: 'ej., Calle Principal 123', en: 'e.g., 123 Main Street' },
+  city: { es: 'Ciudad', en: 'City' },
+  cityPlaceholder: { es: 'ej., Ciudad de México', en: 'e.g., Mexico City' },
+  state: { es: 'Estado', en: 'State' },
+  statePlaceholder: { es: 'ej., CDMX', en: 'e.g., CDMX' },
+  country: { es: 'País', en: 'Country' },
+  countryPlaceholder: { es: 'México', en: 'Mexico' },
+  postalCode: { es: 'Código Postal', en: 'Postal Code' },
+  postalCodePlaceholder: { es: 'ej., 06600', en: 'e.g., 06600' },
+  googleMapsUrl: { es: 'URL de Google Maps (opcional)', en: 'Google Maps URL (optional)' },
+  platform: { es: 'Plataforma', en: 'Platform' },
+  selectPlatform: { es: 'Selecciona plataforma', en: 'Select platform' },
+  eventUrl: { es: 'URL del Evento', en: 'Event URL' },
+  addLaterHint: { es: 'Puedes agregar esto después antes del evento', en: 'You can add this later before the event' },
+  accessInstructions: { es: 'Instrucciones de Acceso', en: 'Access Instructions' },
+  accessInstructionsPlaceholder: { es: 'Instrucciones especiales para unirse al evento...', en: 'Any special instructions for joining the event...' },
+
+  // Step 4: Media
+  eventMedia: { es: 'Media del Evento', en: 'Event Media' },
+  eventMediaSubtitle: { es: 'Agrega imágenes y video para mostrar tu evento', en: 'Add images and video to showcase your event' },
+  completeStepsFirst: { es: 'Completa los pasos anteriores primero para habilitar la carga de media', en: 'Complete the previous steps first to enable media uploads' },
+
+  // Step 5: Details
+  additionalDetails: { es: 'Detalles Adicionales', en: 'Additional Details' },
+  additionalDetailsSubtitle: { es: 'Agrega información extra sobre tu evento', en: 'Add extra information about your event' },
+  eventDescription: { es: 'Descripción del Evento', en: 'Event Description' },
+  eventDescriptionPlaceholder: { es: 'Cuéntale a los asistentes de qué se trata el evento, qué esperar y por qué deberían asistir...', en: 'Tell attendees what this event is about, what to expect, and why they should attend...' },
+  organizerName: { es: 'Nombre del Organizador', en: 'Organizer Name' },
+  organizerNamePlaceholder: { es: 'ej., Asociación de Exalumnos', en: 'e.g., School Alumni Association' },
+  organizerDescription: { es: 'Descripción del Organizador', en: 'Organizer Description' },
+  organizerDescriptionPlaceholder: { es: 'Breve descripción del organizador', en: 'Brief description of the organizer' },
+  eventOptions: { es: 'Opciones del Evento', en: 'Event Options' },
+  privateEvent: { es: 'Evento Privado', en: 'Private Event' },
+  privateEventDesc: { es: 'Solo visible mediante enlace directo', en: 'Only visible via direct link' },
+  showRemainingTickets: { es: 'Mostrar Boletos Restantes', en: 'Show Remaining Tickets' },
+  showRemainingTicketsDesc: { es: 'Mostrar cuántos boletos quedan', en: 'Display how many tickets are left' },
+  faq: { es: 'Preguntas Frecuentes', en: 'Frequently Asked Questions' },
+  addFaq: { es: '+ Agregar Pregunta', en: '+ Add FAQ' },
+  noFaqAdded: { es: 'No se han agregado preguntas. Agrega preguntas y respuestas comunes para ayudar a los asistentes.', en: 'No FAQs added yet. Add common questions and answers to help attendees.' },
+  question: { es: 'Pregunta', en: 'Question' },
+  answer: { es: 'Respuesta', en: 'Answer' },
+  remove: { es: 'Eliminar', en: 'Remove' },
+
+  // Step 6: Review
+  reviewPublish: { es: 'Revisar y Publicar', en: 'Review & Publish' },
+  reviewSubtitle: { es: 'Asegúrate de que todo se vea bien antes de publicar', en: 'Make sure everything looks good before publishing' },
+  edit: { es: 'Editar', en: 'Edit' },
+  starts: { es: 'Inicia', en: 'Starts' },
+  ends: { es: 'Termina', en: 'Ends' },
+  notSpecified: { es: 'No especificado', en: 'Not specified' },
+  venue: { es: 'Lugar', en: 'Venue' },
+  mainImage: { es: 'Imagen Principal', en: 'Main Image' },
+  uploaded: { es: 'Subida', en: 'Uploaded' },
+  notSet: { es: 'No establecida', en: 'Not set' },
+  gallery: { es: 'Galería', en: 'Gallery' },
+  images: { es: 'imágenes', en: 'images' },
+  video: { es: 'Video', en: 'Video' },
+  added: { es: 'Agregado', en: 'Added' },
+  none: { es: 'Ninguno', en: 'None' },
+  description: { es: 'Descripción', en: 'Description' },
+  faqs: { es: 'FAQs', en: 'FAQs' },
+  items: { es: 'elementos', en: 'items' },
+  options: { es: 'Opciones', en: 'Options' },
+  private: { es: 'Privado', en: 'Private' },
+  public: { es: 'Público', en: 'Public' },
+  showsRemaining: { es: 'Muestra restantes', en: 'Shows remaining' },
+  eventReady: { es: '¡Tu evento está listo!', en: 'Your event is ready!' },
+  reviewDetailsHint: { es: 'Revisa los detalles arriba, luego publica para que tu evento esté en vivo.', en: 'Review the details above, then publish to make your event live.' },
+
+  // Navigation
+  back: { es: 'Atrás', en: 'Back' },
+  next: { es: 'Siguiente', en: 'Next' },
+  saving: { es: 'Guardando...', en: 'Saving...' },
+  saveAsDraft: { es: 'Guardar como Borrador', en: 'Save as Draft' },
+  publishing: { es: 'Publicando...', en: 'Publishing...' },
+  publishEvent: { es: 'Publicar Evento', en: 'Publish Event' },
+
+  // Errors
+  failedToSaveDraft: { es: 'Error al guardar el borrador', en: 'Failed to save draft' },
+  failedToPublish: { es: 'Error al publicar el evento', en: 'Failed to publish event' },
+  failedToUploadImage: { es: 'Error al subir la imagen', en: 'Failed to upload image' },
+  failedToUploadGallery: { es: 'Error al subir imagen de galería', en: 'Failed to upload gallery image' },
+  failedToAddVideo: { es: 'Error al agregar el video', en: 'Failed to add video' },
+  failedToRemoveImage: { es: 'Error al eliminar la imagen', en: 'Failed to remove image' },
+  failedToRemoveVideo: { es: 'Error al eliminar el video', en: 'Failed to remove video' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   initialData: {
@@ -657,15 +794,15 @@ const eventSlug = computed(() => {
   return props.initialData?.slug || savedSlug.value
 })
 
-// Steps configuration (6 steps)
-const steps = [
-  { id: 'basic', label: 'Basics' },
-  { id: 'datetime', label: 'Date' },
-  { id: 'location', label: 'Location' },
-  { id: 'media', label: 'Media' },
-  { id: 'details', label: 'Details' },
-  { id: 'review', label: 'Review' }
-]
+// Steps configuration (6 steps) - computed for reactivity with translations
+const steps = computed(() => [
+  { id: 'basic', label: t.stepBasics },
+  { id: 'datetime', label: t.stepDate },
+  { id: 'location', label: t.stepLocation },
+  { id: 'media', label: t.stepMedia },
+  { id: 'details', label: t.stepDetails },
+  { id: 'review', label: t.stepReview }
+])
 
 // Timezone data
 const mexicoTimezones = MEXICO_TIMEZONES

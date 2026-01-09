@@ -3,13 +3,13 @@
     <table>
       <thead>
         <tr>
-          <th class="col-name">Event</th>
-          <th class="col-group">Group</th>
-          <th class="col-date">Date</th>
-          <th class="col-location">Location</th>
-          <th class="col-status">Status</th>
-          <th class="col-sales">Sales</th>
-          <th class="col-actions">Actions</th>
+          <th class="col-name">{{ t.event }}</th>
+          <th class="col-group">{{ t.group }}</th>
+          <th class="col-date">{{ t.date }}</th>
+          <th class="col-location">{{ t.location }}</th>
+          <th class="col-status">{{ t.status }}</th>
+          <th class="col-sales">{{ t.sales }}</th>
+          <th class="col-actions">{{ t.actions }}</th>
         </tr>
       </thead>
       <tbody>
@@ -18,7 +18,7 @@
             <NuxtLink :to="`/app/admin/events/${event.slug}`" class="event-name-link">
               <span class="event-name">{{ event.name }}</span>
               <span class="event-type">
-                {{ event.seating_type === 'seated' ? 'Seated' : 'General Admission' }}
+                {{ event.seating_type === 'seated' ? t.seated : t.generalAdmission }}
               </span>
             </NuxtLink>
           </td>
@@ -27,7 +27,7 @@
               <span class="group-dot"></span>
               {{ event.group.name }}
             </span>
-            <span v-else class="no-group">No group</span>
+            <span v-else class="no-group">{{ t.noGroup }}</span>
           </td>
           <td class="col-date">
             <div class="date-cell">
@@ -62,28 +62,28 @@
           </td>
           <td class="col-actions">
             <div class="actions-group">
-              <NuxtLink :to="`/app/admin/events/${event.slug}`" class="action-btn" title="View event">
+              <NuxtLink :to="`/app/admin/events/${event.slug}`" class="action-btn" :title="t.viewEvent">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </NuxtLink>
-              <NuxtLink v-if="canEdit(event)" :to="`/app/admin/events/${event.slug}/edit`" class="action-btn" title="Edit event">
+              <NuxtLink v-if="canEdit(event)" :to="`/app/admin/events/${event.slug}/edit`" class="action-btn" :title="t.editEvent">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </NuxtLink>
-              <button v-if="canEdit(event) && event.status === 'draft'" @click="$emit('publish', event.slug)" class="action-btn action-publish" title="Publish event">
+              <button v-if="canEdit(event) && event.status === 'draft'" @click="$emit('publish', event.slug)" class="action-btn action-publish" :title="t.publishEvent">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
                 </svg>
               </button>
-              <button v-if="canManage(event) && event.status === 'live'" @click="$emit('close', event.slug)" class="action-btn action-close" title="Close event">
+              <button v-if="canManage(event) && event.status === 'live'" @click="$emit('close', event.slug)" class="action-btn action-close" :title="t.closeEvent">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                 </svg>
               </button>
-              <button v-if="canManage(event)" @click="$emit('delete', event.slug)" class="action-btn action-delete" title="Delete event">
+              <button v-if="canManage(event)" @click="$emit('delete', event.slug)" class="action-btn action-delete" :title="t.deleteEvent">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -98,6 +98,39 @@
 
 <script setup>
 import { getPlatformLabel } from '~/utils/location'
+
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  // Table headers
+  event: { es: 'Evento', en: 'Event' },
+  group: { es: 'Grupo', en: 'Group' },
+  date: { es: 'Fecha', en: 'Date' },
+  location: { es: 'Ubicación', en: 'Location' },
+  status: { es: 'Estado', en: 'Status' },
+  sales: { es: 'Ventas', en: 'Sales' },
+  actions: { es: 'Acciones', en: 'Actions' },
+  // Seating types
+  seated: { es: 'Con asientos', en: 'Seated' },
+  generalAdmission: { es: 'Admisión General', en: 'General Admission' },
+  // Group
+  noGroup: { es: 'Sin grupo', en: 'No group' },
+  // Status
+  draft: { es: 'Borrador', en: 'Draft' },
+  live: { es: 'En vivo', en: 'Live' },
+  closed: { es: 'Cerrado', en: 'Closed' },
+  // Action titles
+  viewEvent: { es: 'Ver evento', en: 'View event' },
+  editEvent: { es: 'Editar evento', en: 'Edit event' },
+  publishEvent: { es: 'Publicar evento', en: 'Publish event' },
+  closeEvent: { es: 'Cerrar evento', en: 'Close event' },
+  deleteEvent: { es: 'Eliminar evento', en: 'Delete event' },
+  // Location fallback
+  online: { es: 'En línea', en: 'Online' },
+  venue: { es: 'Lugar', en: 'Venue' }
+}
+
+const t = createT(translations)
 
 const props = defineProps({
   events: {
@@ -149,19 +182,19 @@ const formatTime = (dateStr) => {
 
 const formatLocationShort = (event) => {
   if (event.location_type === 'online') {
-    return getPlatformLabel(event.location?.platform) || 'Online'
+    return getPlatformLabel(event.location?.platform) || t.online
   }
   if (event.location?.city) {
     return event.location.state ? `${event.location.city}, ${event.location.state}` : event.location.city
   }
-  return event.location?.name || 'Venue'
+  return event.location?.name || t.venue
 }
 
 const statusLabel = (status) => {
   const labels = {
-    draft: 'Draft',
-    live: 'Live',
-    closed: 'Closed'
+    draft: t.draft,
+    live: t.live,
+    closed: t.closed
   }
   return labels[status] || status
 }

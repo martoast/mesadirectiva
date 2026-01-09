@@ -5,77 +5,61 @@
         to="/app/admin/users"
         class="text-primary-600 hover:text-primary-700 font-semibold mb-4 inline-block"
       >
-        ← Back to Users
+        {{ t.backToUsers }}
       </NuxtLink>
-      <h1 class="text-3xl font-bold text-gray-900">Create New User</h1>
-      <p class="text-gray-600 mt-2">Add a new admin or viewer to the system.</p>
+      <h1 class="text-3xl font-bold text-gray-900">{{ t.createNewUser }}</h1>
+      <p class="text-gray-600 mt-2">{{ t.pageSubtitle }}</p>
     </div>
 
     <form @submit.prevent="handleSubmit" class="max-w-2xl space-y-6">
       <!-- User Information -->
       <div class="bg-white rounded-xl shadow-card p-6 space-y-4">
-        <h2 class="text-xl font-bold text-gray-900">User Information</h2>
+        <h2 class="text-xl font-bold text-gray-900">{{ t.userInformation }}</h2>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t.fullName }} *</label>
           <input
             v-model="form.name"
             type="text"
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Maria Garcia"
+            :placeholder="t.fullNamePlaceholder"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t.emailAddress }} *</label>
           <input
             v-model="form.email"
             type="email"
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-            placeholder="maria@school.com"
+            :placeholder="t.emailPlaceholder"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t.password }} *</label>
           <input
             v-model="form.password"
             type="password"
             required
             minlength="8"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Minimum 8 characters"
+            :placeholder="t.passwordPlaceholder"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{{ t.confirmPassword }} *</label>
           <input
             v-model="form.password_confirmation"
             type="password"
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Confirm password"
+            :placeholder="t.confirmPasswordPlaceholder"
           />
-          <p v-if="passwordMismatch" class="mt-1 text-sm text-red-600">Passwords do not match</p>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
-          <select
-            v-model="form.role"
-            required
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
-          >
-            <option value="admin">Admin</option>
-            <option value="viewer">Viewer</option>
-          </select>
-          <p class="mt-1 text-sm text-gray-500">
-            <span v-if="form.role === 'admin'">Admins can create, edit, and manage events in their assigned groups.</span>
-            <span v-else>Viewers can only view events in their assigned groups (read-only).</span>
-          </p>
+          <p v-if="passwordMismatch" class="mt-1 text-sm text-red-600">{{ t.passwordsMismatch }}</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -85,24 +69,24 @@
             id="is_active"
             class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
           />
-          <label for="is_active" class="text-sm font-medium text-gray-700">Active</label>
-          <span class="text-sm text-gray-500">(Inactive users cannot log in)</span>
+          <label for="is_active" class="text-sm font-medium text-gray-700">{{ t.active }}</label>
+          <span class="text-sm text-gray-500">{{ t.inactiveNote }}</span>
         </div>
       </div>
 
       <!-- Group Permissions -->
       <div class="bg-white rounded-xl shadow-card p-6 space-y-4">
-        <h2 class="text-xl font-bold text-gray-900">Group Permissions</h2>
+        <h2 class="text-xl font-bold text-gray-900">{{ t.groupPermissions }}</h2>
         <p class="text-sm text-gray-600">
-          Assign which groups this user can access and what permissions they have.
+          {{ t.groupPermissionsDescription }}
         </p>
 
         <div v-if="loadingGroups" class="text-center py-4">
-          <p class="text-gray-600">Loading groups...</p>
+          <p class="text-gray-600">{{ t.loadingGroups }}</p>
         </div>
 
         <div v-else-if="groups.length === 0" class="text-center py-4">
-          <p class="text-gray-600">No groups available. Create groups first.</p>
+          <p class="text-gray-600">{{ t.noGroupsAvailable }}</p>
         </div>
 
         <div v-else class="space-y-3">
@@ -122,21 +106,21 @@
               v-model="groupPermissions[group.id]"
               class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500"
             >
-              <option value="">No access</option>
-              <option value="view">View only</option>
-              <option value="edit">View & Edit</option>
-              <option value="manage">Full control</option>
+              <option value="">{{ t.noAccess }}</option>
+              <option value="view">{{ t.viewOnly }}</option>
+              <option value="edit">{{ t.viewAndEdit }}</option>
+              <option value="manage">{{ t.fullControl }}</option>
             </select>
           </div>
         </div>
 
         <!-- Permission Legend -->
         <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-          <p class="text-sm font-semibold text-blue-900 mb-2">Permission Levels:</p>
+          <p class="text-sm font-semibold text-blue-900 mb-2">{{ t.permissionLevels }}</p>
           <ul class="text-sm text-blue-800 space-y-1">
-            <li><strong>View:</strong> Can see events in this group (read-only)</li>
-            <li><strong>Edit:</strong> Can create and update events</li>
-            <li><strong>Manage:</strong> Full control - create, update, and delete events</li>
+            <li><strong>{{ t.viewPermission }}</strong> {{ t.viewPermissionDesc }}</li>
+            <li><strong>{{ t.editPermission }}</strong> {{ t.editPermissionDesc }}</li>
+            <li><strong>{{ t.managePermission }}</strong> {{ t.managePermissionDesc }}</li>
           </ul>
         </div>
       </div>
@@ -152,14 +136,14 @@
           to="/app/admin/users"
           class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
         >
-          Cancel
+          {{ t.cancel }}
         </NuxtLink>
         <button
           type="submit"
           :disabled="submitting || passwordMismatch"
           class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold disabled:opacity-50"
         >
-          {{ submitting ? 'Creating...' : 'Create User' }}
+          {{ submitting ? t.creating : t.createUser }}
         </button>
       </div>
     </form>
@@ -173,6 +157,56 @@ definePageMeta({
   layout: 'admin',
   middleware: ['auth', 'super-admin']
 })
+
+const { t: createT } = useLanguage()
+
+const translations = {
+  // Header
+  backToUsers: { es: '← Volver a Usuarios', en: '← Back to Users' },
+  createNewUser: { es: 'Crear Nuevo Usuario', en: 'Create New User' },
+  pageSubtitle: { es: 'Agrega un nuevo administrador o visor al sistema.', en: 'Add a new admin or viewer to the system.' },
+
+  // User Information
+  userInformation: { es: 'Información del Usuario', en: 'User Information' },
+  fullName: { es: 'Nombre Completo', en: 'Full Name' },
+  fullNamePlaceholder: { es: 'María García', en: 'Maria Garcia' },
+  emailAddress: { es: 'Correo Electrónico', en: 'Email Address' },
+  emailPlaceholder: { es: 'maria@escuela.com', en: 'maria@school.com' },
+  password: { es: 'Contraseña', en: 'Password' },
+  passwordPlaceholder: { es: 'Mínimo 8 caracteres', en: 'Minimum 8 characters' },
+  confirmPassword: { es: 'Confirmar Contraseña', en: 'Confirm Password' },
+  confirmPasswordPlaceholder: { es: 'Confirmar contraseña', en: 'Confirm password' },
+  passwordsMismatch: { es: 'Las contraseñas no coinciden', en: 'Passwords do not match' },
+  active: { es: 'Activo', en: 'Active' },
+  inactiveNote: { es: '(Los usuarios inactivos no pueden iniciar sesión)', en: '(Inactive users cannot log in)' },
+
+  // Group Permissions
+  groupPermissions: { es: 'Permisos de Grupo', en: 'Group Permissions' },
+  groupPermissionsDescription: { es: 'Asigna a qué grupos puede acceder este usuario y qué permisos tiene.', en: 'Assign which groups this user can access and what permissions they have.' },
+  loadingGroups: { es: 'Cargando grupos...', en: 'Loading groups...' },
+  noGroupsAvailable: { es: 'No hay grupos disponibles. Crea grupos primero.', en: 'No groups available. Create groups first.' },
+  noAccess: { es: 'Sin acceso', en: 'No access' },
+  viewOnly: { es: 'Solo ver', en: 'View only' },
+  viewAndEdit: { es: 'Ver y Editar', en: 'View & Edit' },
+  fullControl: { es: 'Control total', en: 'Full control' },
+
+  // Permission Legend
+  permissionLevels: { es: 'Niveles de Permiso:', en: 'Permission Levels:' },
+  viewPermission: { es: 'Ver:', en: 'View:' },
+  viewPermissionDesc: { es: 'Puede ver eventos en este grupo (solo lectura)', en: 'Can see events in this group (read-only)' },
+  editPermission: { es: 'Editar:', en: 'Edit:' },
+  editPermissionDesc: { es: 'Puede crear y actualizar eventos', en: 'Can create and update events' },
+  managePermission: { es: 'Gestionar:', en: 'Manage:' },
+  managePermissionDesc: { es: 'Control total - crear, actualizar y eliminar eventos', en: 'Full control - create, update, and delete events' },
+
+  // Actions
+  cancel: { es: 'Cancelar', en: 'Cancel' },
+  creating: { es: 'Creando...', en: 'Creating...' },
+  createUser: { es: 'Crear Usuario', en: 'Create User' },
+  failedToCreate: { es: 'Error al crear usuario', en: 'Failed to create user' }
+}
+
+const t = createT(translations)
 
 const router = useRouter()
 const { createUser, assignGroups } = useUsers()
@@ -250,7 +284,7 @@ const handleSubmit = async () => {
     // Success - redirect to users list
     router.push('/app/admin/users')
   } catch (e) {
-    error.value = e.message || 'Failed to create user'
+    error.value = e.message || t.failedToCreate
   } finally {
     submitting.value = false
   }

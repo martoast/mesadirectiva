@@ -6,10 +6,10 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span>Back to Events</span>
+        <span>{{ t.backToEvents }}</span>
       </NuxtLink>
-      <h1>Create New Event</h1>
-      <p>Set up your event in just a few steps</p>
+      <h1>{{ t.createNewEvent }}</h1>
+      <p>{{ t.setupInSteps }}</p>
     </div>
 
     <!-- Event Form -->
@@ -27,9 +27,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3>{{ successData.isPublished ? 'Event Published!' : 'Event Created!' }}</h3>
-        <p v-if="successData.isPublished">Your event is now live and ready for attendees.</p>
-        <p v-else>Your event has been saved as a draft.</p>
+        <h3>{{ successData.isPublished ? t.eventPublished : t.eventCreated }}</h3>
+        <p v-if="successData.isPublished">{{ t.eventLiveNow }}</p>
+        <p v-else>{{ t.eventSavedDraft }}</p>
 
         <!-- Floor Plan CTA for seated events -->
         <div v-if="successData.isSeated && !successData.hasTables" class="floor-plan-prompt">
@@ -39,20 +39,20 @@
             </svg>
           </div>
           <div class="prompt-content">
-            <strong>Set up your floor plan</strong>
-            <p>Arrange tables and configure seating for your event</p>
+            <strong>{{ t.setupFloorPlan }}</strong>
+            <p>{{ t.arrangeTablesDescription }}</p>
           </div>
         </div>
 
         <div class="modal-actions">
           <button v-if="successData.isSeated && !successData.hasTables" class="btn-primary" @click="goToFloorPlan">
-            Set Up Floor Plan
+            {{ t.setupFloorPlanBtn }}
           </button>
           <button v-else class="btn-primary" @click="goToEvent">
-            View Event
+            {{ t.viewEvent }}
           </button>
           <button class="btn-secondary" @click="closeSuccessModal">
-            {{ successData.isSeated && !successData.hasTables ? 'Skip for Now' : 'Close' }}
+            {{ successData.isSeated && !successData.hasTables ? t.skipForNow : t.close }}
           </button>
         </div>
       </div>
@@ -81,6 +81,26 @@ definePageMeta({
 })
 
 const router = useRouter()
+const { t: createT } = useLanguage()
+
+// Translations
+const translations = {
+  backToEvents: { es: 'Volver a Eventos', en: 'Back to Events' },
+  createNewEvent: { es: 'Crear Nuevo Evento', en: 'Create New Event' },
+  setupInSteps: { es: 'Configura tu evento en pocos pasos', en: 'Set up your event in just a few steps' },
+  eventPublished: { es: '¡Evento Publicado!', en: 'Event Published!' },
+  eventCreated: { es: '¡Evento Creado!', en: 'Event Created!' },
+  eventLiveNow: { es: 'Tu evento está en vivo y listo para los asistentes.', en: 'Your event is now live and ready for attendees.' },
+  eventSavedDraft: { es: 'Tu evento ha sido guardado como borrador.', en: 'Your event has been saved as a draft.' },
+  setupFloorPlan: { es: 'Configura tu plano de piso', en: 'Set up your floor plan' },
+  arrangeTablesDescription: { es: 'Organiza las mesas y configura los asientos para tu evento', en: 'Arrange tables and configure seating for your event' },
+  setupFloorPlanBtn: { es: 'Configurar Plano de Piso', en: 'Set Up Floor Plan' },
+  viewEvent: { es: 'Ver Evento', en: 'View Event' },
+  skipForNow: { es: 'Omitir por Ahora', en: 'Skip for Now' },
+  close: { es: 'Cerrar', en: 'Close' }
+}
+
+const t = createT(translations)
 
 const error = ref('')
 const createdSlug = ref('')

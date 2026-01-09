@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <!-- Header -->
     <div v-if="showHeader" class="flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-900">Select Your Seats</h3>
+      <h3 class="text-lg font-semibold text-gray-900">{{ t.selectYourSeats }}</h3>
       <span v-if="hasSelections" class="text-sm text-gray-500">
         {{ selectionSummary }}
       </span>
@@ -12,19 +12,19 @@
     <div class="flex flex-wrap gap-4 text-sm bg-gray-50 p-3 rounded-lg">
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-success-500"></div>
-        <span>Available</span>
+        <span>{{ t.available }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-primary-500"></div>
-        <span>Selected</span>
+        <span>{{ t.selected }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-warning-500"></div>
-        <span>Reserved</span>
+        <span>{{ t.reserved }}</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-gray-300"></div>
-        <span>Sold</span>
+        <span>{{ t.sold }}</span>
       </div>
     </div>
 
@@ -41,7 +41,7 @@
 
     <!-- Empty State -->
     <div v-else-if="tables.length === 0" class="text-center py-8 text-gray-500">
-      No tables available for this event.
+      {{ t.noTablesAvailable }}
     </div>
 
     <!-- Tables Grid -->
@@ -76,14 +76,14 @@
             @click="closeSeatSelection"
             class="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
-            Cancel
+            {{ t.cancel }}
           </button>
           <button
             type="button"
             @click="confirmSeatSelection"
             class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
-            Confirm Selection
+            {{ t.confirmSelection }}
           </button>
         </div>
       </div>
@@ -93,7 +93,7 @@
     <div v-if="hasSelections" class="border-t pt-4 space-y-3">
       <!-- Selected Tables (whole) -->
       <div v-if="selectedTables.length > 0">
-        <h4 class="text-sm font-medium text-gray-700 mb-2">Selected Tables</h4>
+        <h4 class="text-sm font-medium text-gray-700 mb-2">{{ t.selectedTables }}</h4>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="tableId in selectedTables"
@@ -116,7 +116,7 @@
 
       <!-- Selected Seats -->
       <div v-if="selectedSeats.length > 0">
-        <h4 class="text-sm font-medium text-gray-700 mb-2">Selected Seats</h4>
+        <h4 class="text-sm font-medium text-gray-700 mb-2">{{ t.selectedSeats }}</h4>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="seatId in selectedSeats"
@@ -139,7 +139,7 @@
 
       <!-- Total -->
       <div class="flex justify-between items-center text-lg font-semibold pt-2">
-        <span class="text-gray-900">Total</span>
+        <span class="text-gray-900">{{ t.total }}</span>
         <span class="text-primary-600">${{ formatPrice(totalAmount) }}</span>
       </div>
     </div>
@@ -147,6 +147,28 @@
 </template>
 
 <script setup>
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  selectYourSeats: { es: 'Selecciona tus Asientos', en: 'Select Your Seats' },
+  available: { es: 'Disponible', en: 'Available' },
+  selected: { es: 'Seleccionado', en: 'Selected' },
+  reserved: { es: 'Reservado', en: 'Reserved' },
+  sold: { es: 'Vendido', en: 'Sold' },
+  noTablesAvailable: { es: 'No hay mesas disponibles para este evento.', en: 'No tables available for this event.' },
+  cancel: { es: 'Cancelar', en: 'Cancel' },
+  confirmSelection: { es: 'Confirmar Selección', en: 'Confirm Selection' },
+  selectedTables: { es: 'Mesas Seleccionadas', en: 'Selected Tables' },
+  selectedSeats: { es: 'Asientos Seleccionados', en: 'Selected Seats' },
+  total: { es: 'Total', en: 'Total' },
+  table: { es: 'mesa', en: 'table' },
+  tables: { es: 'mesas', en: 'tables' },
+  seat: { es: 'asiento', en: 'seat' },
+  seats: { es: 'asientos', en: 'seats' }
+}
+
+const t = createT(translations)
+
 const props = defineProps({
   tables: {
     type: Array,
@@ -183,10 +205,12 @@ const hasSelections = computed(() => {
 const selectionSummary = computed(() => {
   const parts = []
   if (props.selectedTables.length > 0) {
-    parts.push(`${props.selectedTables.length} table${props.selectedTables.length !== 1 ? 's' : ''}`)
+    const tableWord = props.selectedTables.length !== 1 ? t.tables : t.table
+    parts.push(`${props.selectedTables.length} ${tableWord}`)
   }
   if (props.selectedSeats.length > 0) {
-    parts.push(`${props.selectedSeats.length} seat${props.selectedSeats.length !== 1 ? 's' : ''}`)
+    const seatWord = props.selectedSeats.length !== 1 ? t.seats : t.seat
+    parts.push(`${props.selectedSeats.length} ${seatWord}`)
   }
   return parts.join(', ')
 })

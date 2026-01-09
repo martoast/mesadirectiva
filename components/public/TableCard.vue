@@ -11,7 +11,7 @@
       <div>
         <h4 class="font-semibold text-gray-900">{{ table.name }}</h4>
         <p class="text-sm text-gray-500">
-          {{ table.capacity }} {{ table.capacity === 1 ? 'seat' : 'seats' }}
+          {{ table.capacity }} {{ table.capacity === 1 ? t.seat : t.seats }}
         </p>
       </div>
 
@@ -27,13 +27,13 @@
         ${{ formatPrice(table.price) }}
       </span>
       <span v-else class="text-sm text-gray-500">
-        Starting at ${{ formatPrice(minSeatPrice) }}
+        {{ t.startingAt }} ${{ formatPrice(minSeatPrice) }}
       </span>
     </div>
 
     <!-- Available Seats (for individual seat tables) -->
     <div v-if="!table.sell_as_whole && table.available_seats_count !== undefined" class="mt-2 text-sm text-gray-500">
-      {{ table.available_seats_count }} / {{ table.seats_count }} seats available
+      {{ table.available_seats_count }} / {{ table.seats_count }} {{ t.seatsAvailable }}
     </div>
 
     <!-- Selection indicator -->
@@ -41,12 +41,27 @@
       <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
       </svg>
-      Selected
+      {{ t.selected }}
     </div>
   </div>
 </template>
 
 <script setup>
+const { t: createT, language } = useLanguage()
+
+const translations = {
+  seat: { es: 'asiento', en: 'seat' },
+  seats: { es: 'asientos', en: 'seats' },
+  startingAt: { es: 'Desde', en: 'Starting at' },
+  seatsAvailable: { es: 'asientos disponibles', en: 'seats available' },
+  selected: { es: 'Seleccionado', en: 'Selected' },
+  sold: { es: 'Vendido', en: 'Sold' },
+  reserved: { es: 'Reservado', en: 'Reserved' },
+  available: { es: 'Disponible', en: 'Available' }
+}
+
+const t = createT(translations)
+
 const props = defineProps({
   table: {
     type: Object,
@@ -65,9 +80,9 @@ const isReserved = computed(() => props.table.status === 'reserved')
 const isSold = computed(() => props.table.status === 'sold')
 
 const statusLabel = computed(() => {
-  if (isSold.value) return 'Sold'
-  if (isReserved.value) return 'Reserved'
-  return 'Available'
+  if (isSold.value) return t.sold
+  if (isReserved.value) return t.reserved
+  return t.available
 })
 
 const statusClasses = computed(() => {

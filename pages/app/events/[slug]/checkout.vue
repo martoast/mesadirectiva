@@ -124,6 +124,105 @@
             </div>
           </section>
 
+          <!-- Attendee Information - Tiers -->
+          <section v-if="!isSeatedEvent && ticketEntries.length > 0" class="form-section">
+            <h2>Attendee Information</h2>
+            <p class="section-description">Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.</p>
+            <div class="attendee-list">
+              <div v-for="entry in ticketEntries" :key="entry.key" class="attendee-item">
+                <div class="attendee-header">
+                  <span class="attendee-label">{{ entry.label }}</span>
+                </div>
+                <div class="attendee-fields">
+                  <div class="field">
+                    <label :for="`attendee-name-${entry.key}`">Attendee Name</label>
+                    <input
+                      :id="`attendee-name-${entry.key}`"
+                      :value="getAttendeeValue(entry.key, 'name')"
+                      @input="setAttendeeValue(entry.key, 'name', $event.target.value)"
+                      type="text"
+                      placeholder="Name of person attending"
+                    />
+                  </div>
+                  <div class="field">
+                    <label :for="`attendee-note-${entry.key}`">Note (optional)</label>
+                    <input
+                      :id="`attendee-note-${entry.key}`"
+                      :value="getAttendeeValue(entry.key, 'note')"
+                      @input="setAttendeeValue(entry.key, 'note', $event.target.value)"
+                      type="text"
+                      placeholder="Dietary restrictions, accessibility needs, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Attendee Information - Seated Events -->
+          <section v-if="isSeatedEvent && (selectedTables.length > 0 || selectedSeats.length > 0)" class="form-section">
+            <h2>Attendee Information</h2>
+            <p class="section-description">Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.</p>
+            <div class="attendee-list">
+              <!-- Tables -->
+              <div v-for="tableId in selectedTables" :key="`att-t-${tableId}`" class="attendee-item">
+                <div class="attendee-header">
+                  <span class="attendee-label">{{ getTableName(tableId) }}</span>
+                </div>
+                <div class="attendee-fields">
+                  <div class="field">
+                    <label :for="`table-attendee-name-${tableId}`">Primary Contact Name</label>
+                    <input
+                      :id="`table-attendee-name-${tableId}`"
+                      :value="getTableAttendeeValue(tableId, 'name')"
+                      @input="setTableAttendeeValue(tableId, 'name', $event.target.value)"
+                      type="text"
+                      placeholder="Name of table host"
+                    />
+                  </div>
+                  <div class="field">
+                    <label :for="`table-attendee-note-${tableId}`">Note (optional)</label>
+                    <input
+                      :id="`table-attendee-note-${tableId}`"
+                      :value="getTableAttendeeValue(tableId, 'note')"
+                      @input="setTableAttendeeValue(tableId, 'note', $event.target.value)"
+                      type="text"
+                      placeholder="Special requests, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- Seats -->
+              <div v-for="seatId in selectedSeats" :key="`att-s-${seatId}`" class="attendee-item">
+                <div class="attendee-header">
+                  <span class="attendee-label">{{ getSeatInfo(seatId) }}</span>
+                </div>
+                <div class="attendee-fields">
+                  <div class="field">
+                    <label :for="`seat-attendee-name-${seatId}`">Attendee Name</label>
+                    <input
+                      :id="`seat-attendee-name-${seatId}`"
+                      :value="getSeatAttendeeValue(seatId, 'name')"
+                      @input="setSeatAttendeeValue(seatId, 'name', $event.target.value)"
+                      type="text"
+                      placeholder="Name of person attending"
+                    />
+                  </div>
+                  <div class="field">
+                    <label :for="`seat-attendee-note-${seatId}`">Note (optional)</label>
+                    <input
+                      :id="`seat-attendee-note-${seatId}`"
+                      :value="getSeatAttendeeValue(seatId, 'note')"
+                      @input="setSeatAttendeeValue(seatId, 'note', $event.target.value)"
+                      type="text"
+                      placeholder="Dietary restrictions, accessibility needs, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- Extra Items -->
           <section v-if="availableItems.length > 0" class="form-section">
             <h2>Add-ons</h2>
@@ -242,6 +341,14 @@ const selectedSeats = ref([])
 const reservationToken = ref(null)
 const reservationExpiresAt = ref(null)
 
+// Attendee info for tickets
+// For tiers: { 'tierId_index': { name: '', note: '' } }
+// For seats: { seatId: { name: '', note: '' } }
+// For tables: { tableId: { name: '', note: '' } }
+const tierAttendees = ref({})
+const seatAttendees = ref({})
+const tableAttendees = ref({})
+
 onMounted(async () => {
   try {
     const [eventResponse, availabilityResponse] = await Promise.all([
@@ -300,6 +407,24 @@ const blockedMessage = computed(() => {
 const maxTickets = computed(() => Math.min(availability.value?.tickets_available || 0, 10))
 const availableItems = computed(() => (availability.value?.items || []).filter(item => item.available && item.available_quantity > 0))
 const hasTierSelections = computed(() => Object.values(tierSelections.value).some(qty => qty > 0))
+
+// Generate an array of ticket entries for attendee input
+const ticketEntries = computed(() => {
+  const entries = []
+  Object.entries(tierSelections.value).forEach(([tierId, qty]) => {
+    const tier = availableTiers.value.find(t => t.id === Number(tierId))
+    for (let i = 0; i < qty; i++) {
+      entries.push({
+        key: `${tierId}_${i}`,
+        tierId: Number(tierId),
+        index: i,
+        tierName: tier?.name || 'Ticket',
+        label: qty > 1 ? `${tier?.name || 'Ticket'} #${i + 1}` : tier?.name || 'Ticket'
+      })
+    }
+  })
+  return entries
+})
 
 const legacyTicketSubtotal = computed(() => (event.value?.price || 0) * form.value.tickets)
 
@@ -385,6 +510,39 @@ const decrementItem = (itemId) => {
   if (current > 0) form.value.extra_items[itemId] = current - 1
 }
 
+// Attendee helper functions for tiers
+const getAttendeeValue = (key, field) => {
+  return tierAttendees.value[key]?.[field] || ''
+}
+const setAttendeeValue = (key, field, value) => {
+  if (!tierAttendees.value[key]) {
+    tierAttendees.value[key] = { name: '', note: '' }
+  }
+  tierAttendees.value[key][field] = value
+}
+
+// Attendee helper functions for tables
+const getTableAttendeeValue = (tableId, field) => {
+  return tableAttendees.value[tableId]?.[field] || ''
+}
+const setTableAttendeeValue = (tableId, field, value) => {
+  if (!tableAttendees.value[tableId]) {
+    tableAttendees.value[tableId] = { name: '', note: '' }
+  }
+  tableAttendees.value[tableId][field] = value
+}
+
+// Attendee helper functions for seats
+const getSeatAttendeeValue = (seatId, field) => {
+  return seatAttendees.value[seatId]?.[field] || ''
+}
+const setSeatAttendeeValue = (seatId, field, value) => {
+  if (!seatAttendees.value[seatId]) {
+    seatAttendees.value[seatId] = { name: '', note: '' }
+  }
+  seatAttendees.value[seatId][field] = value
+}
+
 const handleReservationExpired = () => {
   error.value = 'Your reservation has expired. Please select your seats again.'
   sessionStorage.removeItem(`reservation_${route.params.slug}`)
@@ -412,13 +570,39 @@ const handleSubmit = async () => {
     }
 
     if (isSeatedEvent.value) {
-      checkoutData.tables = selectedTables.value
-      checkoutData.seats = selectedSeats.value
+      // Build tables with attendee info
+      checkoutData.tables = selectedTables.value.map(tableId => ({
+        id: tableId,
+        attendee_name: tableAttendees.value[tableId]?.name || null,
+        attendee_note: tableAttendees.value[tableId]?.note || null
+      }))
+      // Build seats with attendee info
+      checkoutData.seats = selectedSeats.value.map(seatId => ({
+        id: seatId,
+        attendee_name: seatAttendees.value[seatId]?.name || null,
+        attendee_note: seatAttendees.value[seatId]?.note || null
+      }))
       checkoutData.reservation_token = reservationToken.value
     } else if (hasTierSelections.value) {
+      // Build tiers with attendee info for each ticket
       checkoutData.tiers = Object.entries(tierSelections.value)
         .filter(([_, qty]) => qty > 0)
-        .map(([tier_id, quantity]) => ({ tier_id: parseInt(tier_id), quantity }))
+        .map(([tier_id, quantity]) => {
+          // Collect attendees for this tier
+          const attendees = []
+          for (let i = 0; i < quantity; i++) {
+            const key = `${tier_id}_${i}`
+            attendees.push({
+              name: tierAttendees.value[key]?.name || null,
+              note: tierAttendees.value[key]?.note || null
+            })
+          }
+          return {
+            tier_id: parseInt(tier_id),
+            quantity,
+            attendees
+          }
+        })
     } else {
       checkoutData.tickets = form.value.tickets
     }
@@ -782,6 +966,57 @@ const handleSubmit = async () => {
   font-weight: 500;
   text-decoration: none;
   border-radius: 8px;
+}
+
+/* Attendee Information */
+.section-description {
+  font-size: 14px;
+  color: var(--color-text-light);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.attendee-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.attendee-item {
+  padding: 16px;
+  background: var(--color-bg-alt);
+  border-radius: 8px;
+}
+
+.attendee-header {
+  margin-bottom: 12px;
+}
+
+.attendee-label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.attendee-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attendee-fields .field input {
+  background: var(--color-bg);
+}
+
+@media (min-width: 768px) {
+  .attendee-fields {
+    flex-direction: row;
+    gap: 16px;
+  }
+
+  .attendee-fields .field {
+    flex: 1;
+  }
 }
 
 /* Addons */

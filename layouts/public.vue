@@ -5,7 +5,7 @@
       <div class="nav-inner">
         <NuxtLink to="/app/events" class="nav-brand">
           <span class="brand-icon">✦</span>
-          <span class="brand-text">Evently</span>
+          <span class="brand-text">MesaDirectiva</span>
         </NuxtLink>
 
         <!-- Mobile menu button -->
@@ -61,7 +61,7 @@
           <div class="footer-brand">
             <div class="brand-logo">
               <span class="brand-icon">✦</span>
-              <span>Evently</span>
+              <span>MesaDirectiva</span>
             </div>
             <p class="brand-tagline">Premium event ticketing for memorable experiences.</p>
           </div>
@@ -84,7 +84,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2025 Evently. All rights reserved.</p>
+          <p>&copy; 2025 MesaDirectiva. All rights reserved.</p>
         </div>
       </div>
     </footer>

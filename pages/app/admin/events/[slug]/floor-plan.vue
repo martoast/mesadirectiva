@@ -1663,6 +1663,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   z-index: 15;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
@@ -1742,6 +1743,7 @@ onBeforeUnmount(() => {
 .panel-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
 }
 
@@ -1749,6 +1751,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Forms */
@@ -1756,12 +1760,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .form-group label {
@@ -1771,6 +1778,9 @@ onBeforeUnmount(() => {
 }
 
 .form-group input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px 12px;
   font-family: var(--font-sans);
   font-size: 14px;
@@ -1795,6 +1805,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  min-width: 0;
 }
 
 .form-toggle {
@@ -1805,6 +1816,8 @@ onBeforeUnmount(() => {
   background: rgba(255,255,255,0.02);
   border: 1px solid var(--c-border);
   border-radius: 8px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .form-toggle input[type="checkbox"] {
@@ -1819,6 +1832,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 2px;
   cursor: pointer;
+  min-width: 0;
+  flex: 1;
 }
 
 .toggle-title {
@@ -1830,10 +1845,13 @@ onBeforeUnmount(() => {
 .toggle-desc {
   font-size: 12px;
   color: var(--c-text-muted);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .form-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding-top: 8px;
 }
@@ -2100,6 +2118,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  min-width: 0;
 }
 
 .floor-plan-modal-content .form-row .form-group {

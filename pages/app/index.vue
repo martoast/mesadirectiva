@@ -117,14 +117,14 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <div class="brand-mark">M</div>
-          <span>Evently</span>
+          <span>MesaDirectiva</span>
         </div>
         <div class="footer-links">
           <NuxtLink to="/app/events">Events</NuxtLink>
           <span class="link-dot"></span>
           <NuxtLink to="/login">Sign In</NuxtLink>
         </div>
-        <p class="footer-copy">© 2025 Evently. All rights reserved.</p>
+        <p class="footer-copy">© 2025 MesaDirectiva. All rights reserved.</p>
       </div>
     </footer>
   </div>

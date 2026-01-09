@@ -10,7 +10,7 @@
               <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <span class="brand-text">Evently</span>
+          <span class="brand-text">MesaDirectiva</span>
         </NuxtLink>
 
         <div class="nav-links">
@@ -351,7 +351,7 @@
         <div class="cta-content">
           <h2 class="cta-title">Ready to create your next event?</h2>
           <p class="cta-desc">
-            Join thousands of event organizers who trust Evently to power their events.
+            Join thousands of event organizers who trust MesaDirectiva to power their events.
             Get started in minutes — no credit card required.
           </p>
           <div class="cta-actions">
@@ -378,7 +378,7 @@
                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <span>Evently</span>
+            <span>MesaDirectiva</span>
           </div>
           <p class="footer-tagline">Mexico's leading event ticketing platform. Create, promote, and sell — all in one place.</p>
         </div>
@@ -416,7 +416,7 @@
 
       <div class="footer-bottom">
         <div class="footer-bottom-inner">
-          <p>&copy; 2025 Evently. All rights reserved.</p>
+          <p>&copy; 2025 MesaDirectiva. All rights reserved.</p>
           <div class="footer-social">
             <a href="#" aria-label="Twitter">
               <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>

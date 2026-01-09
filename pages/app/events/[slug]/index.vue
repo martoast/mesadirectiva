@@ -60,7 +60,7 @@
                 <span class="price-label">{{ pricingLabel }}</span>
                 <span class="price-amount">${{ displayPrice }}</span>
               </div>
-              <button v-if="availability?.can_purchase" @click="handleCtaClick" class="cta-button">
+              <button v-if="canPurchase" @click="handleCtaClick" class="cta-button">
                 {{ ctaButtonText }}
               </button>
               <span v-else class="cta-blocked">{{ blockedMessage }}</span>
@@ -269,11 +269,13 @@ definePageMeta({
 const route = useRoute()
 const { getPublicEvent, checkAvailability, getPublicEvents } = useEvents()
 const { getPublicTicketTiers } = useTicketTiers()
+const { getPublicTables } = useTables()
 
 const event = ref(null)
 const availability = ref(null)
 const relatedEvents = ref([])
 const tiers = ref([])
+const tables = ref([])
 const loading = ref(true)
 const notFound = ref(false)
 const openFaqs = ref([])
@@ -283,6 +285,8 @@ const galleryIndex = ref(0)
 // Computed
 const isSeatedEvent = computed(() => event.value?.seating_type === 'seated')
 const hasTiers = computed(() => tiers.value.length > 0)
+const activeTables = computed(() => tables.value.filter(t => t.is_active && t.status !== 'sold'))
+const hasTables = computed(() => activeTables.value.length > 0)
 
 const heroBackground = computed(() => {
   if (event.value?.image_url) {
@@ -360,19 +364,37 @@ const lowestTierPrice = computed(() => {
   return Math.min(...activeTiers.value.map(t => Number(t.price)))
 })
 
+const lowestTablePrice = computed(() => {
+  if (!activeTables.value.length) return null
+  return Math.min(...activeTables.value.map(t => Number(t.price || 0)))
+})
+
 const displayPrice = computed(() => {
+  // For seated events, show table pricing
+  if (isSeatedEvent.value) {
+    if (lowestTablePrice.value !== null && lowestTablePrice.value > 0) {
+      return lowestTablePrice.value.toFixed(2)
+    }
+    return '0.00'
+  }
+  // For GA events, show tier pricing
   if (lowestTierPrice.value !== null) return lowestTierPrice.value.toFixed(2)
   return '0.00'
 })
 
 const pricingLabel = computed(() => {
-  if (isSeatedEvent.value || activeTiers.value.length > 1) return 'From'
+  if (isSeatedEvent.value) return hasTables.value ? 'Tables from' : 'From'
+  if (activeTiers.value.length > 1) return 'From'
   return 'Per ticket'
 })
 
 const ctaButtonText = computed(() => {
-  if (isSeatedEvent.value) return 'Select Seats'
+  if (isSeatedEvent.value) return 'Choose a Table'
   return 'Get Tickets'
+})
+
+const canPurchase = computed(() => {
+  return availability.value?.can_purchase ?? event.value?.can_purchase ?? true
 })
 
 const blockedMessage = computed(() => {
@@ -381,7 +403,8 @@ const blockedMessage = computed(() => {
     not_live: 'Coming Soon',
     registration_closed: 'Registration Closed',
     deadline_passed: 'Registration Ended',
-    sold_out: 'Sold Out'
+    sold_out: 'Sold Out',
+    no_available_tickets: isSeatedEvent.value ? 'No Tables Available' : 'No Tickets Available'
   }
   return messages[reason] || 'Not Available'
 })
@@ -446,7 +469,12 @@ const fetchEvent = async () => {
     ])
     event.value = eventRes.event
     availability.value = availRes
-    if (event.value?.seating_type !== 'seated') fetchTiers()
+    // Fetch tiers for GA events, tables for seated events
+    if (event.value?.seating_type === 'seated') {
+      fetchTables()
+    } else {
+      fetchTiers()
+    }
     fetchRelatedEvents()
   } catch (e) {
     if (e.status === 404) notFound.value = true
@@ -460,6 +488,15 @@ const fetchTiers = async () => {
     const res = await getPublicTicketTiers(route.params.slug)
     tiers.value = res.tiers || []
   } catch (e) {}
+}
+
+const fetchTables = async () => {
+  try {
+    const res = await getPublicTables(route.params.slug)
+    tables.value = res.tables || []
+  } catch (e) {
+    console.error('Failed to fetch tables:', e)
+  }
 }
 
 const fetchRelatedEvents = async () => {

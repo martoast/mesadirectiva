@@ -46,7 +46,7 @@
 
     <!-- Tables Grid -->
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <TableCard
+      <PublicTableCard
         v-for="table in tables"
         :key="table.id"
         :table="table"
@@ -62,7 +62,7 @@
       @click.self="closeSeatSelection"
     >
       <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-        <SeatGrid
+        <PublicSeatGrid
           :table="selectedTableForSeats"
           :seats="selectedTableForSeats.seats || []"
           :selected-seats="getTableSeats(selectedTableForSeats.id)"

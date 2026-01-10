@@ -86,7 +86,12 @@
               <h2 class="section-title">{{ t.aboutThisEvent }}</h2>
               <div class="about-grid">
                 <div class="about-text">
-                  <p class="about-plain">{{ event.description }}</p>
+                  <div
+                    v-if="isHtmlDescription"
+                    class="about-html"
+                    v-html="sanitizedDescription"
+                  ></div>
+                  <p v-else class="about-plain">{{ event.description }}</p>
                 </div>
                 <div v-if="galleryImages.length > 0" class="about-image">
                   <img :src="galleryImages[0]" alt="Event" loading="lazy" />
@@ -261,6 +266,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
 import { formatLocation, formatFullAddress, buildMapUrl, getPlatformLabel } from '~/utils/location'
+import { isHtml, sanitizeHtml, truncateText as truncateHtmlText } from '~/utils/html'
 
 definePageMeta({
   layout: 'public'
@@ -336,9 +342,17 @@ const heroBackground = computed(() => {
 
 const truncatedDescription = computed(() => {
   if (!event.value?.description) return ''
-  const maxLength = 200
-  if (event.value.description.length <= maxLength) return event.value.description
-  return event.value.description.substring(0, maxLength).trim() + '...'
+  return truncateHtmlText(event.value.description, 200)
+})
+
+// Check if description contains HTML
+const isHtmlDescription = computed(() => {
+  return isHtml(event.value?.description)
+})
+
+// Sanitized HTML for safe rendering
+const sanitizedDescription = computed(() => {
+  return sanitizeHtml(event.value?.description || '')
 })
 
 const formattedDate = computed(() => {
@@ -828,6 +842,59 @@ onMounted(fetchEvent)
 
 .about-plain {
   white-space: pre-wrap;
+}
+
+/* HTML Description Styles */
+.about-html {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--color-text-light);
+}
+
+.about-html :deep(p) {
+  margin: 0 0 1em 0;
+}
+
+.about-html :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.about-html :deep(ul),
+.about-html :deep(ol) {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.about-html :deep(ul) {
+  list-style-type: disc;
+}
+
+.about-html :deep(ol) {
+  list-style-type: decimal;
+}
+
+.about-html :deep(li) {
+  margin-bottom: 0.5em;
+}
+
+.about-html :deep(strong),
+.about-html :deep(b) {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.about-html :deep(em),
+.about-html :deep(i) {
+  font-style: italic;
+}
+
+.about-html :deep(a) {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.about-html :deep(a:hover) {
+  opacity: 0.8;
 }
 
 .about-image img {

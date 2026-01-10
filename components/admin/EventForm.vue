@@ -352,13 +352,10 @@
           <!-- Description -->
           <div class="form-field full-width">
             <label for="description">{{ t.eventDescription }} <span class="required">*</span></label>
-            <textarea
-              id="description"
+            <AdminRichTextEditor
               v-model="form.description"
-              rows="6"
               :placeholder="t.eventDescriptionPlaceholder"
-              required
-            ></textarea>
+            />
           </div>
 
           <!-- Organizer Info -->
@@ -621,8 +618,10 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { MEXICO_TIMEZONES, ALL_TIMEZONES, getTimezoneLabel as getTzLabel, isoToLocal, localToISO } from '~/utils/dateTime'
 import { ONLINE_PLATFORMS, getEmptyVenueLocation, getEmptyOnlineLocation, formatLocation, getPlatformLabel } from '~/utils/location'
+import { truncateText as truncateHtmlText } from '~/utils/html'
+import { translateError } from '~/utils/errorTranslations'
 
-const { t: createT } = useLanguage()
+const { t: createT, language } = useLanguage()
 
 const translations = {
   // Draft indicator
@@ -924,7 +923,7 @@ const autoSaveDraft = async () => {
     savedSlug.value = response.event.slug
     emit('slug-created', savedSlug.value)
   } catch (e) {
-    error.value = e.message || 'Failed to save draft'
+    error.value = translateError(e.message, language.value) || t.failedToSaveDraft
   } finally {
     autoSaving.value = false
   }
@@ -982,7 +981,7 @@ const handleMainImageUpload = async (imageData) => {
       await updateEvent(eventSlug.value, { image_url: imageData.url })
     }
   } catch (e) {
-    error.value = e.message || 'Failed to upload image'
+    error.value = translateError(e.message, language.value) || t.failedToUploadImage
   }
 }
 
@@ -1003,7 +1002,7 @@ const handleGalleryImageUpload = async (imageData) => {
       }
     }
   } catch (e) {
-    error.value = e.message || 'Failed to upload gallery image'
+    error.value = translateError(e.message, language.value) || t.failedToUploadGallery
   }
 }
 
@@ -1022,7 +1021,7 @@ const handleAddVideo = async (videoData) => {
       mediaData.media.videos = response.media.videos
     }
   } catch (e) {
-    error.value = e.message || 'Failed to add video'
+    error.value = translateError(e.message, language.value) || t.failedToAddVideo
   }
 }
 
@@ -1037,7 +1036,7 @@ const handleRemoveGalleryImage = async (data) => {
     // Remove from local array
     mediaData.media.images.splice(data.index, 1)
   } catch (e) {
-    error.value = e.message || 'Failed to remove image'
+    error.value = translateError(e.message, language.value) || t.failedToRemoveImage
   }
 }
 
@@ -1052,7 +1051,7 @@ const handleRemoveVideo = async (data) => {
     // Clear local videos
     mediaData.media.videos = []
   } catch (e) {
-    error.value = e.message || 'Failed to remove video'
+    error.value = translateError(e.message, language.value) || t.failedToRemoveVideo
   }
 }
 
@@ -1123,7 +1122,7 @@ const handleSaveDraft = async () => {
       emit('draft', response.event)
     }
   } catch (e) {
-    error.value = e.message || 'Failed to save draft'
+    error.value = translateError(e.message, language.value) || t.failedToSaveDraft
   } finally {
     submitting.value = false
   }
@@ -1147,7 +1146,7 @@ const handlePublish = async () => {
       emit('publish', response.event)
     }
   } catch (e) {
-    error.value = e.message || 'Failed to publish event'
+    error.value = translateError(e.message, language.value) || t.failedToPublish
   } finally {
     submitting.value = false
   }
@@ -1180,8 +1179,7 @@ const formatLocationForReview = () => {
 
 const truncateText = (text, maxLength) => {
   if (!text) return '—'
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + '...'
+  return truncateHtmlText(text, maxLength) || '—'
 }
 </script>
 

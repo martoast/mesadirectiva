@@ -6,7 +6,13 @@
         <div class="md:col-span-2">
           <h2 class="text-3xl font-bold text-gray-900 mb-6">{{ t.aboutThisEvent }}</h2>
           <div class="prose prose-lg max-w-none">
-            <p class="text-gray-600 whitespace-pre-wrap leading-relaxed">
+            <!-- Render as HTML if it contains HTML tags, otherwise as plain text -->
+            <div
+              v-if="isHtmlContent"
+              class="text-gray-600 leading-relaxed description-content"
+              v-html="sanitizedDescription"
+            ></div>
+            <p v-else class="text-gray-600 whitespace-pre-wrap leading-relaxed">
               {{ event.description }}
             </p>
           </div>
@@ -89,6 +95,7 @@
 import { computed } from 'vue'
 import { formatDate as formatDateUtil, formatTime as formatTimeUtil } from '~/utils/dateTime'
 import { getPlatformLabel } from '~/utils/location'
+import { isHtml, sanitizeHtml } from '~/utils/html'
 
 const { t: createT, language } = useLanguage()
 
@@ -124,6 +131,16 @@ const props = defineProps({
     type: Array,
     default: () => []
   }
+})
+
+// Check if description contains HTML
+const isHtmlContent = computed(() => {
+  return isHtml(props.event.description)
+})
+
+// Sanitized HTML for safe rendering
+const sanitizedDescription = computed(() => {
+  return sanitizeHtml(props.event.description || '')
 })
 
 const locationName = computed(() => {
@@ -210,3 +227,51 @@ const formatTime = (dateStr, timezone) => {
   return formatTimeUtil(dateStr, timezone)
 }
 </script>
+
+<style scoped>
+/* Styles for HTML description content */
+.description-content :deep(p) {
+  margin-bottom: 1em;
+}
+
+.description-content :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.description-content :deep(ul),
+.description-content :deep(ol) {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.description-content :deep(ul) {
+  list-style-type: disc;
+}
+
+.description-content :deep(ol) {
+  list-style-type: decimal;
+}
+
+.description-content :deep(li) {
+  margin-bottom: 0.5em;
+}
+
+.description-content :deep(strong),
+.description-content :deep(b) {
+  font-weight: 600;
+}
+
+.description-content :deep(em),
+.description-content :deep(i) {
+  font-style: italic;
+}
+
+.description-content :deep(a) {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+.description-content :deep(a:hover) {
+  color: #4338ca;
+}
+</style>

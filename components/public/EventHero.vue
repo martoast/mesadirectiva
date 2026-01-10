@@ -69,6 +69,7 @@
 import { computed } from 'vue'
 import { formatEventDateTime } from '~/utils/dateTime'
 import { formatLocation } from '~/utils/location'
+import { truncateText } from '~/utils/html'
 
 const { t: createT, language } = useLanguage()
 
@@ -94,9 +95,7 @@ const props = defineProps({
 
 const truncatedDescription = computed(() => {
   if (!props.event.description) return ''
-  const maxLength = 150
-  if (props.event.description.length <= maxLength) return props.event.description
-  return props.event.description.substring(0, maxLength).trim() + '...'
+  return truncateText(props.event.description, 150)
 })
 
 const formattedDateTime = computed(() => {

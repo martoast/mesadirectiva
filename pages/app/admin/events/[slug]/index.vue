@@ -276,7 +276,12 @@
           </div>
           <div class="event-body">
             <h2 class="section-title">{{ t.about }}</h2>
-            <p class="event-description">{{ event.description || t.noDescription }}</p>
+            <div
+              v-if="event.description && isHtml(event.description)"
+              class="event-description description-html"
+              v-html="sanitizeHtml(event.description)"
+            ></div>
+            <p v-else class="event-description">{{ event.description || t.noDescription }}</p>
             <div v-if="event.organizer_name" class="organizer">
               <span class="label">{{ t.organizedBy }}</span>
               <span class="value">{{ event.organizer_name }}</span>
@@ -389,6 +394,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { formatLocation, getPlatformLabel } from '~/utils/location'
+import { isHtml, sanitizeHtml } from '~/utils/html'
 
 definePageMeta({
   layout: 'admin',
@@ -1340,7 +1346,57 @@ onMounted(fetchEvent)
   line-height: 1.7;
   color: var(--color-ink-light);
   margin: 0;
+}
+
+.event-description:not(.description-html) {
   white-space: pre-wrap;
+}
+
+/* HTML Description Styles */
+.description-html :deep(p) {
+  margin: 0 0 1em 0;
+}
+
+.description-html :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.description-html :deep(ul),
+.description-html :deep(ol) {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.description-html :deep(ul) {
+  list-style-type: disc;
+}
+
+.description-html :deep(ol) {
+  list-style-type: decimal;
+}
+
+.description-html :deep(li) {
+  margin-bottom: 0.5em;
+}
+
+.description-html :deep(strong),
+.description-html :deep(b) {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.description-html :deep(em),
+.description-html :deep(i) {
+  font-style: italic;
+}
+
+.description-html :deep(a) {
+  color: var(--color-indigo);
+  text-decoration: underline;
+}
+
+.description-html :deep(a:hover) {
+  opacity: 0.8;
 }
 
 .organizer {

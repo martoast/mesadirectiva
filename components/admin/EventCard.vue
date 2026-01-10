@@ -483,6 +483,7 @@ const vClickOutside = {
   display: flex;
   align-items: flex-start;
   padding: 20px 16px 20px 0;
+  z-index: 10;
 }
 
 .actions-trigger {
@@ -513,8 +514,8 @@ const vClickOutside = {
 /* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
-  top: 100%;
-  right: 16px;
+  top: 40px;
+  right: 0;
   min-width: 180px;
   padding: 6px;
   background: #ffffff;

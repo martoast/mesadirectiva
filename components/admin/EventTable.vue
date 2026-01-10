@@ -13,7 +13,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(event, index) in events" :key="event.id" :style="{ '--row-index': index }">
+        <tr v-for="(event, index) in events" :key="event.id" :class="{ 'dropdown-open': openDropdown === event.id }">
           <td class="col-event">
             <NuxtLink :to="`/app/admin/events/${event.slug}`" class="event-link">
               <span class="event-name">{{ event.name }}</span>
@@ -328,12 +328,12 @@ th:last-child { padding-right: 24px; }
 /* Body rows */
 tbody tr {
   transition: background 0.15s ease;
-  animation: fadeIn 0.3s ease forwards;
-  animation-delay: calc(var(--row-index, 0) * 0.03s);
-  opacity: 0;
+  position: relative;
 }
 
-@keyframes fadeIn { to { opacity: 1; } }
+tbody tr.dropdown-open {
+  z-index: 50;
+}
 
 tbody tr:hover { background: var(--color-hover); }
 tbody tr:not(:last-child) { border-bottom: 1px solid var(--color-border-subtle); }
@@ -642,5 +642,9 @@ td:last-child { padding-right: 24px; }
 .col-location { min-width: 140px; }
 .col-status { min-width: 100px; }
 .col-sales { min-width: 80px; }
-.col-actions { width: 60px; }
+.col-actions {
+  width: 60px;
+  position: relative;
+  z-index: 10;
+}
 </style>

@@ -1,154 +1,105 @@
 <template>
-  <div class="events-dashboard">
+  <div class="events-page">
+    <!-- Floating Action Button (Mobile) -->
+    <NuxtLink to="/app/admin/events/create" class="fab-create" aria-label="Create new event">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+    </NuxtLink>
+
     <!-- Header -->
     <header class="page-header">
       <div class="header-content">
-        <div class="header-title-group">
+        <div class="header-title-row">
           <h1>{{ t.title }}</h1>
-          <span class="header-badge">{{ meta.total }}</span>
+          <span class="event-count">{{ meta.total }}</span>
         </div>
-        <p class="header-subtitle">{{ t.subtitle }}</p>
+        <p class="header-description">{{ t.subtitle }}</p>
       </div>
       <NuxtLink to="/app/admin/events/create" class="btn-create">
-        <span class="btn-icon">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-        </span>
-        <span class="btn-label">{{ t.newEvent }}</span>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>{{ t.newEvent }}</span>
       </NuxtLink>
     </header>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-visual total">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">{{ meta.total }}</span>
-          <span class="stat-title">{{ t.totalEvents }}</span>
-        </div>
-        <div class="stat-trend neutral">
-          <span>{{ t.allTime }}</span>
-        </div>
+    <!-- Stats Overview -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-value">{{ meta.total }}</span>
+        <span class="stat-label">{{ t.totalEvents }}</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-visual live">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
-          </svg>
-          <span class="pulse-ring"></span>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number live">{{ liveCount }}</span>
-          <span class="stat-title">{{ t.liveNow }}</span>
-        </div>
-        <div class="stat-trend positive" v-if="liveCount > 0">
-          <svg fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/>
-          </svg>
-          <span>{{ t.active }}</span>
-        </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value stat-live">{{ liveCount }}</span>
+        <span class="stat-label">{{ t.liveNow }}</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-visual draft">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">{{ draftCount }}</span>
-          <span class="stat-title">{{ t.drafts }}</span>
-        </div>
-        <div class="stat-trend neutral" v-if="draftCount > 0">
-          <span>{{ t.pendingReview }}</span>
-        </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ draftCount }}</span>
+        <span class="stat-label">{{ t.drafts }}</span>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-visual tickets">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-          </svg>
-        </div>
-        <div class="stat-info">
-          <span class="stat-number">{{ formatNumber(totalTicketsSold) }}</span>
-          <span class="stat-title">{{ t.ticketsSold }}</span>
-        </div>
-        <div class="stat-trend positive" v-if="totalTicketsSold > 0">
-          <svg fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-          </svg>
-          <span>{{ t.revenueActive }}</span>
-        </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ formatNumber(totalTicketsSold) }}</span>
+        <span class="stat-label">{{ t.ticketsSold }}</span>
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
+    <!-- Filters -->
+    <div class="filters-bar">
       <div class="filter-group">
         <div class="filter-item">
-          <label class="filter-label">{{ t.status }}</label>
+          <label>{{ t.status }}</label>
           <div class="select-wrapper">
-            <select v-model="filterStatus" class="filter-select">
+            <select v-model="filterStatus">
               <option value="">{{ t.allStatus }}</option>
               <option value="draft">{{ t.draft }}</option>
               <option value="live">{{ t.live }}</option>
               <option value="closed">{{ t.closed }}</option>
             </select>
-            <svg class="select-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
         <div class="filter-item">
-          <label class="filter-label">{{ t.group }}</label>
+          <label>{{ t.group }}</label>
           <div class="select-wrapper">
-            <select v-model="filterGroup" class="filter-select">
+            <select v-model="filterGroup">
               <option value="">{{ t.allGroups }}</option>
               <option v-for="group in groups" :key="group.id" :value="group.id">
                 {{ group.name }}
               </option>
             </select>
-            <svg class="select-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
       </div>
-
-      <div class="view-controls">
-        <span class="results-count">{{ meta.total }} {{ eventsLabel }}</span>
-      </div>
+      <span class="results-text">{{ meta.total }} {{ eventsLabel }}</span>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="state-container">
       <div class="loading-state">
-        <div class="loading-spinner">
-          <div class="spinner-ring"></div>
-          <div class="spinner-ring"></div>
-          <div class="spinner-ring"></div>
-        </div>
-        <span class="loading-text">{{ t.loadingEvents }}</span>
+        <div class="loader"></div>
+        <span>{{ t.loadingEvents }}</span>
       </div>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="state-container">
       <div class="error-state">
-        <div class="error-visual">
+        <div class="error-icon">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 class="error-title">{{ t.unableToLoad }}</h3>
-        <p class="error-message">{{ error }}</p>
+        <h3>{{ t.unableToLoad }}</h3>
+        <p>{{ error }}</p>
         <button @click="fetchEvents" class="btn-retry">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -160,10 +111,26 @@
 
     <!-- Events Content -->
     <div v-else class="events-content">
-      <!-- Desktop Table -->
-      <div class="table-container">
+      <!-- Empty State -->
+      <div v-if="events.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3>{{ t.noEventsYet }}</h3>
+        <p>{{ t.createFirstDescription }}</p>
+        <NuxtLink to="/app/admin/events/create" class="btn-create-first">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          {{ t.createFirstEvent }}
+        </NuxtLink>
+      </div>
+
+      <!-- Desktop Table View -->
+      <div v-else class="table-view">
         <AdminEventTable
-          v-if="events.length > 0"
           :events="events"
           :has-permission="hasPermission"
           :is-super-admin="isSuperAdmin"
@@ -171,28 +138,10 @@
           @publish="handlePublish"
           @close="handleClose"
         />
-        <div v-else class="empty-state">
-          <div class="empty-visual">
-            <div class="empty-icon-wrapper">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div class="empty-decoration"></div>
-          </div>
-          <h3 class="empty-title">{{ t.noEventsYet }}</h3>
-          <p class="empty-description">{{ t.createFirstDescription }}</p>
-          <NuxtLink to="/app/admin/events/create" class="btn-create-empty">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            {{ t.createFirstEvent }}
-          </NuxtLink>
-        </div>
       </div>
 
-      <!-- Mobile Cards -->
-      <div class="cards-container">
+      <!-- Mobile Card View -->
+      <div v-if="events.length > 0" class="cards-view">
         <AdminEventCard
           v-for="event in events"
           :key="event.id"
@@ -203,20 +152,6 @@
           @publish="handlePublish"
           @close="handleClose"
         />
-        <div v-if="events.length === 0" class="empty-state">
-          <div class="empty-visual">
-            <div class="empty-icon-wrapper">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-          <h3 class="empty-title">{{ t.noEventsYet }}</h3>
-          <p class="empty-description">{{ t.createFirstShort }}</p>
-          <NuxtLink to="/app/admin/events/create" class="btn-create-empty">
-            {{ t.createEvent }}
-          </NuxtLink>
-        </div>
       </div>
 
       <!-- Pagination -->
@@ -224,7 +159,8 @@
         <button
           @click="currentPage = Math.max(1, currentPage - 1)"
           :disabled="currentPage === 1"
-          class="page-nav"
+          class="page-btn page-nav"
+          aria-label="Previous page"
         >
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -246,7 +182,8 @@
         <button
           @click="currentPage = Math.min(meta.last_page, currentPage + 1)"
           :disabled="currentPage === meta.last_page"
-          class="page-nav"
+          class="page-btn page-nav"
+          aria-label="Next page"
         >
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -286,29 +223,23 @@ const translations = {
   title: { es: 'Eventos', en: 'Events' },
   subtitle: { es: 'Administra tus eventos y monitorea el rendimiento', en: 'Manage your events and track performance' },
   newEvent: { es: 'Nuevo Evento', en: 'New Event' },
-  totalEvents: { es: 'Total de Eventos', en: 'Total Events' },
-  allTime: { es: 'Todo el tiempo', en: 'All time' },
-  liveNow: { es: 'En Vivo', en: 'Live Now' },
-  active: { es: 'Activo', en: 'Active' },
+  totalEvents: { es: 'Total', en: 'Total' },
+  liveNow: { es: 'En Vivo', en: 'Live' },
   drafts: { es: 'Borradores', en: 'Drafts' },
-  pendingReview: { es: 'Pendiente de revisión', en: 'Pending review' },
-  ticketsSold: { es: 'Boletos Vendidos', en: 'Tickets Sold' },
-  revenueActive: { es: 'Ingresos activos', en: 'Revenue active' },
+  ticketsSold: { es: 'Vendidos', en: 'Sold' },
   status: { es: 'Estado', en: 'Status' },
-  allStatus: { es: 'Todos los Estados', en: 'All Status' },
+  allStatus: { es: 'Todos', en: 'All' },
   draft: { es: 'Borrador', en: 'Draft' },
   live: { es: 'En Vivo', en: 'Live' },
   closed: { es: 'Cerrado', en: 'Closed' },
   group: { es: 'Grupo', en: 'Group' },
-  allGroups: { es: 'Todos los Grupos', en: 'All Groups' },
+  allGroups: { es: 'Todos', en: 'All' },
   loadingEvents: { es: 'Cargando eventos...', en: 'Loading events...' },
   unableToLoad: { es: 'No se pueden cargar los eventos', en: 'Unable to load events' },
   tryAgain: { es: 'Intentar de nuevo', en: 'Try Again' },
   noEventsYet: { es: 'Sin eventos aún', en: 'No events yet' },
   createFirstDescription: { es: 'Crea tu primer evento para comenzar a vender boletos y gestionar asistentes.', en: 'Create your first event to start selling tickets and managing attendees.' },
   createFirstEvent: { es: 'Crea tu primer evento', en: 'Create your first event' },
-  createFirstShort: { es: 'Crea tu primer evento para comenzar.', en: 'Create your first event to get started.' },
-  createEvent: { es: 'Crear Evento', en: 'Create Event' },
   deleteEvent: { es: 'Eliminar Evento', en: 'Delete Event' },
   deleteConfirmMessage: { es: '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.', en: 'Are you sure you want to delete this event? This action cannot be undone.' },
   delete: { es: 'Eliminar', en: 'Delete' },
@@ -319,7 +250,6 @@ const translations = {
 
 const t = createT(translations)
 
-// Computed label for events count
 const eventsLabel = computed(() => {
   if (language.value === 'es') {
     return meta.value.total === 1 ? 'evento' : 'eventos'
@@ -469,293 +399,277 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
 
-.events-dashboard {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+.events-page {
+  /* Japanese-inspired palette */
+  --color-paper: #faf9f7;
+  --color-ink: #1a1a1a;
+  --color-ink-light: #4a4a4a;
+  --color-ink-lighter: #7a7a7a;
+  --color-ink-muted: #a8a8a8;
+  --color-stone: #e8e6e3;
+  --color-stone-dark: #d4d2cf;
+  --color-bamboo: #2d5a27;
+  --color-vermillion: #c73e1d;
+  --color-indigo: #264653;
 
-  /* Refined neutral palette */
-  --color-bg: #fafafa;
+  /* Semantic colors */
   --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-  --color-text: #09090b;
-  --color-text-secondary: #3f3f46;
-  --color-text-tertiary: #71717a;
-  --color-text-muted: #a1a1aa;
-  --color-border: #e4e4e7;
-  --color-border-subtle: #f4f4f5;
-  --color-hover: rgba(0, 0, 0, 0.02);
+  --color-border: #e8e6e3;
+  --color-border-subtle: #f2f1ef;
+  --color-hover: rgba(26, 26, 26, 0.03);
+  --color-success: #2d5a27;
+  --color-success-subtle: rgba(45, 90, 39, 0.08);
+  --color-warning: #b45309;
+  --color-warning-subtle: rgba(180, 83, 9, 0.08);
+  --color-danger: #c73e1d;
+  --color-danger-subtle: rgba(199, 62, 29, 0.08);
 
-  /* Accent colors */
-  --color-primary: #18181b;
-  --color-primary-hover: #27272a;
-  --color-accent: #6366f1;
-  --color-accent-subtle: rgba(99, 102, 241, 0.08);
+  /* Typography */
+  --font-display: 'Zen Maru Gothic', 'Noto Sans JP', system-ui, sans-serif;
+  --font-body: 'Noto Sans JP', system-ui, sans-serif;
 
-  /* Status colors */
-  --color-success: #22c55e;
-  --color-success-subtle: rgba(34, 197, 94, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-subtle: rgba(245, 158, 11, 0.1);
-  --color-danger: #ef4444;
-  --color-danger-subtle: rgba(239, 68, 68, 0.1);
+  /* Spacing - generous Ma */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  /* Shadows - subtle, soft */
+  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.04);
+  --shadow-md: 0 2px 8px rgba(26, 26, 26, 0.06);
+  --shadow-lg: 0 4px 16px rgba(26, 26, 26, 0.08);
 
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 100px;
 }
 
-/* Header */
+/* ========================================
+   Floating Action Button (Mobile)
+   ======================================== */
+.fab-create {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: var(--color-ink);
+  color: white;
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(26, 26, 26, 0.1);
+  z-index: 100;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-create svg {
+  width: 24px;
+  height: 24px;
+}
+
+.fab-create:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg), 0 8px 24px rgba(26, 26, 26, 0.15);
+}
+
+.fab-create:active {
+  transform: scale(0.98);
+}
+
+@media (min-width: 640px) {
+  .fab-create {
+    display: none;
+  }
+}
+
+/* ========================================
+   Header
+   ======================================== */
 .page-header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 .header-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
 }
 
-.header-title-group {
+.header-title-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: var(--space-md);
 }
 
-.header-title-group h1 {
-  font-size: 26px;
+.header-title-row h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 700;
-  color: var(--color-text);
-  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
-.header-badge {
-  padding: 2px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-tertiary);
+.event-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  padding: 2px 10px;
   background: var(--color-border-subtle);
-  border-radius: 6px;
+  border-radius: 20px;
 }
 
-.header-subtitle {
+.header-description {
   font-size: 14px;
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-lighter);
   line-height: 1.5;
 }
 
 .btn-create {
-  display: inline-flex;
+  display: none;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
+  gap: var(--space-sm);
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
   font-weight: 600;
   color: white;
-  background: var(--color-primary);
+  background: var(--color-ink);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.btn-create:hover {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-}
-
-.btn-icon svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-}
-
-.stat-card:hover {
-  border-color: var(--color-border);
   box-shadow: var(--shadow-sm);
 }
 
-.stat-visual {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.stat-visual svg {
+.btn-create svg {
   width: 18px;
   height: 18px;
-  position: relative;
-  z-index: 1;
 }
 
-.stat-visual.total {
-  background: linear-gradient(135deg, #f4f4f5 0%, #e4e4e7 100%);
-  color: var(--color-text-secondary);
+.btn-create:hover {
+  background: var(--color-ink-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-.stat-visual.live {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #16a34a;
-}
-
-.stat-visual.draft {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #d97706;
-}
-
-.stat-visual.tickets {
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-  color: #7c3aed;
-}
-
-.pulse-ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  background: rgba(34, 197, 94, 0.3);
-  animation: pulse-out 2s ease-out infinite;
-}
-
-@keyframes pulse-out {
-  0% {
-    transform: scale(1);
-    opacity: 0.4;
+@media (min-width: 640px) {
+  .page-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
   }
-  100% {
-    transform: scale(1.5);
-    opacity: 0;
+
+  .btn-create {
+    display: inline-flex;
   }
 }
 
-.stat-info {
+@media (min-width: 768px) {
+  .header-title-row h1 {
+    font-size: 32px;
+  }
+}
+
+/* ========================================
+   Stats Row
+   ======================================== */
+.stats-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: var(--space-lg);
+  overflow-x: auto;
+}
+
+.stat-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 60px;
 }
 
-.stat-number {
+.stat-value {
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-ink);
+  line-height: 1;
   letter-spacing: -0.02em;
-  line-height: 1.1;
 }
 
-.stat-number.live {
-  color: #16a34a;
+.stat-value.stat-live {
+  color: var(--color-success);
 }
 
-.stat-title {
+.stat-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
 }
 
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--color-border-subtle);
-  font-size: 11px;
-  font-weight: 500;
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--color-border);
+  flex-shrink: 0;
 }
 
-.stat-trend svg {
-  width: 12px;
-  height: 12px;
+@media (min-width: 640px) {
+  .stats-row {
+    gap: var(--space-xl);
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
 }
 
-.stat-trend.positive {
-  color: #16a34a;
-}
-
-.stat-trend.neutral {
-  color: var(--color-text-muted);
-}
-
-/* Toolbar */
-.toolbar {
+/* ========================================
+   Filters Bar
+   ======================================== */
+.filters-bar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .filter-group {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .filter-item {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   flex: 1;
-  max-width: 160px;
+  max-width: 140px;
 }
 
-.filter-label {
+.filter-item label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-ink-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -764,13 +678,13 @@ onMounted(() => {
   position: relative;
 }
 
-.filter-select {
+.select-wrapper select {
   width: 100%;
-  padding: 8px 32px 8px 12px;
+  padding: 10px 32px 10px 12px;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
-  font-family: var(--font-sans);
-  color: var(--color-text);
+  color: var(--color-ink);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -779,43 +693,53 @@ onMounted(() => {
   transition: all 0.15s ease;
 }
 
-.filter-select:hover {
-  border-color: var(--color-text-muted);
+.select-wrapper select:hover {
+  border-color: var(--color-stone-dark);
 }
 
-.filter-select:focus {
+.select-wrapper select:focus {
   outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+  border-color: var(--color-ink-light);
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
 }
 
-.select-chevron {
+.select-icon {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
   width: 14px;
   height: 14px;
-  color: var(--color-text-muted);
+  color: var(--color-ink-muted);
   pointer-events: none;
 }
 
-.view-controls {
-  display: flex;
-  align-items: center;
-}
-
-.results-count {
+.results-text {
   font-size: 13px;
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-lighter);
 }
 
-/* State Container */
+@media (min-width: 640px) {
+  .filters-bar {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .filter-item {
+    flex: none;
+    min-width: 120px;
+  }
+}
+
+/* ========================================
+   State Containers
+   ======================================== */
 .state-container {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 80px 20px;
+  padding: 80px var(--space-xl);
 }
 
 /* Loading State */
@@ -823,49 +747,25 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: var(--space-lg);
 }
 
-.loading-spinner {
-  position: relative;
-  width: 40px;
-  height: 40px;
-}
-
-.spinner-ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+.loader {
+  width: 32px;
+  height: 32px;
   border: 2px solid var(--color-border);
-  border-top-color: var(--color-accent);
+  border-top-color: var(--color-ink);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.spinner-ring:nth-child(2) {
-  width: 70%;
-  height: 70%;
-  top: 15%;
-  left: 15%;
-  animation-duration: 0.8s;
-  animation-direction: reverse;
-}
-
-.spinner-ring:nth-child(3) {
-  width: 40%;
-  height: 40%;
-  top: 30%;
-  left: 30%;
-  animation-duration: 0.6s;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.loading-text {
+.loading-state span {
   font-size: 14px;
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-lighter);
 }
 
 /* Error State */
@@ -876,46 +776,47 @@ onMounted(() => {
   text-align: center;
 }
 
-.error-visual {
-  width: 56px;
-  height: 56px;
+.error-icon {
+  width: 48px;
+  height: 48px;
   background: var(--color-danger-subtle);
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 
-.error-visual svg {
-  width: 28px;
-  height: 28px;
+.error-icon svg {
+  width: 24px;
+  height: 24px;
   color: var(--color-danger);
 }
 
-.error-title {
+.error-state h3 {
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 4px;
+  color: var(--color-ink);
+  margin-bottom: var(--space-xs);
 }
 
-.error-message {
+.error-state p {
   font-size: 14px;
-  color: var(--color-text-tertiary);
-  margin-bottom: 20px;
-  max-width: 300px;
+  color: var(--color-ink-lighter);
+  margin-bottom: var(--space-lg);
+  max-width: 280px;
 }
 
 .btn-retry {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
   padding: 10px 16px;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
-  font-family: var(--font-sans);
-  color: var(--color-text);
+  color: var(--color-ink);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -923,34 +824,24 @@ onMounted(() => {
   transition: all 0.15s ease;
 }
 
-.btn-retry:hover {
-  background: var(--color-hover);
-  border-color: var(--color-text-muted);
-}
-
 .btn-retry svg {
   width: 14px;
   height: 14px;
 }
 
-/* Events Content */
+.btn-retry:hover {
+  background: var(--color-hover);
+  border-color: var(--color-stone-dark);
+}
+
+/* ========================================
+   Events Content
+   ======================================== */
 .events-content {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-xs);
-}
-
-.table-container {
-  display: none;
-}
-
-.cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
 }
 
 /* Empty State */
@@ -959,129 +850,111 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 20px;
+  padding: 80px var(--space-xl);
   text-align: center;
 }
 
-.empty-visual {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.empty-icon-wrapper {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, var(--color-border-subtle) 0%, var(--color-border) 100%);
-  border-radius: 20px;
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-border-subtle);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: var(--space-lg);
 }
 
-.empty-icon-wrapper svg {
-  width: 32px;
-  height: 32px;
-  color: var(--color-text-muted);
+.empty-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-ink-muted);
 }
 
-.empty-decoration {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background: radial-gradient(circle at 50% 50%, var(--color-accent-subtle) 0%, transparent 60%);
-  filter: blur(20px);
-  transform: translateY(10px);
-  z-index: -1;
-}
-
-.empty-title {
-  font-size: 17px;
+.empty-state h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 6px;
+  color: var(--color-ink);
+  margin-bottom: var(--space-sm);
 }
 
-.empty-description {
+.empty-state p {
   font-size: 14px;
-  color: var(--color-text-tertiary);
-  margin-bottom: 24px;
+  color: var(--color-ink-lighter);
+  margin-bottom: var(--space-xl);
   max-width: 280px;
   line-height: 1.5;
 }
 
-.btn-create-empty {
+.btn-create-first {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: var(--space-sm);
+  padding: 14px 24px;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background: var(--color-primary);
+  background: var(--color-ink);
   border: none;
   border-radius: 10px;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-create-empty:hover {
-  background: var(--color-primary-hover);
+.btn-create-first svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-create-first:hover {
+  background: var(--color-ink-light);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
-.btn-create-empty svg {
-  width: 16px;
-  height: 16px;
+/* Table View (Desktop) */
+.table-view {
+  display: none;
 }
 
-/* Pagination */
+/* Cards View (Mobile) */
+.cards-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--color-border-subtle);
+}
+
+@media (min-width: 768px) {
+  .table-view {
+    display: block;
+  }
+
+  .cards-view {
+    display: none;
+  }
+}
+
+/* ========================================
+   Pagination
+   ======================================== */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 16px;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
   border-top: 1px solid var(--color-border-subtle);
-}
-
-.page-nav {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.page-nav:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
-  color: var(--color-text);
-}
-
-.page-nav:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.page-nav svg {
-  width: 14px;
-  height: 14px;
+  background: var(--color-surface);
 }
 
 .page-numbers {
   display: flex;
-  gap: 4px;
-  margin: 0 8px;
+  gap: var(--space-xs);
 }
 
 .page-btn {
@@ -1091,10 +964,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
-  font-family: var(--font-sans);
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-lighter);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -1102,66 +975,38 @@ onMounted(() => {
   transition: all 0.15s ease;
 }
 
-.page-btn:hover:not(.active):not(.ellipsis) {
+.page-btn:hover:not(.active):not(.ellipsis):not(:disabled) {
   background: var(--color-hover);
   border-color: var(--color-border);
 }
 
 .page-btn.active {
-  background: var(--color-primary);
+  background: var(--color-ink);
   color: white;
   font-weight: 600;
 }
 
 .page-btn.ellipsis {
   cursor: default;
-  color: var(--color-text-muted);
+  color: var(--color-ink-muted);
 }
 
-/* Tablet */
-@media (min-width: 640px) {
-  .page-header {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
-
-  .toolbar {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-  }
-
-  .filter-item {
-    flex: none;
-  }
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* Desktop */
-@media (min-width: 768px) {
-  .header-title-group h1 {
-    font-size: 30px;
-  }
+.page-btn.page-nav {
+  border: 1px solid var(--color-border);
+}
 
-  .stat-card {
-    padding: 20px;
-  }
+.page-btn.page-nav svg {
+  width: 14px;
+  height: 14px;
+}
 
-  .stat-number {
-    font-size: 28px;
-  }
-
-  .table-container {
-    display: block;
-  }
-
-  .cards-container {
-    display: none;
-  }
+.page-btn.page-nav:hover:not(:disabled) {
+  border-color: var(--color-stone-dark);
+  color: var(--color-ink);
 }
 </style>

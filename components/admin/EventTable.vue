@@ -547,11 +547,11 @@ td:last-child { padding-right: 24px; }
   right: 0;
   min-width: 180px;
   padding: 6px;
-  background: var(--color-surface);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.12);
-  z-index: 50;
+  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 100;
 }
 
 .dropdown-item {

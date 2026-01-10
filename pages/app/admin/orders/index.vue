@@ -1250,11 +1250,11 @@ onMounted(() => {
   top: calc(100% + 4px);
   right: 0;
   min-width: 140px;
-  background: var(--color-surface);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  box-shadow: var(--shadow-lg);
-  z-index: 50;
+  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 100;
   overflow: hidden;
 }
 

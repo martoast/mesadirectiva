@@ -401,6 +401,14 @@ onMounted(() => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
 
+/* Global box-sizing */
+.events-page,
+.events-page *,
+.events-page *::before,
+.events-page *::after {
+  box-sizing: border-box;
+}
+
 .events-page {
   /* Japanese-inspired palette */
   --color-paper: #faf9f7;
@@ -447,8 +455,9 @@ onMounted(() => {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   position: relative;
-  min-height: 100vh;
-  padding-bottom: 100px;
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 80px;
 }
 
 /* ========================================
@@ -590,25 +599,28 @@ onMounted(() => {
 .stats-row {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
-  padding: var(--space-lg) var(--space-xl);
+  justify-content: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: var(--space-lg);
-  overflow-x: auto;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 60px;
+  min-width: 50px;
+  flex: 1;
 }
 
 .stat-value {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-ink);
   line-height: 1;
@@ -620,7 +632,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--color-ink-muted);
   white-space: nowrap;
@@ -628,14 +640,40 @@ onMounted(() => {
 
 .stat-divider {
   width: 1px;
-  height: 32px;
+  height: 28px;
   background: var(--color-border);
   flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .stats-row {
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    flex-wrap: nowrap;
+  }
+
+  .stat-item {
+    flex: none;
+    min-width: 60px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-divider {
+    height: 32px;
+  }
 }
 
 @media (min-width: 640px) {
   .stats-row {
     gap: var(--space-xl);
+    padding: var(--space-lg) var(--space-xl);
   }
 
   .stat-value {
@@ -651,6 +689,7 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
+  width: 100%;
 }
 
 .filter-group {
@@ -739,7 +778,14 @@ onMounted(() => {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 80px var(--space-xl);
+  padding: 60px var(--space-md);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .state-container {
+    padding: 80px var(--space-xl);
+  }
 }
 
 /* Loading State */
@@ -842,6 +888,7 @@ onMounted(() => {
   border: 1px solid var(--color-border);
   border-radius: 16px;
   overflow: hidden;
+  width: 100%;
 }
 
 /* Empty State */
@@ -850,8 +897,14 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px var(--space-xl);
+  padding: 60px var(--space-md);
   text-align: center;
+}
+
+@media (min-width: 480px) {
+  .empty-state {
+    padding: 80px var(--space-xl);
+  }
 }
 
 .empty-icon {

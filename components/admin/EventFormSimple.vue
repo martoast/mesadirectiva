@@ -159,123 +159,85 @@
       <!-- Step 2: Details -->
       <div v-show="currentStep === 1" class="step-panel">
         <!-- Description -->
-        <div class="section">
-          <label class="section-label">{{ t.tellPeopleAbout }}</label>
+        <div class="field">
+          <label>{{ t.description }} <span class="optional">({{ t.optional }})</span></label>
           <AdminRichTextEditor
             v-model="form.description"
             :placeholder="t.descriptionPlaceholder"
           />
         </div>
 
-        <!-- Cover Image -->
-        <div class="section">
-          <label class="section-label">{{ t.coverImage }}</label>
-          <AdminEventImageUpload
-            v-if="eventSlug"
-            :event-slug="eventSlug"
-            :current-image="mediaData.image_url"
-            @upload="handleMainImageUpload"
-          />
-          <div v-else class="image-placeholder">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p>{{ t.saveToUpload }}</p>
+        <!-- Organizer -->
+        <div class="field">
+          <label>{{ t.organizer }} <span class="optional">({{ t.optional }})</span></label>
+          <input v-model="form.organizer_name" type="text" :placeholder="t.organizerNamePlaceholder" />
+        </div>
+
+        <!-- Event Settings -->
+        <div class="field">
+          <label>{{ t.settings }} <span class="optional">({{ t.optional }})</span></label>
+          <div class="settings-list">
+            <label class="setting-item">
+              <input type="checkbox" v-model="form.is_private" />
+              <span class="setting-content">
+                <strong>{{ t.privateEvent }}</strong>
+                <span>{{ t.privateEventDesc }}</span>
+              </span>
+            </label>
+            <label class="setting-item">
+              <input type="checkbox" v-model="form.show_remaining" />
+              <span class="setting-content">
+                <strong>{{ t.showRemaining }}</strong>
+                <span>{{ t.showRemainingDesc }}</span>
+              </span>
+            </label>
           </div>
         </div>
 
-        <!-- Optional Extras (Collapsible) -->
-        <div class="expandable-section">
-          <button type="button" class="expand-trigger" @click="showExtras = !showExtras">
-            <span>{{ t.additionalOptions }}</span>
-            <svg :class="['expand-icon', showExtras && 'open']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <div v-show="showExtras" class="expand-content">
-            <!-- Organizer -->
-            <div class="extras-section">
-              <h4>{{ t.organizer }}</h4>
-              <div class="options-grid">
-                <div class="option-field">
-                  <label>{{ t.organizerName }}</label>
-                  <input v-model="form.organizer_name" type="text" :placeholder="t.organizerNamePlaceholder" />
-                </div>
-                <div class="option-field">
-                  <label>{{ t.organizerDescription }}</label>
-                  <input v-model="form.organizer_description" type="text" :placeholder="t.organizerDescPlaceholder" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Event Options -->
-            <div class="extras-section">
-              <h4>{{ t.settings }}</h4>
-              <div class="toggle-options">
-                <label class="toggle-option">
-                  <input type="checkbox" v-model="form.is_private" />
-                  <span class="toggle-content">
-                    <strong>{{ t.privateEvent }}</strong>
-                    <span>{{ t.privateEventDesc }}</span>
-                  </span>
-                </label>
-                <label class="toggle-option">
-                  <input type="checkbox" v-model="form.show_remaining" />
-                  <span class="toggle-content">
-                    <strong>{{ t.showRemaining }}</strong>
-                    <span>{{ t.showRemainingDesc }}</span>
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <!-- FAQ -->
-            <div class="extras-section">
-              <div class="section-header-row">
-                <h4>{{ t.faq }}</h4>
-                <button
-                  v-if="form.faq_items.length < 10"
-                  type="button"
-                  class="add-btn-small"
-                  @click="addFaqItem"
-                >
-                  + {{ t.addFaq }}
-                </button>
-              </div>
-
-              <div v-if="form.faq_items.length === 0" class="empty-hint">
-                {{ t.noFaqHint }}
-              </div>
-
-              <div v-for="(faq, index) in form.faq_items" :key="index" class="faq-item">
-                <div class="faq-header">
-                  <span>Q{{ index + 1 }}</span>
-                  <button type="button" @click="removeFaqItem(index)" class="remove-btn">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <input v-model="faq.question" type="text" :placeholder="t.questionPlaceholder" />
-                <textarea v-model="faq.answer" rows="2" :placeholder="t.answerPlaceholder"></textarea>
-              </div>
-            </div>
-
-            <!-- Gallery (if slug exists) -->
-            <div v-if="eventSlug" class="extras-section">
-              <h4>{{ t.gallery }}</h4>
-              <AdminEventMediaStep
-                :event-slug="eventSlug"
-                :initial-data="mediaData"
-                mode="gallery-only"
-                @upload-gallery-image="handleGalleryImageUpload"
-                @add-video="handleAddVideo"
-                @remove-gallery-image="handleRemoveGalleryImage"
-                @remove-video="handleRemoveVideo"
-              />
-            </div>
+        <!-- FAQ -->
+        <div class="field">
+          <div class="label-row">
+            <label>{{ t.faq }} <span class="optional">({{ t.optional }})</span></label>
+            <button
+              v-if="form.faq_items.length < 10"
+              type="button"
+              class="add-link"
+              @click="addFaqItem"
+            >
+              + {{ t.addFaq }}
+            </button>
           </div>
+
+          <div v-if="form.faq_items.length === 0" class="empty-state">
+            {{ t.noFaqHint }}
+          </div>
+
+          <div v-for="(faq, index) in form.faq_items" :key="index" class="faq-item">
+            <div class="faq-header">
+              <span class="faq-number">Q{{ index + 1 }}</span>
+              <button type="button" @click="removeFaqItem(index)" class="remove-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <input v-model="faq.question" type="text" :placeholder="t.questionPlaceholder" />
+            <textarea v-model="faq.answer" rows="2" :placeholder="t.answerPlaceholder"></textarea>
+          </div>
+        </div>
+
+        <!-- Gallery (if slug exists) -->
+        <div v-if="eventSlug" class="field">
+          <label>{{ t.gallery }} <span class="optional">({{ t.optional }})</span></label>
+          <AdminEventMediaStep
+            :event-slug="eventSlug"
+            :initial-data="mediaData"
+            mode="gallery-only"
+            @upload-gallery-image="handleGalleryImageUpload"
+            @add-video="handleAddVideo"
+            @remove-gallery-image="handleRemoveGalleryImage"
+            @remove-video="handleRemoveVideo"
+          />
         </div>
       </div>
 
@@ -494,14 +456,9 @@ const translations = {
   // Step 2
   tellPeopleAbout: { es: 'Cuéntale a la gente sobre tu evento', en: 'Tell people about your event' },
   descriptionPlaceholder: { es: '¿De qué trata? ¿Por qué deberían asistir?', en: "What's it about? Why should they attend?" },
-  coverImage: { es: 'Imagen de portada', en: 'Cover image' },
-  saveToUpload: { es: 'Guarda el borrador primero para subir imágenes', en: 'Save draft first to upload images' },
-  additionalOptions: { es: 'Opciones adicionales', en: 'Additional options' },
+  optional: { es: 'opcional', en: 'optional' },
   organizer: { es: 'Organizador', en: 'Organizer' },
-  organizerName: { es: 'Nombre', en: 'Name' },
-  organizerNamePlaceholder: { es: 'Nombre del organizador...', en: 'Organizer name...' },
-  organizerDescription: { es: 'Descripción', en: 'Description' },
-  organizerDescPlaceholder: { es: 'Breve descripción...', en: 'Brief description...' },
+  organizerNamePlaceholder: { es: 'Ej: Fundación Escolar, Comité de Padres...', en: 'E.g. School Foundation, Parent Committee...' },
   settings: { es: 'Configuración', en: 'Settings' },
   privateEvent: { es: 'Evento privado', en: 'Private event' },
   privateEventDesc: { es: 'Solo visible con enlace directo', en: 'Only visible with direct link' },
@@ -549,11 +506,10 @@ const props = defineProps({
 const emit = defineEmits(['draft', 'publish', 'slug-created'])
 
 const { getGroups } = useGroups()
-const { createEvent, updateEvent, uploadEventImage, addMedia, removeMedia } = useEvents()
+const { createEvent, updateEvent, addMedia, removeMedia } = useEvents()
 
 // State
 const currentStep = ref(0)
-const showExtras = ref(false)
 const submitting = ref(false)
 const error = ref('')
 const savedSlug = ref(props.initialData?.slug || '')
@@ -581,7 +537,6 @@ const form = reactive({
   location: getEmptyVenueLocation(),
   description: '',
   organizer_name: '',
-  organizer_description: '',
   is_private: false,
   show_remaining: true,
   faq_items: []
@@ -696,7 +651,6 @@ const prepareData = () => {
     location: form.location,
     description: form.description || null,
     organizer_name: form.organizer_name || null,
-    organizer_description: form.organizer_description || null,
     is_private: form.is_private,
     show_remaining: form.show_remaining,
     faq_items: form.faq_items.filter(f => f.question && f.answer)
@@ -757,21 +711,6 @@ const removeFaqItem = (index) => {
 }
 
 // Media handlers
-const handleMainImageUpload = async (imageData) => {
-  if (!eventSlug.value) return
-  try {
-    if (imageData.type === 'file') {
-      const response = await uploadEventImage(eventSlug.value, imageData.file)
-      mediaData.image_url = response.image_url || response.url
-    } else if (imageData.type === 'url') {
-      mediaData.image_url = imageData.url
-      await updateEvent(eventSlug.value, { image_url: imageData.url })
-    }
-  } catch (e) {
-    error.value = translateError(e.message, language.value)
-  }
-}
-
 const handleGalleryImageUpload = async (imageData) => {
   if (!eventSlug.value) return
   try {
@@ -836,7 +775,7 @@ const loadInitialData = () => {
   if (props.initialData) {
     const data = props.initialData
     form.name = data.name || ''
-    form.group_id = data.group_id || ''
+    form.group_id = data.group_id || data.group?.id || ''
     form.seating_type = data.seating_type || 'general_admission'
     form.starts_at = data.starts_at ? isoToLocal(data.starts_at) : ''
     form.ends_at = data.ends_at ? isoToLocal(data.ends_at) : ''
@@ -845,7 +784,6 @@ const loadInitialData = () => {
     form.location = data.location || (data.location_type === 'online' ? getEmptyOnlineLocation() : getEmptyVenueLocation())
     form.description = data.description || ''
     form.organizer_name = data.organizer_name || ''
-    form.organizer_description = data.organizer_description || ''
     form.is_private = data.is_private || false
     form.show_remaining = data.show_remaining !== false
     form.faq_items = data.faq_items || []
@@ -1054,76 +992,64 @@ onMounted(async () => {
 }
 
 /* Step 2 Styles */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.section-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.image-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 48px 24px;
-  background: var(--color-bg-subtle);
-  border: 2px dashed var(--color-border);
-  border-radius: var(--radius);
+.optional {
+  font-weight: 400;
   color: var(--color-text-muted);
 }
 
-.image-placeholder svg {
-  width: 48px;
-  height: 48px;
-  opacity: 0.5;
+/* Settings List */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
 }
 
-.image-placeholder p {
-  font-size: 14px;
+.setting-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.setting-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
   margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
 }
 
-/* Extras Section */
-.extras-section {
-  padding-top: 16px;
-  margin-top: 16px;
-  border-top: 1px solid var(--color-border);
+.setting-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.extras-section:first-child {
-  padding-top: 0;
-  margin-top: 0;
-  border-top: none;
-}
-
-.extras-section h4 {
-  font-size: 13px;
-  font-weight: 600;
+.setting-content strong {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-text);
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  line-height: 1.3;
 }
 
-.section-header-row {
+.setting-content span {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* Label Row */
+.label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.section-header-row h4 {
-  margin: 0;
-}
-
-.add-btn-small {
+.add-link {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-primary);
@@ -1132,50 +1058,18 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.add-btn-small:hover {
+.add-link:hover {
   text-decoration: underline;
 }
 
-/* Toggle Options */
-.toggle-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.toggle-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  cursor: pointer;
-}
-
-.toggle-option input {
-  margin-top: 3px;
-  accent-color: var(--color-primary);
-}
-
-.toggle-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.toggle-content strong {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.toggle-content span {
+/* Empty State */
+.empty-state {
   font-size: 13px;
   color: var(--color-text-muted);
-}
-
-/* FAQ */
-.empty-hint {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  font-style: italic;
+  padding: 16px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm);
+  text-align: center;
 }
 
 .faq-item {
@@ -1193,7 +1087,7 @@ onMounted(async () => {
   margin-bottom: 8px;
 }
 
-.faq-header span {
+.faq-number {
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);

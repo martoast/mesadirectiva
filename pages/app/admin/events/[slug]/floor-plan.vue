@@ -673,7 +673,7 @@ const { t: createT } = useLanguage()
 const translations = {
   // Header
   floorPlan: { es: 'Plano de Mesas', en: 'Floor Plan' },
-  subtitle: { es: 'Haz clic en las mesas para gestionar, arrastra para ordenar', en: 'Click tables to manage, drag to arrange' },
+  subtitle: { es: 'Da clic en las mesas para administrar, arrastra para acomodar', en: 'Click tables to manage, drag to arrange' },
   tables: { es: 'Mesas', en: 'Tables' },
   seats: { es: 'Asientos', en: 'Seats' },
   available: { es: 'Disponibles', en: 'Available' },
@@ -685,7 +685,7 @@ const translations = {
   loadingFloorPlan: { es: 'Cargando plano...', en: 'Loading floor plan...' },
   tryAgain: { es: 'Intentar de nuevo', en: 'Try Again' },
   noTablesYet: { es: 'No hay mesas aún', en: 'No tables yet' },
-  createTablesDesc: { es: 'Crea mesas para comenzar a diseñar tu plano', en: 'Create tables to start designing your floor plan' },
+  createTablesDesc: { es: 'Agrega mesas para empezar a armar tu plano', en: 'Create tables to start designing your floor plan' },
   addFirstTable: { es: 'Agregar Primera Mesa', en: 'Add First Table' },
 
   // Toolbar tooltips
@@ -724,7 +724,7 @@ const translations = {
   sellAsWholeDesc: { es: 'Los clientes compran la mesa completa', en: 'Customers purchase the entire table' },
   sellIndividualDesc: { es: 'Los clientes pueden comprar asientos individuales', en: 'Customers can buy individual seats' },
   active: { es: 'Activa', en: 'Active' },
-  activeDesc: { es: 'Mesa disponible para reservar', en: 'Table is available for booking' },
+  activeDesc: { es: 'Mesa disponible para apartar', en: 'Table is available for booking' },
   createTable: { es: 'Crear Mesa', en: 'Create Table' },
   saveChanges: { es: 'Guardar Cambios', en: 'Save Changes' },
   deleteTable: { es: 'Eliminar Mesa', en: 'Delete Table' },
@@ -733,7 +733,7 @@ const translations = {
   seatsTotal: { es: 'asientos', en: 'seats' },
   availableLabel: { es: 'disponibles', en: 'available' },
   soldLabel: { es: 'vendidos', en: 'sold' },
-  bulkCreate: { es: 'Crear en Lote', en: 'Bulk Create' },
+  bulkCreate: { es: 'Crear Varios', en: 'Bulk Create' },
   addSeat: { es: 'Agregar Asiento', en: 'Add Seat' },
   noSeatsYet: { es: 'No hay asientos creados', en: 'No seats created yet' },
   createSeats: { es: 'Crear Asientos', en: 'Create Seats' },
@@ -744,7 +744,7 @@ const translations = {
   save: { es: 'Guardar', en: 'Save' },
 
   // Bulk create
-  bulkCreateSeats: { es: 'Crear Asientos en Lote', en: 'Bulk Create Seats' },
+  bulkCreateSeats: { es: 'Crear Varios Asientos', en: 'Bulk Create Seats' },
   labelPrefix: { es: 'Prefijo', en: 'Label Prefix' },
   labelPrefixPlaceholder: { es: 'Ej: A, Asiento-', en: 'e.g., A, Seat-' },
   numberOfSeats: { es: 'Cantidad', en: 'Number of Seats' },
@@ -757,8 +757,8 @@ const translations = {
 
   // Delete modals
   deleteSeat: { es: 'Eliminar Asiento', en: 'Delete Seat' },
-  deleteTableConfirm: { es: '¿Estás seguro de eliminar \'{name}\'? También se eliminarán todos los asientos.', en: 'Are you sure you want to delete \'{name}\'? This will also delete all seats.' },
-  deleteSeatConfirm: { es: '¿Estás seguro de eliminar el asiento \'{label}\'?', en: 'Are you sure you want to delete seat \'{label}\'?' },
+  deleteTableConfirm: { es: '¿Seguro que quieres eliminar \'{name}\'? También se van a eliminar todos los asientos.', en: 'Are you sure you want to delete \'{name}\'? This will also delete all seats.' },
+  deleteSeatConfirm: { es: '¿Seguro que quieres eliminar el asiento \'{label}\'?', en: 'Are you sure you want to delete seat \'{label}\'?' },
   delete: { es: 'Eliminar', en: 'Delete' }
 }
 

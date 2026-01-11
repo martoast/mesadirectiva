@@ -1,6 +1,7 @@
 <template>
   <div class="admin-fullscreen-layout">
     <slot />
+    <UiToast />
   </div>
 </template>
 

@@ -757,12 +757,24 @@ const translations = {
   deleteSeat: { es: 'Eliminar Asiento', en: 'Delete Seat' },
   deleteTableConfirm: { es: '¿Seguro que quieres eliminar \'{name}\'? También se van a eliminar todos los asientos.', en: 'Are you sure you want to delete \'{name}\'? This will also delete all seats.' },
   deleteSeatConfirm: { es: '¿Seguro que quieres eliminar el asiento \'{label}\'?', en: 'Are you sure you want to delete seat \'{label}\'?' },
-  delete: { es: 'Eliminar', en: 'Delete' }
+  delete: { es: 'Eliminar', en: 'Delete' },
+
+  // Toast messages
+  tableCreated: { es: 'Mesa creada', en: 'Table created' },
+  tableUpdated: { es: 'Mesa actualizada', en: 'Table updated' },
+  tableDeleted: { es: 'Mesa eliminada', en: 'Table deleted' },
+  seatCreated: { es: 'Asiento creado', en: 'Seat created' },
+  seatUpdated: { es: 'Asiento actualizado', en: 'Seat updated' },
+  seatDeleted: { es: 'Asiento eliminado', en: 'Seat deleted' },
+  seatsCreated: { es: 'Asientos creados', en: 'Seats created' },
+  layoutSaved: { es: 'Diseño guardado', en: 'Layout saved' },
+  errorOccurred: { es: 'Ocurrió un error', en: 'An error occurred' }
 }
 
 const t = createT(translations)
 
 const route = useRoute()
+const toast = useToast()
 const { getEvent } = useEvents()
 const { getTables, createTable, updateTable, deleteTable } = useTables()
 const { getSeats, createSeat, createSeatsBulk, updateSeat, deleteSeat } = useSeats()
@@ -966,6 +978,7 @@ const handleTableSubmit = async () => {
       }
       isCreatingTable.value = false
       closePanel()
+      toast.success(t.tableCreated)
     } else {
       const res = await updateTable(route.params.slug, selectedTable.value.id, data)
       // Update table locally instead of re-fetching to preserve unsaved positions
@@ -981,9 +994,10 @@ const handleTableSubmit = async () => {
         }
         selectTable(tables.value[index])
       }
+      toast.success(t.tableUpdated)
     }
   } catch (e) {
-    error.value = e.message || 'Failed to save table'
+    toast.error(e.message || t.errorOccurred)
   } finally {
     tableFormLoading.value = false
   }
@@ -1001,8 +1015,9 @@ const handleDeleteTable = async () => {
     closePanel()
     // Remove table locally instead of re-fetching to preserve unsaved positions
     tables.value = tables.value.filter(t => t.id !== deletedId)
+    toast.success(t.tableDeleted)
   } catch (e) {
-    error.value = e.message || 'Failed to delete table'
+    toast.error(e.message || t.errorOccurred)
     showDeleteTableModal.value = false
   }
 }
@@ -1036,13 +1051,15 @@ const handleSeatSubmit = async () => {
 
     if (editingSeat.value) {
       await updateSeat(route.params.slug, editingSeat.value.id, data)
+      toast.success(t.seatUpdated)
     } else {
       await createSeat(route.params.slug, selectedTable.value.id, data)
+      toast.success(t.seatCreated)
     }
     closeSeatModal()
     await fetchTableSeats(selectedTable.value.id)
   } catch (e) {
-    error.value = e.message || 'Failed to save seat'
+    toast.error(e.message || t.errorOccurred)
   } finally {
     seatFormLoading.value = false
   }
@@ -1064,8 +1081,9 @@ const handleBulkSubmit = async () => {
     await createSeatsBulk(route.params.slug, selectedTable.value.id, seats)
     showBulkModal.value = false
     await fetchTableSeats(selectedTable.value.id)
+    toast.success(t.seatsCreated)
   } catch (e) {
-    error.value = e.message || 'Failed to create seats'
+    toast.error(e.message || t.errorOccurred)
   } finally {
     bulkLoading.value = false
   }
@@ -1082,8 +1100,9 @@ const handleDeleteSeat = async () => {
     showDeleteSeatModal.value = false
     deletingSeat.value = null
     await fetchTableSeats(selectedTable.value.id)
+    toast.success(t.seatDeleted)
   } catch (e) {
-    error.value = e.message || 'Failed to delete seat'
+    toast.error(e.message || t.errorOccurred)
     showDeleteSeatModal.value = false
   }
 }
@@ -1244,8 +1263,9 @@ const saveAllPositions = async () => {
       })
     }
     hasUnsavedChanges.value = false
+    toast.success(t.layoutSaved)
   } catch (e) {
-    error.value = e.message || 'Failed to save'
+    toast.error(e.message || t.errorOccurred)
   } finally {
     savingPositions.value = false
   }

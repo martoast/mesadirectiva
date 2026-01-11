@@ -128,6 +128,9 @@
         <slot />
       </div>
     </main>
+
+    <!-- Toast Notifications -->
+    <UiToast />
   </div>
 </template>
 

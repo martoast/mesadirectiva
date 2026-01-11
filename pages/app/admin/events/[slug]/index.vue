@@ -111,53 +111,6 @@
         </div>
       </header>
 
-      <!-- Progress Steps -->
-      <div class="progress-section">
-        <div class="progress-steps">
-          <div class="step completed">
-            <div class="step-icon">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <polyline points="20 6 9 17 4 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="step-content">
-              <span class="step-label">{{ t.eventCreated }}</span>
-              <span class="step-desc">{{ t.basicInfoSaved }}</span>
-            </div>
-          </div>
-
-          <div class="step-connector" :class="{ active: isSetupComplete }"></div>
-
-          <div :class="['step', isSetupComplete ? 'completed' : 'pending']">
-            <div class="step-icon">
-              <svg v-if="isSetupComplete" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <polyline points="20 6 9 17 4 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span v-else class="step-number">2</span>
-            </div>
-            <div class="step-content">
-              <span class="step-label">{{ event.seating_type === 'seated' ? t.tablesAndSeats : t.ticketPricing }}</span>
-              <span class="step-desc">{{ isSetupComplete ? t.configured : t.actionRequired }}</span>
-            </div>
-          </div>
-
-          <div class="step-connector" :class="{ active: event.status === 'live' }"></div>
-
-          <div :class="['step', event.status === 'live' ? 'completed' : (isSetupComplete ? 'ready' : 'locked')]">
-            <div class="step-icon">
-              <svg v-if="event.status === 'live'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <polyline points="20 6 9 17 4 12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span v-else class="step-number">3</span>
-            </div>
-            <div class="step-content">
-              <span class="step-label">{{ event.status === 'live' ? t.published : t.readyToPublish }}</span>
-              <span class="step-desc">{{ event.status === 'live' ? t.eventIsLive : (isSetupComplete ? t.clickPublishAbove : t.completeStep2First) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Setup Required Alert -->
       <div v-if="!isSetupComplete" class="setup-alert">
         <div class="alert-icon">
@@ -421,17 +374,6 @@ const translations = {
   draft: { es: 'Borrador', en: 'Draft' },
   live: { es: 'En vivo', en: 'Live' },
   closed: { es: 'Cerrado', en: 'Closed' },
-  eventCreated: { es: 'Evento creado', en: 'Event Created' },
-  basicInfoSaved: { es: 'Información básica guardada', en: 'Basic info saved' },
-  tablesAndSeats: { es: 'Mesas y asientos', en: 'Tables & Seats' },
-  ticketPricing: { es: 'Precios de boletos', en: 'Ticket Pricing' },
-  configured: { es: 'Configurado', en: 'Configured' },
-  actionRequired: { es: 'Acción requerida', en: 'Action required' },
-  published: { es: 'Publicado', en: 'Published' },
-  readyToPublish: { es: 'Listo para publicar', en: 'Ready to Publish' },
-  eventIsLive: { es: 'El evento está en vivo', en: 'Event is live' },
-  clickPublishAbove: { es: 'Haz clic en publicar', en: 'Click publish' },
-  completeStep2First: { es: 'Completa el paso 2 primero', en: 'Complete step 2 first' },
   setupTables: { es: 'Configura tus mesas', en: 'Set up your tables' },
   addTicketPricing: { es: 'Agrega precios de boletos', en: 'Add ticket pricing' },
   setupTablesDesc: { es: 'Configura las mesas y asientos antes de publicar este evento.', en: 'Configure tables and seating before publishing this event.' },
@@ -991,98 +933,6 @@ onMounted(fetchEvent)
   background: var(--color-vermillion-light);
   border-color: var(--color-vermillion);
   color: var(--color-vermillion);
-}
-
-/* Progress Section */
-.progress-section {
-  background: #ffffff;
-  border: 1px solid var(--color-stone);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.progress-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-}
-
-.step-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.step.completed .step-icon {
-  background: var(--color-bamboo);
-  color: #ffffff;
-}
-
-.step.completed .step-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.step.pending .step-icon {
-  background: var(--color-amber-light);
-  color: var(--color-amber);
-}
-
-.step.ready .step-icon {
-  background: var(--color-indigo-light);
-  color: var(--color-indigo);
-}
-
-.step.locked .step-icon {
-  background: var(--color-stone-light);
-  color: var(--color-ink-muted);
-}
-
-.step-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.step-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.step-desc {
-  font-size: 12px;
-  color: var(--color-ink-muted);
-}
-
-.step.pending .step-desc {
-  color: var(--color-amber);
-}
-
-.step-connector {
-  width: 2px;
-  height: 20px;
-  background: var(--color-stone);
-  margin-left: 15px;
-}
-
-.step-connector.active {
-  background: var(--color-bamboo);
 }
 
 /* Setup Alert */
@@ -1667,26 +1517,6 @@ onMounted(fetchEvent)
 
   .mobile-fab-container {
     display: none;
-  }
-
-  .progress-section {
-    padding: 20px 24px;
-  }
-
-  .progress-steps {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .step {
-    flex: 1;
-    padding: 0;
-  }
-
-  .step-connector {
-    width: 40px;
-    height: 2px;
-    margin: 0 8px;
   }
 
   .setup-alert {

@@ -170,7 +170,7 @@
             :key="table.id"
             :class="[
               'table-card',
-              { 'vip': table.sell_as_whole },
+              { 'whole-table': table.sell_as_whole },
               { 'is-dragging': draggingTable?.id === table.id },
               { 'is-selected': selectedTable?.id === table.id },
               { 'is-sold': table.status === 'sold' }
@@ -183,12 +183,11 @@
           >
             <div class="table-header">
               <span class="table-name">{{ table.name }}</span>
-              <span v-if="table.sell_as_whole" class="vip-tag">VIP</span>
             </div>
 
             <div class="table-body">
               <template v-if="table.sell_as_whole">
-                <div class="vip-info">
+                <div class="whole-table-info">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
@@ -294,7 +293,7 @@
               {{ t.seats }}
               <span :class="[
                 'text-xs px-1.5 py-0.5 rounded-full',
-                panelTab === 'seats' ? 'bg-indigo/10 text-indigo' : 'bg-washi-300 text-ink-muted'
+                panelTab === 'seats' ? 'bg-sage/10 text-sage-dark' : 'bg-washi-300 text-ink-muted'
               ]">{{ selectedTable.seats?.length || 0 }}</span>
             </button>
           </div>
@@ -370,14 +369,14 @@
                   <button
                     type="submit"
                     :disabled="tableFormLoading"
-                    class="flex-1 px-5 py-3 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    class="flex-1 px-5 py-3 text-sm font-medium text-white bg-sage hover:bg-sage-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg"
                   >
                     {{ tableFormLoading ? t.saving : (isCreatingTable ? t.createTable : t.saveChanges) }}
                   </button>
                   <button
                     v-if="!isCreatingTable"
                     type="button"
-                    class="px-5 py-3 text-sm font-medium text-coral bg-coral/10 rounded-lg hover:bg-coral/20 transition-colors"
+                    class="px-5 py-3 text-sm font-medium text-danger-600 bg-danger-50 hover:bg-danger-100 rounded-lg transition-colors"
                     @click="confirmDeleteTable"
                   >
                     {{ t.deleteTable }}
@@ -480,7 +479,7 @@
                         </button>
                         <button
                           @click="confirmDeleteSeat(seat)"
-                          class="w-7 h-7 flex items-center justify-center rounded text-ink-light hover:text-coral hover:bg-coral/10 transition-all"
+                          class="w-7 h-7 flex items-center justify-center rounded text-ink-light hover:text-danger-600 hover:bg-danger-50 transition-all"
                           :title="t.deleteSeat"
                         >
                           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -504,7 +503,7 @@
                 <p class="text-sm text-ink-muted mb-6">{{ t.noSeatsYet }}</p>
                 <button
                   @click="openBulkCreate"
-                  class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light transition-colors"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-sage hover:bg-sage-dark rounded-lg transition-colors"
                 >
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 5v14M5 12h14"/>
@@ -551,7 +550,7 @@
                 <button type="button" class="px-5 py-2.5 text-sm font-medium text-ink-muted hover:text-ink hover:bg-paper-warm rounded-lg transition-colors" @click="closeSeatModal">
                   {{ t.cancel }}
                 </button>
-                <button type="submit" :disabled="seatFormLoading" class="px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <button type="submit" :disabled="seatFormLoading" class="px-5 py-2.5 text-sm font-medium text-white bg-sage hover:bg-sage-dark rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   {{ seatFormLoading ? t.saving : (editingSeat ? t.save : t.addSeat) }}
                 </button>
               </div>
@@ -627,7 +626,7 @@
                 <button type="button" class="px-5 py-2.5 text-sm font-medium text-ink-muted hover:text-ink hover:bg-paper-warm rounded-lg transition-colors" @click="showBulkModal = false">
                   {{ t.cancel }}
                 </button>
-                <button type="submit" :disabled="bulkLoading || bulkPreview.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <button type="submit" :disabled="bulkLoading || bulkPreview.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-sage hover:bg-sage-dark rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   {{ bulkLoading ? t.creating : t.createXSeats.replace('{count}', bulkPreview.length) }}
                 </button>
               </div>
@@ -698,7 +697,6 @@ const translations = {
 
   // Canvas
   stage: { es: 'ESCENARIO', en: 'STAGE' },
-  vip: { es: 'VIP', en: 'VIP' },
   seatsLabel: { es: 'asientos', en: 'seats' },
 
   // Instructions
@@ -1823,14 +1821,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px var(--indigo-soft), 0 8px 24px rgba(0,0,0,0.08);
 }
 
-.table-card.vip {
-  border-color: var(--gold);
-}
-
-.table-card.vip:hover {
-  border-color: var(--gold);
-}
-
 .table-card.is-sold {
   opacity: 0.6;
 }
@@ -1843,10 +1833,6 @@ onBeforeUnmount(() => {
   background: var(--ink);
 }
 
-.table-card.vip .table-header {
-  background: linear-gradient(135deg, var(--gold) 0%, #C4956A 100%);
-}
-
 .table-name {
   font-size: 12px;
   font-weight: 600;
@@ -1854,21 +1840,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.vip-tag {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--gold);
-  background: rgba(255,255,255,0.15);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.table-card.vip .vip-tag {
-  color: white;
-  background: rgba(255,255,255,0.25);
 }
 
 .table-body {
@@ -1879,7 +1850,7 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-.vip-info {
+.whole-table-info {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1887,12 +1858,12 @@ onBeforeUnmount(() => {
   color: var(--ink-muted);
 }
 
-.vip-info svg {
+.whole-table-info svg {
   width: 24px;
   height: 24px;
 }
 
-.vip-info span {
+.whole-table-info span {
   font-size: 13px;
   font-weight: 500;
 }

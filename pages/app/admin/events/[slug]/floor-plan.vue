@@ -9,23 +9,23 @@
           </svg>
         </NuxtLink>
         <div class="header-title">
-          <h1>{{ event?.name || 'Floor Plan' }}</h1>
-          <span class="subtitle">Click tables to manage, drag to arrange</span>
+          <h1>{{ event?.name || t.floorPlan }}</h1>
+          <span class="subtitle">{{ t.subtitle }}</span>
         </div>
       </div>
 
       <div class="header-stats">
         <div class="stat-chip">
           <span class="stat-num">{{ tables.length }}</span>
-          <span class="stat-label">Tables</span>
+          <span class="stat-label">{{ t.tables }}</span>
         </div>
         <div class="stat-chip">
           <span class="stat-num">{{ totalSeats }}</span>
-          <span class="stat-label">Seats</span>
+          <span class="stat-label">{{ t.seats }}</span>
         </div>
         <div class="stat-chip success">
           <span class="stat-num">{{ availableSeats }}</span>
-          <span class="stat-label">Available</span>
+          <span class="stat-label">{{ t.available }}</span>
         </div>
       </div>
 
@@ -34,7 +34,7 @@
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
-          <span class="btn-text">Add Table</span>
+          <span class="btn-text">{{ t.addTable }}</span>
         </button>
         <button
           @click="saveAllPositions"
@@ -45,7 +45,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
           <span v-else class="spinner"></span>
-          <span class="btn-text">{{ savingPositions ? 'Saving...' : 'Save Layout' }}</span>
+          <span class="btn-text">{{ savingPositions ? t.saving : t.saveLayout }}</span>
         </button>
       </div>
     </header>
@@ -53,7 +53,7 @@
     <!-- Loading State -->
     <div v-if="loading" class="state-container">
       <div class="loader"></div>
-      <p>Loading floor plan...</p>
+      <p>{{ t.loadingFloorPlan }}</p>
     </div>
 
     <!-- Error State -->
@@ -62,7 +62,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <p>{{ error }}</p>
-      <button @click="fetchData" class="retry-btn">Try Again</button>
+      <button @click="fetchData" class="retry-btn">{{ t.tryAgain }}</button>
     </div>
 
     <!-- Empty State -->
@@ -72,13 +72,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
         </svg>
       </div>
-      <h3>No tables yet</h3>
-      <p>Create tables to start designing your floor plan</p>
+      <h3>{{ t.noTablesYet }}</h3>
+      <p>{{ t.createTablesDesc }}</p>
       <button @click="openCreateTable" class="create-btn">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add First Table
+        {{ t.addFirstTable }}
       </button>
     </div>
 
@@ -87,13 +87,13 @@
       <!-- Left Toolbar -->
       <div class="toolbar-left">
         <div class="tool-section">
-          <button @click="zoomIn" class="tool-btn" :disabled="zoom >= 2" title="Zoom In">
+          <button @click="zoomIn" class="tool-btn" :disabled="zoom >= 2" :title="t.zoomIn">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
             </svg>
           </button>
           <span class="zoom-value">{{ Math.round(zoom * 100) }}%</span>
-          <button @click="zoomOut" class="tool-btn" :disabled="zoom <= 0.3" title="Zoom Out">
+          <button @click="zoomOut" class="tool-btn" :disabled="zoom <= 0.3" :title="t.zoomOut">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
             </svg>
@@ -103,12 +103,12 @@
         <div class="tool-divider"></div>
 
         <div class="tool-section">
-          <button @click="fitToView" class="tool-btn" title="Fit to View">
+          <button @click="fitToView" class="tool-btn" :title="t.fitToView">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>
-          <button @click="resetView" class="tool-btn" title="Reset View">
+          <button @click="resetView" class="tool-btn" :title="t.resetView">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -121,7 +121,7 @@
           <button
             @click="gridSnap = !gridSnap"
             :class="['tool-btn', { active: gridSnap }]"
-            title="Snap to Grid"
+            :title="t.snapToGrid"
           >
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -156,7 +156,7 @@
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            <span>STAGE</span>
+            <span>{{ t.stage }}</span>
           </div>
 
           <!-- Tables -->
@@ -179,7 +179,7 @@
           >
             <div class="table-top">
               <span class="table-name">{{ table.name }}</span>
-              <span v-if="table.sell_as_whole" class="vip-badge">VIP</span>
+              <span v-if="table.sell_as_whole" class="vip-badge">{{ t.vip }}</span>
             </div>
 
             <div class="table-middle">
@@ -188,7 +188,7 @@
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>{{ table.capacity }} seats</span>
+                  <span>{{ table.capacity }} {{ t.seatsLabel }}</span>
                 </div>
               </template>
               <template v-else>
@@ -208,7 +208,7 @@
 
             <div class="table-bottom">
               <span class="table-price">${{ formatPrice(table.price) }}</span>
-              <span class="seats-count">{{ table.seats?.length || table.capacity }} seats</span>
+              <span class="seats-count">{{ table.seats?.length || table.capacity }} {{ t.seatsLabel }}</span>
             </div>
           </div>
         </div>
@@ -222,14 +222,14 @@
         <Transition name="fade">
           <div v-if="showInstructions" class="instructions-overlay" @click="showInstructions = false">
             <div class="instructions-card">
-              <h4>Quick Controls</h4>
+              <h4>{{ t.quickControls }}</h4>
               <ul>
-                <li><kbd>Scroll</kbd> Zoom in/out</li>
-                <li><kbd>Drag canvas</kbd> Pan around</li>
-                <li><kbd>Click table</kbd> Open details</li>
-                <li><kbd>Drag table</kbd> Move table</li>
+                <li><kbd>{{ t.scroll }}</kbd> {{ t.scrollZoom }}</li>
+                <li><kbd>{{ t.dragCanvas }}</kbd> {{ t.panAround }}</li>
+                <li><kbd>{{ t.clickTable }}</kbd> {{ t.openDetails }}</li>
+                <li><kbd>{{ t.dragTable }}</kbd> {{ t.moveTable }}</li>
               </ul>
-              <button class="got-it-btn" @click.stop="showInstructions = false">Got it</button>
+              <button class="got-it-btn" @click.stop="showInstructions = false">{{ t.gotIt }}</button>
             </div>
           </div>
         </Transition>
@@ -240,7 +240,7 @@
         <div v-if="selectedTable" class="side-panel">
           <div class="panel-header">
             <div class="panel-title-row">
-              <h2>{{ isCreatingTable ? 'New Table' : selectedTable.name }}</h2>
+              <h2>{{ isCreatingTable ? t.newTable : selectedTable.name }}</h2>
               <button @click="closePanel" class="close-btn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -253,14 +253,14 @@
                 :class="['tab-btn', { active: panelTab === 'info' }]"
                 @click="panelTab = 'info'"
               >
-                Table Info
+                {{ t.tableInfo }}
               </button>
               <button
                 v-if="!selectedTable.sell_as_whole"
                 :class="['tab-btn', { active: panelTab === 'seats' }]"
                 @click="panelTab = 'seats'"
               >
-                Seats ({{ selectedTable.seats?.length || 0 }})
+                {{ t.seats }} ({{ selectedTable.seats?.length || 0 }})
               </button>
             </div>
           </div>
@@ -270,18 +270,18 @@
             <div v-if="isCreatingTable || panelTab === 'info'" class="panel-section">
               <form @submit.prevent="handleTableSubmit" class="table-form">
                 <div class="form-group">
-                  <label>Table Name</label>
+                  <label>{{ t.tableName }}</label>
                   <input
                     v-model="tableForm.name"
                     type="text"
-                    placeholder="e.g., Table 1, VIP Table A"
+                    :placeholder="t.tableNamePlaceholder"
                     required
                   />
                 </div>
 
                 <div class="form-row">
                   <div class="form-group">
-                    <label>Capacity</label>
+                    <label>{{ t.capacity }}</label>
                     <input
                       v-model="tableForm.capacity"
                       type="number"
@@ -291,7 +291,7 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label>Price</label>
+                    <label>{{ t.price }}</label>
                     <input
                       v-model="tableForm.price"
                       type="number"
@@ -308,11 +308,11 @@
                     type="checkbox"
                   />
                   <label for="sell-as-whole">
-                    <span class="toggle-title">Sell as whole table</span>
+                    <span class="toggle-title">{{ t.sellAsWhole }}</span>
                     <span class="toggle-desc">
                       {{ tableForm.sell_as_whole
-                        ? 'Customers purchase the entire table'
-                        : 'Customers can buy individual seats'
+                        ? t.sellAsWholeDesc
+                        : t.sellIndividualDesc
                       }}
                     </span>
                   </label>
@@ -325,14 +325,14 @@
                     type="checkbox"
                   />
                   <label for="is-active">
-                    <span class="toggle-title">Active</span>
-                    <span class="toggle-desc">Table is available for booking</span>
+                    <span class="toggle-title">{{ t.active }}</span>
+                    <span class="toggle-desc">{{ t.activeDesc }}</span>
                   </label>
                 </div>
 
                 <div class="form-actions">
                   <button type="submit" class="btn-primary" :disabled="tableFormLoading">
-                    {{ tableFormLoading ? 'Saving...' : (isCreatingTable ? 'Create Table' : 'Save Changes') }}
+                    {{ tableFormLoading ? t.saving : (isCreatingTable ? t.createTable : t.saveChanges) }}
                   </button>
                   <button
                     v-if="!isCreatingTable"
@@ -340,7 +340,7 @@
                     class="btn-danger"
                     @click="confirmDeleteTable"
                   >
-                    Delete Table
+                    {{ t.deleteTable }}
                   </button>
                 </div>
               </form>
@@ -351,12 +351,12 @@
               <!-- Seats Header -->
               <div class="seats-header">
                 <div class="seats-stats">
-                  <span class="stat available">{{ tableAvailableSeats }} available</span>
-                  <span class="stat sold">{{ tableSoldSeats }} sold</span>
+                  <span class="stat available">{{ tableAvailableSeats }} {{ t.availableLabel }}</span>
+                  <span class="stat sold">{{ tableSoldSeats }} {{ t.soldLabel }}</span>
                 </div>
                 <div class="seats-actions">
-                  <button @click="openBulkCreate" class="btn-ghost">Bulk Create</button>
-                  <button @click="openAddSeat" class="btn-secondary">+ Add Seat</button>
+                  <button @click="openBulkCreate" class="btn-ghost">{{ t.bulkCreate }}</button>
+                  <button @click="openAddSeat" class="btn-secondary">+ {{ t.addSeat }}</button>
                 </div>
               </div>
 
@@ -373,12 +373,12 @@
                   </div>
                   <div class="seat-price">${{ formatPrice(seat.price) }}</div>
                   <div class="seat-actions">
-                    <button @click="openEditSeat(seat)" class="icon-btn" title="Edit">
+                    <button @click="openEditSeat(seat)" class="icon-btn" :title="t.editSeat">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
-                    <button @click="confirmDeleteSeat(seat)" class="icon-btn danger" title="Delete">
+                    <button @click="confirmDeleteSeat(seat)" class="icon-btn danger" :title="t.deleteSeat">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
@@ -389,8 +389,8 @@
 
               <!-- Empty Seats -->
               <div v-else class="empty-seats">
-                <p>No seats created yet</p>
-                <button @click="openBulkCreate" class="btn-primary">Create Seats</button>
+                <p>{{ t.noSeatsYet }}</p>
+                <button @click="openBulkCreate" class="btn-primary">{{ t.createSeats }}</button>
               </div>
             </div>
           </div>
@@ -407,19 +407,19 @@
           @click.self="closeSeatModal"
         >
           <div class="floor-plan-modal-content">
-            <h3>{{ editingSeat ? 'Edit Seat' : 'Add Seat' }}</h3>
+            <h3>{{ editingSeat ? t.editSeat : t.addSeat }}</h3>
             <form @submit.prevent="handleSeatSubmit">
               <div class="form-group">
-                <label>Seat Label</label>
+                <label>{{ t.seatLabel }}</label>
                 <input
                   v-model="seatForm.label"
                   type="text"
-                  placeholder="e.g., A1, B2"
+                  :placeholder="t.seatLabelPlaceholder"
                   required
                 />
               </div>
               <div class="form-group">
-                <label>Price</label>
+                <label>{{ t.price }}</label>
                 <input
                   v-model="seatForm.price"
                   type="number"
@@ -429,9 +429,9 @@
                 />
               </div>
               <div class="modal-actions">
-                <button type="button" class="btn-ghost" @click="closeSeatModal">Cancel</button>
+                <button type="button" class="btn-ghost" @click="closeSeatModal">{{ t.cancel }}</button>
                 <button type="submit" class="btn-primary" :disabled="seatFormLoading">
-                  {{ seatFormLoading ? 'Saving...' : (editingSeat ? 'Save' : 'Add Seat') }}
+                  {{ seatFormLoading ? t.saving : (editingSeat ? t.save : t.addSeat) }}
                 </button>
               </div>
             </form>
@@ -449,20 +449,20 @@
           @click.self="showBulkModal = false"
         >
           <div class="floor-plan-modal-content">
-            <h3>Bulk Create Seats</h3>
+            <h3>{{ t.bulkCreateSeats }}</h3>
             <form @submit.prevent="handleBulkSubmit">
               <div class="form-row">
                 <div class="form-group">
-                  <label>Label Prefix</label>
+                  <label>{{ t.labelPrefix }}</label>
                   <input
                     v-model="bulkForm.prefix"
                     type="text"
-                    placeholder="e.g., A, Seat-"
+                    :placeholder="t.labelPrefixPlaceholder"
                     required
                   />
                 </div>
                 <div class="form-group">
-                  <label>Number of Seats</label>
+                  <label>{{ t.numberOfSeats }}</label>
                   <input
                     v-model="bulkForm.count"
                     type="number"
@@ -475,7 +475,7 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Start Number</label>
+                  <label>{{ t.startNumber }}</label>
                   <input
                     v-model="bulkForm.start_number"
                     type="number"
@@ -483,7 +483,7 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label>Price Each</label>
+                  <label>{{ t.priceEach }}</label>
                   <input
                     v-model="bulkForm.price"
                     type="number"
@@ -495,16 +495,16 @@
               </div>
               <!-- Preview -->
               <div v-if="bulkPreview.length > 0" class="bulk-preview">
-                <span class="preview-label">Preview:</span>
+                <span class="preview-label">{{ t.preview }}</span>
                 <div class="preview-chips">
                   <span v-for="label in bulkPreview.slice(0, 10)" :key="label" class="preview-chip">{{ label }}</span>
-                  <span v-if="bulkPreview.length > 10" class="preview-more">+{{ bulkPreview.length - 10 }} more</span>
+                  <span v-if="bulkPreview.length > 10" class="preview-more">+{{ bulkPreview.length - 10 }} {{ t.more }}</span>
                 </div>
               </div>
               <div class="modal-actions">
-                <button type="button" class="btn-ghost" @click="showBulkModal = false">Cancel</button>
+                <button type="button" class="btn-ghost" @click="showBulkModal = false">{{ t.cancel }}</button>
                 <button type="submit" class="btn-primary" :disabled="bulkLoading || bulkPreview.length === 0">
-                  {{ bulkLoading ? 'Creating...' : `Create ${bulkPreview.length} Seats` }}
+                  {{ bulkLoading ? t.creating : t.createXSeats.replace('{count}', bulkPreview.length) }}
                 </button>
               </div>
             </form>
@@ -516,20 +516,20 @@
     <!-- Delete Confirmation Modal -->
     <UiConfirmModal
       :is-open="showDeleteTableModal"
-      title="Delete Table"
-      :message="`Are you sure you want to delete '${selectedTable?.name}'? This will also delete all seats.`"
-      confirm-text="Delete"
-      cancel-text="Cancel"
+      :title="t.deleteTable"
+      :message="t.deleteTableConfirm.replace('{name}', selectedTable?.name || '')"
+      :confirm-text="t.delete"
+      :cancel-text="t.cancel"
       @confirm="handleDeleteTable"
       @cancel="showDeleteTableModal = false"
     />
 
     <UiConfirmModal
       :is-open="showDeleteSeatModal"
-      title="Delete Seat"
-      :message="`Are you sure you want to delete seat '${deletingSeat?.label}'?`"
-      confirm-text="Delete"
-      cancel-text="Cancel"
+      :title="t.deleteSeat"
+      :message="t.deleteSeatConfirm.replace('{label}', deletingSeat?.label || '')"
+      :confirm-text="t.delete"
+      :cancel-text="t.cancel"
       @confirm="handleDeleteSeat"
       @cancel="showDeleteSeatModal = false"
     />
@@ -543,6 +543,100 @@ definePageMeta({
   layout: 'admin-fullscreen',
   middleware: ['auth', 'admin']
 })
+
+const { t: createT } = useLanguage()
+
+const translations = {
+  // Header
+  floorPlan: { es: 'Plano de Mesas', en: 'Floor Plan' },
+  subtitle: { es: 'Haz clic en las mesas para gestionar, arrastra para ordenar', en: 'Click tables to manage, drag to arrange' },
+  tables: { es: 'Mesas', en: 'Tables' },
+  seats: { es: 'Asientos', en: 'Seats' },
+  available: { es: 'Disponibles', en: 'Available' },
+  addTable: { es: 'Agregar Mesa', en: 'Add Table' },
+  saving: { es: 'Guardando...', en: 'Saving...' },
+  saveLayout: { es: 'Guardar Diseño', en: 'Save Layout' },
+
+  // States
+  loadingFloorPlan: { es: 'Cargando plano...', en: 'Loading floor plan...' },
+  tryAgain: { es: 'Intentar de nuevo', en: 'Try Again' },
+  noTablesYet: { es: 'No hay mesas aún', en: 'No tables yet' },
+  createTablesDesc: { es: 'Crea mesas para comenzar a diseñar tu plano', en: 'Create tables to start designing your floor plan' },
+  addFirstTable: { es: 'Agregar Primera Mesa', en: 'Add First Table' },
+
+  // Toolbar tooltips
+  zoomIn: { es: 'Acercar', en: 'Zoom In' },
+  zoomOut: { es: 'Alejar', en: 'Zoom Out' },
+  fitToView: { es: 'Ajustar a la vista', en: 'Fit to View' },
+  resetView: { es: 'Restablecer vista', en: 'Reset View' },
+  snapToGrid: { es: 'Ajustar a cuadrícula', en: 'Snap to Grid' },
+
+  // Canvas
+  stage: { es: 'ESCENARIO', en: 'STAGE' },
+  vip: { es: 'VIP', en: 'VIP' },
+  seatsLabel: { es: 'asientos', en: 'seats' },
+
+  // Instructions
+  quickControls: { es: 'Controles Rápidos', en: 'Quick Controls' },
+  scrollZoom: { es: 'Hacer zoom', en: 'Zoom in/out' },
+  dragCanvas: { es: 'Arrastrar lienzo', en: 'Drag canvas' },
+  panAround: { es: 'Desplazar', en: 'Pan around' },
+  clickTable: { es: 'Clic en mesa', en: 'Click table' },
+  openDetails: { es: 'Abrir detalles', en: 'Open details' },
+  dragTable: { es: 'Arrastrar mesa', en: 'Drag table' },
+  moveTable: { es: 'Mover mesa', en: 'Move table' },
+  gotIt: { es: 'Entendido', en: 'Got it' },
+  scroll: { es: 'Scroll', en: 'Scroll' },
+
+  // Panel
+  newTable: { es: 'Nueva Mesa', en: 'New Table' },
+  tableInfo: { es: 'Info de Mesa', en: 'Table Info' },
+  tableName: { es: 'Nombre de Mesa', en: 'Table Name' },
+  tableNamePlaceholder: { es: 'Ej: Mesa 1, Mesa VIP A', en: 'e.g., Table 1, VIP Table A' },
+  capacity: { es: 'Capacidad', en: 'Capacity' },
+  price: { es: 'Precio', en: 'Price' },
+  sellAsWhole: { es: 'Vender mesa completa', en: 'Sell as whole table' },
+  sellAsWholeDesc: { es: 'Los clientes compran la mesa completa', en: 'Customers purchase the entire table' },
+  sellIndividualDesc: { es: 'Los clientes pueden comprar asientos individuales', en: 'Customers can buy individual seats' },
+  active: { es: 'Activa', en: 'Active' },
+  activeDesc: { es: 'Mesa disponible para reservar', en: 'Table is available for booking' },
+  createTable: { es: 'Crear Mesa', en: 'Create Table' },
+  saveChanges: { es: 'Guardar Cambios', en: 'Save Changes' },
+  deleteTable: { es: 'Eliminar Mesa', en: 'Delete Table' },
+
+  // Seats
+  availableLabel: { es: 'disponibles', en: 'available' },
+  soldLabel: { es: 'vendidos', en: 'sold' },
+  bulkCreate: { es: 'Crear en Lote', en: 'Bulk Create' },
+  addSeat: { es: 'Agregar Asiento', en: 'Add Seat' },
+  noSeatsYet: { es: 'No hay asientos creados', en: 'No seats created yet' },
+  createSeats: { es: 'Crear Asientos', en: 'Create Seats' },
+  editSeat: { es: 'Editar Asiento', en: 'Edit Seat' },
+  seatLabel: { es: 'Etiqueta del Asiento', en: 'Seat Label' },
+  seatLabelPlaceholder: { es: 'Ej: A1, B2', en: 'e.g., A1, B2' },
+  cancel: { es: 'Cancelar', en: 'Cancel' },
+  save: { es: 'Guardar', en: 'Save' },
+
+  // Bulk create
+  bulkCreateSeats: { es: 'Crear Asientos en Lote', en: 'Bulk Create Seats' },
+  labelPrefix: { es: 'Prefijo', en: 'Label Prefix' },
+  labelPrefixPlaceholder: { es: 'Ej: A, Asiento-', en: 'e.g., A, Seat-' },
+  numberOfSeats: { es: 'Cantidad', en: 'Number of Seats' },
+  startNumber: { es: 'Número Inicial', en: 'Start Number' },
+  priceEach: { es: 'Precio c/u', en: 'Price Each' },
+  preview: { es: 'Vista previa:', en: 'Preview:' },
+  more: { es: 'más', en: 'more' },
+  creating: { es: 'Creando...', en: 'Creating...' },
+  createXSeats: { es: 'Crear {count} Asientos', en: 'Create {count} Seats' },
+
+  // Delete modals
+  deleteSeat: { es: 'Eliminar Asiento', en: 'Delete Seat' },
+  deleteTableConfirm: { es: '¿Estás seguro de eliminar \'{name}\'? También se eliminarán todos los asientos.', en: 'Are you sure you want to delete \'{name}\'? This will also delete all seats.' },
+  deleteSeatConfirm: { es: '¿Estás seguro de eliminar el asiento \'{label}\'?', en: 'Are you sure you want to delete seat \'{label}\'?' },
+  delete: { es: 'Eliminar', en: 'Delete' }
+}
+
+const t = createT(translations)
 
 const route = useRoute()
 const { getEvent } = useEvents()

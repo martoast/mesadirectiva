@@ -1760,20 +1760,20 @@ onBeforeUnmount(() => {
 .stage-inner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, var(--paper-warm) 0%, white 100%);
-  border: 1px solid var(--stone);
+  background: linear-gradient(180deg, #E7E5E4 0%, #D6D3D1 100%);
+  border: 1px solid #A8A29E;
   border-radius: 0 0 50% 50% / 0 0 30% 30%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .stage-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.2em;
-  color: var(--ink-faint);
+  color: #57534E;
 }
 
 /* ========== TABLE CARDS ========== */

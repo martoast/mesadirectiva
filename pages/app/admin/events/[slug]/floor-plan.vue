@@ -960,16 +960,29 @@ const handleTableSubmit = async () => {
     }
 
     if (isCreatingTable.value) {
-      await createTable(route.params.slug, data)
+      const res = await createTable(route.params.slug, data)
+      // Add new table locally instead of re-fetching to preserve unsaved positions
+      if (res.table) {
+        res.table.seats = []
+        tables.value.push(res.table)
+      }
       isCreatingTable.value = false
       closePanel()
     } else {
-      await updateTable(route.params.slug, selectedTable.value.id, data)
-    }
-    await fetchData()
-    if (!isCreatingTable.value && selectedTable.value) {
-      const updated = tables.value.find(t => t.id === selectedTable.value.id)
-      if (updated) selectTable(updated)
+      const res = await updateTable(route.params.slug, selectedTable.value.id, data)
+      // Update table locally instead of re-fetching to preserve unsaved positions
+      const index = tables.value.findIndex(t => t.id === selectedTable.value.id)
+      if (index !== -1 && res.table) {
+        // Preserve current position and seats
+        const currentTable = tables.value[index]
+        tables.value[index] = {
+          ...res.table,
+          position_x: currentTable.position_x,
+          position_y: currentTable.position_y,
+          seats: currentTable.seats
+        }
+        selectTable(tables.value[index])
+      }
     }
   } catch (e) {
     error.value = e.message || 'Failed to save table'
@@ -984,10 +997,12 @@ const confirmDeleteTable = () => {
 
 const handleDeleteTable = async () => {
   try {
-    await deleteTable(route.params.slug, selectedTable.value.id)
+    const deletedId = selectedTable.value.id
+    await deleteTable(route.params.slug, deletedId)
     showDeleteTableModal.value = false
     closePanel()
-    await fetchData()
+    // Remove table locally instead of re-fetching to preserve unsaved positions
+    tables.value = tables.value.filter(t => t.id !== deletedId)
   } catch (e) {
     error.value = e.message || 'Failed to delete table'
     showDeleteTableModal.value = false

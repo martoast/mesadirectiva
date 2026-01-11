@@ -1,140 +1,147 @@
 <template>
   <div class="floor-plan-page">
-    <!-- Header Bar -->
+    <!-- Minimal Header -->
     <header class="editor-header">
       <div class="header-left">
-        <NuxtLink :to="`/app/admin/events/${route.params.slug}`" class="back-btn">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        <NuxtLink :to="`/app/admin/events/${route.params.slug}`" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
         </NuxtLink>
-        <div class="header-title">
+        <div class="header-info">
           <h1>{{ event?.name || t.floorPlan }}</h1>
-          <span class="subtitle">{{ t.subtitle }}</span>
         </div>
       </div>
 
-      <div class="header-stats">
-        <div class="stat-chip">
-          <span class="stat-num">{{ tables.length }}</span>
-          <span class="stat-label">{{ t.tables }}</span>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-num">{{ totalSeats }}</span>
-          <span class="stat-label">{{ t.seats }}</span>
-        </div>
-        <div class="stat-chip success">
-          <span class="stat-num">{{ availableSeats }}</span>
-          <span class="stat-label">{{ t.available }}</span>
+      <div class="header-center">
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-value">{{ tables.length }}</span>
+            <span class="stat-label">{{ t.tables }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value">{{ totalSeats }}</span>
+            <span class="stat-label">{{ t.seats }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat accent">
+            <span class="stat-value">{{ availableSeats }}</span>
+            <span class="stat-label">{{ t.available }}</span>
+          </div>
         </div>
       </div>
 
-      <div class="header-actions">
-        <button @click="openCreateTable" class="action-btn ghost">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      <div class="header-right">
+        <button @click="openCreateTable" class="header-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 5v14M5 12h14"/>
           </svg>
-          <span class="btn-text">{{ t.addTable }}</span>
+          <span>{{ t.addTable }}</span>
         </button>
         <button
           @click="saveAllPositions"
           :disabled="savingPositions || !hasUnsavedChanges"
-          :class="['action-btn primary', { 'has-changes': hasUnsavedChanges }]"
+          :class="['header-btn primary', { active: hasUnsavedChanges }]"
         >
-          <svg v-if="!savingPositions" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          <svg v-if="!savingPositions" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 13l4 4L19 7"/>
           </svg>
           <span v-else class="spinner"></span>
-          <span class="btn-text">{{ savingPositions ? t.saving : t.saveLayout }}</span>
+          <span>{{ savingPositions ? t.saving : t.saveLayout }}</span>
         </button>
       </div>
     </header>
 
     <!-- Loading State -->
-    <div v-if="loading" class="state-container">
-      <div class="loader"></div>
-      <p>{{ t.loadingFloorPlan }}</p>
+    <div v-if="loading" class="state-view">
+      <div class="loader-zen">
+        <div class="loader-circle"></div>
+      </div>
+      <p class="state-text">{{ t.loadingFloorPlan }}</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="state-container error">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <p>{{ error }}</p>
-      <button @click="fetchData" class="retry-btn">{{ t.tryAgain }}</button>
+    <div v-else-if="error" class="state-view">
+      <div class="state-icon error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4M12 16h.01"/>
+        </svg>
+      </div>
+      <p class="state-text">{{ error }}</p>
+      <button @click="fetchData" class="state-btn">{{ t.tryAgain }}</button>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="tables.length === 0 && !selectedTable" class="state-container empty">
-      <div class="empty-icon">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-        </svg>
+    <div v-else-if="tables.length === 0 && !selectedTable" class="state-view empty">
+      <div class="empty-visual">
+        <div class="zen-circle"></div>
+        <div class="zen-lines">
+          <span></span><span></span><span></span>
+        </div>
       </div>
-      <h3>{{ t.noTablesYet }}</h3>
-      <p>{{ t.createTablesDesc }}</p>
-      <button @click="openCreateTable" class="create-btn">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <h2 class="empty-title">{{ t.noTablesYet }}</h2>
+      <p class="state-text">{{ t.createTablesDesc }}</p>
+      <button @click="openCreateTable" class="state-btn primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 5v14M5 12h14"/>
         </svg>
         {{ t.addFirstTable }}
       </button>
     </div>
 
-    <!-- Editor -->
-    <div v-else class="editor-wrapper">
-      <!-- Left Toolbar -->
-      <div class="toolbar-left">
-        <div class="tool-section">
-          <button @click="zoomIn" class="tool-btn" :disabled="zoom >= 2" :title="t.zoomIn">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-            </svg>
-          </button>
-          <span class="zoom-value">{{ Math.round(zoom * 100) }}%</span>
-          <button @click="zoomOut" class="tool-btn" :disabled="zoom <= 0.3" :title="t.zoomOut">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="tool-divider"></div>
-
-        <div class="tool-section">
-          <button @click="fitToView" class="tool-btn" :title="t.fitToView">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
-          <button @click="resetView" class="tool-btn" :title="t.resetView">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="tool-divider"></div>
-
-        <div class="tool-section">
-          <button
-            @click="gridSnap = !gridSnap"
-            :class="['tool-btn', { active: gridSnap }]"
-            :title="t.snapToGrid"
-          >
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </button>
-        </div>
+    <!-- Editor Canvas -->
+    <div v-else class="editor-area">
+      <!-- Floating Toolbar -->
+      <div class="toolbar">
+        <button @click="zoomIn" :disabled="zoom >= 2" :title="t.zoomIn" class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+          </svg>
+        </button>
+        <span class="zoom-display">{{ Math.round(zoom * 100) }}%</span>
+        <button @click="zoomOut" :disabled="zoom <= 0.3" :title="t.zoomOut" class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35M8 11h6"/>
+          </svg>
+        </button>
+        <div class="tool-sep"></div>
+        <button @click="fitToView" :title="t.fitToView" class="tool-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+        </button>
+        <button @click="toggleFullscreen" :title="isFullscreen ? t.exitFullscreen : t.fullscreen" class="tool-btn">
+          <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+          </svg>
+        </button>
+        <div class="tool-sep"></div>
+        <button
+          @click="gridSnap = !gridSnap"
+          :class="['tool-btn', { active: gridSnap }]"
+          :title="t.snapToGrid"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- Canvas -->
+      <!-- Canvas Area -->
       <div
         ref="canvasContainer"
         class="canvas"
-        :class="{ 'is-panning': isPanning, 'is-dragging': draggingTable, 'panel-open': selectedTable }"
+        :class="{ 'panning': isPanning, 'dragging': draggingTable, 'panel-open': selectedTable }"
         @mousedown="startPan"
         @mousemove="onPan"
         @mouseup="endPan"
@@ -142,34 +149,31 @@
         @wheel.prevent="onWheel"
       >
         <div
-          class="canvas-content"
+          class="canvas-world"
           :style="{
             transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
-            transformOrigin: '0 0'
           }"
         >
-          <!-- Grid -->
-          <div class="grid"></div>
+          <!-- Subtle Grid -->
+          <div class="grid-pattern"></div>
 
-          <!-- Stage -->
-          <div class="stage">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <span>{{ t.stage }}</span>
+          <!-- Stage Element -->
+          <div class="stage-element">
+            <div class="stage-inner">
+              <span class="stage-label">{{ t.stage }}</span>
+            </div>
           </div>
 
-          <!-- Tables -->
+          <!-- Table Cards -->
           <div
             v-for="table in tables"
             :key="table.id"
             :class="[
-              'table-item',
+              'table-card',
               { 'vip': table.sell_as_whole },
-              { 'dragging': draggingTable?.id === table.id },
-              { 'selected': selectedTable?.id === table.id },
-              { 'sold': table.status === 'sold' },
-              { 'reserved': table.status === 'reserved' }
+              { 'is-dragging': draggingTable?.id === table.id },
+              { 'is-selected': selectedTable?.id === table.id },
+              { 'is-sold': table.status === 'sold' }
             ]"
             :style="{
               left: `${table.position_x}px`,
@@ -177,167 +181,203 @@
             }"
             @mousedown.stop="startDrag($event, table)"
           >
-            <div class="table-top">
+            <div class="table-header">
               <span class="table-name">{{ table.name }}</span>
-              <span v-if="table.sell_as_whole" class="vip-badge">{{ t.vip }}</span>
+              <span v-if="table.sell_as_whole" class="vip-tag">VIP</span>
             </div>
 
-            <div class="table-middle">
+            <div class="table-body">
               <template v-if="table.sell_as_whole">
-                <div class="vip-content">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                <div class="vip-info">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                   </svg>
-                  <span>{{ table.capacity }} {{ t.seatsLabel }}</span>
+                  <span>{{ table.capacity }}</span>
                 </div>
               </template>
               <template v-else>
-                <div class="seats-grid">
+                <div class="seats-preview">
                   <div
-                    v-for="seat in table.seats?.slice(0, 9)"
+                    v-for="seat in table.seats?.slice(0, 8)"
                     :key="seat.id"
-                    :class="['seat-dot', seat.status]"
-                    :title="`${seat.label}: ${seat.status}`"
+                    :class="['seat-pip', seat.status]"
                   ></div>
-                  <div v-if="table.seats?.length > 9" class="seats-more">
-                    +{{ table.seats.length - 9 }}
+                  <div v-if="(table.seats?.length || 0) > 8" class="seats-overflow">
+                    +{{ table.seats.length - 8 }}
                   </div>
                 </div>
               </template>
             </div>
 
-            <div class="table-bottom">
+            <div class="table-footer">
               <span class="table-price">${{ formatPrice(table.price) }}</span>
-              <span class="seats-count">{{ table.seats?.length || table.capacity }} {{ t.seatsLabel }}</span>
+              <span class="table-seats">{{ table.seats?.length || table.capacity }} {{ t.seatsLabel }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Position Indicator -->
-        <div v-if="draggingTable" class="position-indicator">
-          {{ Math.round(draggingTable.position_x) }}, {{ Math.round(draggingTable.position_y) }}
-        </div>
+        <!-- Drag Position Tooltip -->
+        <Transition name="tooltip">
+          <div v-if="draggingTable" class="drag-tooltip">
+            {{ Math.round(draggingTable.position_x) }}, {{ Math.round(draggingTable.position_y) }}
+          </div>
+        </Transition>
 
-        <!-- Instructions Overlay -->
-        <Transition name="fade">
-          <div v-if="showInstructions" class="instructions-overlay" @click="showInstructions = false">
-            <div class="instructions-card">
-              <h4>{{ t.quickControls }}</h4>
-              <ul>
-                <li><kbd>{{ t.scroll }}</kbd> {{ t.scrollZoom }}</li>
-                <li><kbd>{{ t.dragCanvas }}</kbd> {{ t.panAround }}</li>
-                <li><kbd>{{ t.clickTable }}</kbd> {{ t.openDetails }}</li>
-                <li><kbd>{{ t.dragTable }}</kbd> {{ t.moveTable }}</li>
-              </ul>
-              <button class="got-it-btn" @click.stop="showInstructions = false">{{ t.gotIt }}</button>
+        <!-- Welcome Overlay -->
+        <Transition name="overlay">
+          <div v-if="showInstructions" class="welcome-overlay" @click="showInstructions = false">
+            <div class="welcome-card">
+              <div class="welcome-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M3 9h18M9 21V9"/>
+                </svg>
+              </div>
+              <h3>{{ t.quickControls }}</h3>
+              <div class="controls-list">
+                <div class="control-item">
+                  <kbd>{{ t.scroll }}</kbd>
+                  <span>{{ t.scrollZoom }}</span>
+                </div>
+                <div class="control-item">
+                  <kbd>{{ t.dragCanvas }}</kbd>
+                  <span>{{ t.panAround }}</span>
+                </div>
+                <div class="control-item">
+                  <kbd>{{ t.clickTable }}</kbd>
+                  <span>{{ t.openDetails }}</span>
+                </div>
+              </div>
+              <button class="welcome-btn" @click.stop="showInstructions = false">{{ t.gotIt }}</button>
             </div>
           </div>
         </Transition>
       </div>
 
       <!-- Side Panel -->
-      <Transition name="slide">
-        <div v-if="selectedTable" class="side-panel">
-          <div class="panel-header">
-            <div class="panel-title-row">
-              <h2>{{ isCreatingTable ? t.newTable : selectedTable.name }}</h2>
-              <button @click="closePanel" class="close-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <!-- Tabs -->
-            <div v-if="!isCreatingTable" class="panel-tabs">
-              <button
-                :class="['tab-btn', { active: panelTab === 'info' }]"
-                @click="panelTab = 'info'"
-              >
-                {{ t.tableInfo }}
-              </button>
-              <button
-                v-if="!selectedTable.sell_as_whole"
-                :class="['tab-btn', { active: panelTab === 'seats' }]"
-                @click="panelTab = 'seats'"
-              >
-                {{ t.seats }} ({{ selectedTable.seats?.length || 0 }})
-              </button>
-            </div>
+      <Transition name="panel">
+        <aside v-if="selectedTable" class="side-panel font-outfit">
+          <div class="flex items-center justify-between px-6 py-5 border-b border-washi-300">
+            <h2 class="text-lg font-semibold text-ink">{{ isCreatingTable ? t.newTable : selectedTable.name }}</h2>
+            <button @click="closePanel" class="w-9 h-9 flex items-center justify-center rounded-lg text-ink-muted hover:bg-paper-warm hover:text-ink transition-all">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
           </div>
 
-          <div class="panel-content">
-            <!-- Table Form (Create/Edit) -->
-            <div v-if="isCreatingTable || panelTab === 'info'" class="panel-section">
-              <form @submit.prevent="handleTableSubmit" class="table-form">
-                <div class="form-group">
-                  <label>{{ t.tableName }}</label>
+          <!-- Tabs -->
+          <div v-if="!isCreatingTable" class="flex px-6 border-b border-washi-300">
+            <button
+              :class="[
+                'flex items-center gap-1.5 py-3.5 mr-6 text-sm font-medium border-b-2 transition-all',
+                panelTab === 'info'
+                  ? 'text-indigo border-indigo'
+                  : 'text-ink-muted border-transparent hover:text-ink'
+              ]"
+              @click="panelTab = 'info'"
+            >
+              {{ t.tableInfo }}
+            </button>
+            <button
+              v-if="!selectedTable.sell_as_whole"
+              :class="[
+                'flex items-center gap-1.5 py-3.5 mr-6 text-sm font-medium border-b-2 transition-all',
+                panelTab === 'seats'
+                  ? 'text-indigo border-indigo'
+                  : 'text-ink-muted border-transparent hover:text-ink'
+              ]"
+              @click="panelTab = 'seats'"
+            >
+              {{ t.seats }}
+              <span :class="[
+                'text-xs px-1.5 py-0.5 rounded-full',
+                panelTab === 'seats' ? 'bg-indigo/10 text-indigo' : 'bg-washi-300 text-ink-muted'
+              ]">{{ selectedTable.seats?.length || 0 }}</span>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-6">
+            <!-- Table Form -->
+            <div v-if="isCreatingTable || panelTab === 'info'">
+              <form @submit.prevent="handleTableSubmit" class="space-y-5">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-ink-muted">{{ t.tableName }}</label>
                   <input
                     v-model="tableForm.name"
                     type="text"
                     :placeholder="t.tableNamePlaceholder"
                     required
+                    class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                   />
                 </div>
 
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>{{ t.capacity }}</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-ink-muted">{{ t.capacity }}</label>
                     <input
                       v-model="tableForm.capacity"
                       type="number"
                       min="1"
                       placeholder="8"
                       required
+                      class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                     />
                   </div>
-                  <div class="form-group">
-                    <label>{{ t.price }}</label>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium text-ink-muted">{{ t.price }}</label>
                     <input
                       v-model="tableForm.price"
                       type="number"
                       step="0.01"
-                      placeholder="1600.00"
+                      placeholder="0.00"
+                      class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                     />
                   </div>
                 </div>
 
-                <div class="form-toggle">
+                <label class="flex gap-4 p-4 bg-paper-warm border border-washi-300 rounded-lg cursor-pointer hover:border-washi-400 transition-colors">
                   <input
-                    id="sell-as-whole"
+                    id="sell-whole"
                     v-model="tableForm.sell_as_whole"
                     type="checkbox"
+                    class="w-5 h-5 mt-0.5 accent-indigo rounded cursor-pointer"
                   />
-                  <label for="sell-as-whole">
-                    <span class="toggle-title">{{ t.sellAsWhole }}</span>
-                    <span class="toggle-desc">
-                      {{ tableForm.sell_as_whole
-                        ? t.sellAsWholeDesc
-                        : t.sellIndividualDesc
-                      }}
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium text-ink">{{ t.sellAsWhole }}</span>
+                    <span class="text-sm text-ink-muted leading-snug">
+                      {{ tableForm.sell_as_whole ? t.sellAsWholeDesc : t.sellIndividualDesc }}
                     </span>
-                  </label>
-                </div>
+                  </div>
+                </label>
 
-                <div class="form-toggle">
+                <label class="flex gap-4 p-4 bg-paper-warm border border-washi-300 rounded-lg cursor-pointer hover:border-washi-400 transition-colors">
                   <input
                     id="is-active"
                     v-model="tableForm.is_active"
                     type="checkbox"
+                    class="w-5 h-5 mt-0.5 accent-indigo rounded cursor-pointer"
                   />
-                  <label for="is-active">
-                    <span class="toggle-title">{{ t.active }}</span>
-                    <span class="toggle-desc">{{ t.activeDesc }}</span>
-                  </label>
-                </div>
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-medium text-ink">{{ t.active }}</span>
+                    <span class="text-sm text-ink-muted leading-snug">{{ t.activeDesc }}</span>
+                  </div>
+                </label>
 
-                <div class="form-actions">
-                  <button type="submit" class="btn-primary" :disabled="tableFormLoading">
+                <div class="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    :disabled="tableFormLoading"
+                    class="flex-1 px-5 py-3 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
                     {{ tableFormLoading ? t.saving : (isCreatingTable ? t.createTable : t.saveChanges) }}
                   </button>
                   <button
                     v-if="!isCreatingTable"
                     type="button"
-                    class="btn-danger"
+                    class="px-5 py-3 text-sm font-medium text-coral bg-coral/10 rounded-lg hover:bg-coral/20 transition-colors"
                     @click="confirmDeleteTable"
                   >
                     {{ t.deleteTable }}
@@ -347,90 +387,171 @@
             </div>
 
             <!-- Seats Tab -->
-            <div v-else-if="panelTab === 'seats'" class="panel-section">
-              <!-- Seats Header -->
-              <div class="seats-header">
-                <div class="seats-stats">
-                  <span class="stat available">{{ tableAvailableSeats }} {{ t.availableLabel }}</span>
-                  <span class="stat sold">{{ tableSoldSeats }} {{ t.soldLabel }}</span>
+            <div v-else-if="panelTab === 'seats'">
+              <!-- Summary Header -->
+              <div class="mb-8">
+                <div class="flex items-baseline gap-2 mb-3">
+                  <span class="text-4xl font-light text-ink tracking-tight">{{ selectedTable.seats?.length || 0 }}</span>
+                  <span class="text-lg text-ink-muted">{{ t.seatsTotal }}</span>
                 </div>
-                <div class="seats-actions">
-                  <button @click="openBulkCreate" class="btn-ghost">{{ t.bulkCreate }}</button>
-                  <button @click="openAddSeat" class="btn-secondary">+ {{ t.addSeat }}</button>
+
+                <!-- Capacity Bar -->
+                <div class="mb-4">
+                  <div class="h-1.5 bg-washi-300 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-sage rounded-full transition-all duration-500"
+                      :style="{ width: `${selectedTable.seats?.length ? (tableAvailableSeats / selectedTable.seats.length) * 100 : 0}%` }"
+                    ></div>
+                  </div>
+                  <div class="flex gap-4 mt-2">
+                    <span class="text-xs text-ink-muted">
+                      <span class="inline-block w-2 h-2 bg-sage rounded-full mr-1.5"></span>
+                      {{ tableAvailableSeats }} {{ t.availableLabel }}
+                    </span>
+                    <span class="text-xs text-ink-muted">
+                      <span class="inline-block w-2 h-2 bg-washi-400 rounded-full mr-1.5"></span>
+                      {{ tableSoldSeats }} {{ t.soldLabel }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3">
+                  <button
+                    @click="openAddSeat"
+                    class="flex items-center gap-1.5 text-sm font-medium text-indigo hover:text-indigo-dark transition-colors"
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    {{ t.addSeat }}
+                  </button>
+                  <span class="text-washi-400">·</span>
+                  <button
+                    @click="openBulkCreate"
+                    class="text-sm font-medium text-ink-muted hover:text-ink transition-colors"
+                  >
+                    {{ t.bulkCreate }}
+                  </button>
                 </div>
               </div>
 
               <!-- Seats List -->
-              <div v-if="selectedTable.seats?.length > 0" class="seats-list">
+              <div v-if="selectedTable.seats?.length > 0" class="border-t border-washi-200">
                 <div
                   v-for="seat in selectedTable.seats"
                   :key="seat.id"
-                  :class="['seat-item', seat.status]"
+                  class="group"
                 >
-                  <div class="seat-info">
-                    <span class="seat-label">{{ seat.label }}</span>
-                    <span :class="['seat-status', seat.status]">{{ seat.status }}</span>
-                  </div>
-                  <div class="seat-price">${{ formatPrice(seat.price) }}</div>
-                  <div class="seat-actions">
-                    <button @click="openEditSeat(seat)" class="icon-btn" :title="t.editSeat">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button @click="confirmDeleteSeat(seat)" class="icon-btn danger" :title="t.deleteSeat">
-                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                  <div
+                    :class="[
+                      'flex items-center justify-between py-4 border-b border-washi-200 transition-colors',
+                      seat.status === 'sold' ? 'opacity-50' : 'hover:bg-paper-warm/50'
+                    ]"
+                  >
+                    <div class="flex items-center gap-4">
+                      <!-- Status Dot -->
+                      <span :class="[
+                        'w-2 h-2 rounded-full flex-shrink-0',
+                        seat.status === 'available' ? 'bg-sage' : '',
+                        seat.status === 'reserved' ? 'bg-gold' : '',
+                        seat.status === 'sold' ? 'bg-washi-400' : ''
+                      ]"></span>
+
+                      <!-- Seat Label -->
+                      <span class="text-base font-medium text-ink">{{ seat.label }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                      <!-- Price -->
+                      <span class="text-sm tabular-nums text-ink-muted">${{ formatPrice(seat.price) }}</span>
+
+                      <!-- Actions (visible on hover) -->
+                      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          @click="openEditSeat(seat)"
+                          class="w-7 h-7 flex items-center justify-center rounded text-ink-light hover:text-ink hover:bg-washi-200 transition-all"
+                          :title="t.editSeat"
+                        >
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button
+                          @click="confirmDeleteSeat(seat)"
+                          class="w-7 h-7 flex items-center justify-center rounded text-ink-light hover:text-coral hover:bg-coral/10 transition-all"
+                          :title="t.deleteSeat"
+                        >
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Empty Seats -->
-              <div v-else class="empty-seats">
-                <p>{{ t.noSeatsYet }}</p>
-                <button @click="openBulkCreate" class="btn-primary">{{ t.createSeats }}</button>
+              <!-- Empty State -->
+              <div v-else class="py-16 text-center">
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-washi-200 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                    <path d="M9 9h6M9 13h6M9 17h4"/>
+                  </svg>
+                </div>
+                <p class="text-sm text-ink-muted mb-6">{{ t.noSeatsYet }}</p>
+                <button
+                  @click="openBulkCreate"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light transition-colors"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  {{ t.createSeats }}
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </Transition>
     </div>
 
-    <!-- Seat Form Modal -->
+    <!-- Modals -->
     <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showSeatModal"
-          class="floor-plan-modal-overlay"
-          @click.self="closeSeatModal"
-        >
-          <div class="floor-plan-modal-content">
-            <h3>{{ editingSeat ? t.editSeat : t.addSeat }}</h3>
-            <form @submit.prevent="handleSeatSubmit">
-              <div class="form-group">
-                <label>{{ t.seatLabel }}</label>
+      <!-- Seat Form Modal -->
+      <Transition name="modal">
+        <div v-if="showSeatModal" class="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-[100] p-5" @click.self="closeSeatModal">
+          <div class="modal-card w-full max-w-md bg-white rounded-2xl p-7 shadow-modal font-outfit">
+            <h3 class="text-xl font-semibold text-ink mb-6">{{ editingSeat ? t.editSeat : t.addSeat }}</h3>
+            <form @submit.prevent="handleSeatSubmit" class="space-y-5">
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-ink-muted">{{ t.seatLabel }}</label>
                 <input
                   v-model="seatForm.label"
                   type="text"
                   :placeholder="t.seatLabelPlaceholder"
                   required
+                  class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                 />
               </div>
-              <div class="form-group">
-                <label>{{ t.price }}</label>
+              <div class="space-y-2">
+                <label class="text-sm font-medium text-ink-muted">{{ t.price }}</label>
                 <input
                   v-model="seatForm.price"
                   type="number"
                   step="0.01"
-                  placeholder="200.00"
+                  placeholder="0.00"
                   required
+                  class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                 />
               </div>
-              <div class="modal-actions">
-                <button type="button" class="btn-ghost" @click="closeSeatModal">{{ t.cancel }}</button>
-                <button type="submit" class="btn-primary" :disabled="seatFormLoading">
+              <div class="flex justify-end gap-3 pt-5 mt-6 border-t border-washi-300">
+                <button type="button" class="px-5 py-2.5 text-sm font-medium text-ink-muted hover:text-ink hover:bg-paper-warm rounded-lg transition-colors" @click="closeSeatModal">
+                  {{ t.cancel }}
+                </button>
+                <button type="submit" :disabled="seatFormLoading" class="px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   {{ seatFormLoading ? t.saving : (editingSeat ? t.save : t.addSeat) }}
                 </button>
               </div>
@@ -438,31 +559,26 @@
           </div>
         </div>
       </Transition>
-    </Teleport>
 
-    <!-- Bulk Create Modal -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showBulkModal"
-          class="floor-plan-modal-overlay"
-          @click.self="showBulkModal = false"
-        >
-          <div class="floor-plan-modal-content">
-            <h3>{{ t.bulkCreateSeats }}</h3>
-            <form @submit.prevent="handleBulkSubmit">
-              <div class="form-row">
-                <div class="form-group">
-                  <label>{{ t.labelPrefix }}</label>
+      <!-- Bulk Create Modal -->
+      <Transition name="modal">
+        <div v-if="showBulkModal" class="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-[100] p-5" @click.self="showBulkModal = false">
+          <div class="modal-card w-full max-w-lg bg-white rounded-2xl p-7 shadow-modal font-outfit">
+            <h3 class="text-xl font-semibold text-ink mb-6">{{ t.bulkCreateSeats }}</h3>
+            <form @submit.prevent="handleBulkSubmit" class="space-y-5">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-ink-muted">{{ t.labelPrefix }}</label>
                   <input
                     v-model="bulkForm.prefix"
                     type="text"
                     :placeholder="t.labelPrefixPlaceholder"
                     required
+                    class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                   />
                 </div>
-                <div class="form-group">
-                  <label>{{ t.numberOfSeats }}</label>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-ink-muted">{{ t.numberOfSeats }}</label>
                   <input
                     v-model="bulkForm.count"
                     type="number"
@@ -470,40 +586,48 @@
                     max="50"
                     placeholder="8"
                     required
+                    class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                   />
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>{{ t.startNumber }}</label>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-ink-muted">{{ t.startNumber }}</label>
                   <input
                     v-model="bulkForm.start_number"
                     type="number"
                     placeholder="1"
+                    class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                   />
                 </div>
-                <div class="form-group">
-                  <label>{{ t.priceEach }}</label>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-ink-muted">{{ t.priceEach }}</label>
                   <input
                     v-model="bulkForm.price"
                     type="number"
                     step="0.01"
-                    placeholder="200.00"
+                    placeholder="0.00"
                     required
+                    class="w-full px-4 py-3 text-ink bg-paper-warm border border-washi-300 rounded-lg focus:outline-none focus:bg-white focus:border-indigo focus:ring-2 focus:ring-indigo/20 transition-all placeholder:text-ink-light"
                   />
                 </div>
               </div>
-              <!-- Preview -->
-              <div v-if="bulkPreview.length > 0" class="bulk-preview">
-                <span class="preview-label">{{ t.preview }}</span>
-                <div class="preview-chips">
-                  <span v-for="label in bulkPreview.slice(0, 10)" :key="label" class="preview-chip">{{ label }}</span>
-                  <span v-if="bulkPreview.length > 10" class="preview-more">+{{ bulkPreview.length - 10 }} {{ t.more }}</span>
+              <div v-if="bulkPreview.length > 0" class="p-4 bg-sage/10 border border-sage/20 rounded-lg">
+                <span class="text-xs font-medium text-sage uppercase tracking-wide">{{ t.preview }}</span>
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <span v-for="label in bulkPreview.slice(0, 10)" :key="label" class="px-2.5 py-1 text-sm font-medium text-sage bg-white border border-sage/30 rounded-md">
+                    {{ label }}
+                  </span>
+                  <span v-if="bulkPreview.length > 10" class="px-2.5 py-1 text-sm font-medium text-ink-muted">
+                    +{{ bulkPreview.length - 10 }} {{ t.more }}
+                  </span>
                 </div>
               </div>
-              <div class="modal-actions">
-                <button type="button" class="btn-ghost" @click="showBulkModal = false">{{ t.cancel }}</button>
-                <button type="submit" class="btn-primary" :disabled="bulkLoading || bulkPreview.length === 0">
+              <div class="flex justify-end gap-3 pt-5 mt-6 border-t border-washi-300">
+                <button type="button" class="px-5 py-2.5 text-sm font-medium text-ink-muted hover:text-ink hover:bg-paper-warm rounded-lg transition-colors" @click="showBulkModal = false">
+                  {{ t.cancel }}
+                </button>
+                <button type="submit" :disabled="bulkLoading || bulkPreview.length === 0" class="px-5 py-2.5 text-sm font-medium text-white bg-indigo rounded-lg hover:bg-indigo-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   {{ bulkLoading ? t.creating : t.createXSeats.replace('{count}', bulkPreview.length) }}
                 </button>
               </div>
@@ -513,7 +637,7 @@
       </Transition>
     </Teleport>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Modals -->
     <UiConfirmModal
       :is-open="showDeleteTableModal"
       :title="t.deleteTable"
@@ -568,7 +692,8 @@ const translations = {
   zoomIn: { es: 'Acercar', en: 'Zoom In' },
   zoomOut: { es: 'Alejar', en: 'Zoom Out' },
   fitToView: { es: 'Ajustar a la vista', en: 'Fit to View' },
-  resetView: { es: 'Restablecer vista', en: 'Reset View' },
+  fullscreen: { es: 'Pantalla completa', en: 'Fullscreen' },
+  exitFullscreen: { es: 'Salir de pantalla completa', en: 'Exit Fullscreen' },
   snapToGrid: { es: 'Ajustar a cuadrícula', en: 'Snap to Grid' },
 
   // Canvas
@@ -605,6 +730,7 @@ const translations = {
   deleteTable: { es: 'Eliminar Mesa', en: 'Delete Table' },
 
   // Seats
+  seatsTotal: { es: 'asientos', en: 'seats' },
   availableLabel: { es: 'disponibles', en: 'available' },
   soldLabel: { es: 'vendidos', en: 'sold' },
   bulkCreate: { es: 'Crear en Lote', en: 'Bulk Create' },
@@ -661,6 +787,7 @@ const panStartX = ref(0)
 const panStartY = ref(0)
 const gridSnap = ref(true)
 const gridSize = 25
+const isFullscreen = ref(false)
 
 // Drag state
 const draggingTable = ref(null)
@@ -757,7 +884,6 @@ const fetchData = async () => {
       navigateTo(`/app/admin/events/${route.params.slug}`)
     }
 
-    // Center view on content after data loads
     nextTick(() => {
       setTimeout(() => centerOnContent(), 100)
     })
@@ -814,7 +940,6 @@ const selectTable = (table) => {
     sell_as_whole: table.sell_as_whole !== false,
     is_active: table.is_active !== false
   }
-  // Fetch seats if not VIP table
   if (!table.sell_as_whole) {
     fetchTableSeats(table.id)
   }
@@ -969,7 +1094,6 @@ const onDrag = (e) => {
   const deltaX = (e.clientX - dragStartX.value) / zoom.value
   const deltaY = (e.clientY - dragStartY.value) / zoom.value
 
-  // Check if we've moved enough to consider it a drag
   if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
     hasDragged.value = true
   }
@@ -990,7 +1114,6 @@ const onDrag = (e) => {
 
 const endDrag = () => {
   if (draggingTable.value && !hasDragged.value) {
-    // It was a click, not a drag - select the table
     selectTable(draggingTable.value)
   }
   draggingTable.value = null
@@ -1016,7 +1139,6 @@ const endPan = () => {
   isPanning.value = false
 }
 
-// Zoom towards cursor
 const onWheel = (e) => {
   const container = canvasContainer.value
   if (!container) return
@@ -1043,7 +1165,6 @@ const onWheel = (e) => {
 const zoomIn = () => zoom.value = Math.min(2, zoom.value + 0.15)
 const zoomOut = () => zoom.value = Math.max(0.3, zoom.value - 0.15)
 
-// Center view on content
 const centerOnContent = (targetZoom = null) => {
   const container = canvasContainer.value
   if (!container) return
@@ -1052,11 +1173,9 @@ const centerOnContent = (targetZoom = null) => {
   const containerWidth = rect.width
   const containerHeight = rect.height
 
-  // If we have tables, center on them
   if (tables.value.length > 0) {
-    // Find bounding box of all tables
-    const tableWidth = 130
-    const tableHeight = 100
+    const tableWidth = 140
+    const tableHeight = 110
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
 
     tables.value.forEach(table => {
@@ -1066,15 +1185,12 @@ const centerOnContent = (targetZoom = null) => {
       maxY = Math.max(maxY, table.position_y + tableHeight)
     })
 
-    // Include stage area (roughly at top)
     minY = Math.min(minY, 10)
     maxY = Math.max(maxY, 70)
 
-    // Calculate content center
     const contentCenterX = (minX + maxX) / 2
     const contentCenterY = (minY + maxY) / 2
 
-    // Calculate zoom to fit content with padding
     const contentWidth = maxX - minX + 100
     const contentHeight = maxY - minY + 100
     const fitZoomX = containerWidth / contentWidth
@@ -1085,22 +1201,24 @@ const centerOnContent = (targetZoom = null) => {
     panX.value = (containerWidth / 2) - (contentCenterX * zoom.value)
     panY.value = (containerHeight / 2) - (contentCenterY * zoom.value)
   } else {
-    // No tables - center on a default area for new floor plans
     zoom.value = targetZoom ?? 0.7
     panX.value = (containerWidth / 2) - (700 * zoom.value)
     panY.value = (containerHeight / 2) - (300 * zoom.value)
   }
 }
 
-const resetView = () => {
-  centerOnContent(0.7)
+const fitToView = () => centerOnContent()
+
+const toggleFullscreen = async () => {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen()
+    isFullscreen.value = true
+  } else {
+    await document.exitFullscreen()
+    isFullscreen.value = false
+  }
 }
 
-const fitToView = () => {
-  centerOnContent()
-}
-
-// Save positions
 const saveAllPositions = async () => {
   if (!hasUnsavedChanges.value) return
   savingPositions.value = true
@@ -1120,7 +1238,6 @@ const saveAllPositions = async () => {
   }
 }
 
-// Lifecycle
 const handleBeforeUnload = (e) => {
   if (hasUnsavedChanges.value) {
     e.preventDefault()
@@ -1128,321 +1245,416 @@ const handleBeforeUnload = (e) => {
   }
 }
 
+const onFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 onMounted(() => {
   fetchData()
   window.addEventListener('beforeunload', handleBeforeUnload)
-
+  document.addEventListener('fullscreenchange', onFullscreenChange)
   setTimeout(() => {
     showInstructions.value = false
-  }, 5000)
+  }, 4000)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', endDrag)
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
 
 .floor-plan-page {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --header-h: 56px;
-  --panel-w: 360px;
+  --font: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --c-bg: #09090b;
-  --c-surface: #18181b;
-  --c-surface-elevated: #27272a;
-  --c-border: rgba(255,255,255,0.08);
-  --c-border-strong: rgba(255,255,255,0.15);
-  --c-text: #fafafa;
-  --c-text-secondary: #a1a1aa;
-  --c-text-muted: #71717a;
-  --c-primary: #6366f1;
-  --c-primary-hover: #818cf8;
-  --c-success: #22c55e;
-  --c-warning: #f59e0b;
-  --c-danger: #ef4444;
+  /* Japanese-inspired palette */
+  --paper: #FAF8F5;
+  --paper-warm: #F5F3EF;
+  --ink: #1C1917;
+  --ink-light: #44403C;
+  --ink-muted: #78716C;
+  --ink-faint: #A8A29E;
+  --stone: #E7E5E4;
+  --stone-dark: #D6D3D1;
 
-  font-family: var(--font-sans);
+  /* Accent colors */
+  --indigo: #4338CA;
+  --indigo-light: #6366F1;
+  --indigo-soft: rgba(67, 56, 202, 0.1);
+  --sage: #6B9080;
+  --sage-soft: rgba(107, 144, 128, 0.15);
+  --gold: #B08968;
+  --gold-soft: rgba(176, 137, 104, 0.15);
+  --coral: #DC6B6B;
+  --coral-soft: rgba(220, 107, 107, 0.1);
+
+  --header-h: 64px;
+  --panel-w: 380px;
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  font-family: var(--font);
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--c-bg);
+  background: var(--paper);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Header */
+/* ========== HEADER ========== */
 .editor-header {
   height: var(--header-h);
-  background: var(--c-surface);
-  border-bottom: 1px solid var(--c-border);
+  background: rgba(250, 248, 245, 0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--stone);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  gap: 16px;
+  padding: 0 24px;
+  gap: 24px;
   flex-shrink: 0;
+  z-index: 20;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
+  flex: 1;
 }
 
-.back-btn {
-  width: 36px;
-  height: 36px;
+.back-link {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.06);
-  border-radius: 8px;
-  color: var(--c-text-secondary);
-  transition: all 0.15s;
-  flex-shrink: 0;
+  border-radius: var(--radius);
+  color: var(--ink-muted);
+  transition: all 0.2s ease;
 }
 
-.back-btn:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--c-text);
+.back-link:hover {
+  background: var(--stone);
+  color: var(--ink);
 }
 
-.back-btn svg {
+.back-link svg {
+  width: 20px;
+  height: 20px;
+}
+
+.header-info h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.header-center {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .header-center {
+    display: flex;
+  }
+}
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 20px;
+  background: white;
+  border-radius: 100px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-muted);
+  text-transform: lowercase;
+}
+
+.stat.accent .stat-value {
+  color: var(--sage);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--stone);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--stone);
+  border-radius: var(--radius);
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-btn svg {
   width: 18px;
   height: 18px;
 }
 
-.header-title h1 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--c-text);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-title .subtitle {
-  font-size: 12px;
-  color: var(--c-text-muted);
+.header-btn span {
   display: none;
 }
 
 @media (min-width: 640px) {
-  .header-title .subtitle { display: block; }
+  .header-btn span {
+    display: inline;
+  }
 }
 
-.header-stats {
-  display: none;
-  align-items: center;
-  gap: 20px;
+.header-btn:hover {
+  background: var(--paper-warm);
+  border-color: var(--stone-dark);
 }
 
-@media (min-width: 900px) {
-  .header-stats { display: flex; }
+.header-btn.primary {
+  background: var(--stone);
+  border-color: var(--stone);
+  color: var(--ink-muted);
 }
 
-.stat-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.stat-num {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--c-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.stat-chip.success .stat-num {
-  color: var(--c-success);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.15s;
-}
-
-.action-btn svg { width: 16px; height: 16px; }
-
-.action-btn .btn-text { display: none; }
-
-@media (min-width: 480px) {
-  .action-btn .btn-text { display: inline; }
-}
-
-.action-btn.ghost {
-  color: var(--c-text-secondary);
-  background: rgba(255,255,255,0.06);
-}
-
-.action-btn.ghost:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--c-text);
-}
-
-.action-btn.primary {
-  color: var(--c-text-muted);
-  background: rgba(255,255,255,0.06);
-}
-
-.action-btn.primary.has-changes {
+.header-btn.primary.active {
+  background: var(--indigo);
+  border-color: var(--indigo);
   color: white;
-  background: var(--c-success);
 }
 
-.action-btn.primary.has-changes:hover {
-  background: #16a34a;
+.header-btn.primary.active:hover {
+  background: var(--indigo-light);
 }
 
-.action-btn.primary:disabled {
+.header-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-/* States */
-.state-container {
+/* ========== STATE VIEWS ========== */
+.state-view {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 40px 20px;
+  gap: 20px;
+  padding: 40px;
+  text-align: center;
 }
 
-.state-container svg {
+.loader-zen {
+  position: relative;
   width: 48px;
   height: 48px;
-  color: var(--c-text-muted);
 }
 
-.state-container.error svg { color: var(--c-danger); }
-
-.state-container p, .state-container h3 {
-  font-size: 14px;
-  color: var(--c-text-secondary);
-  margin: 0;
-}
-
-.state-container h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.loader {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--c-border);
-  border-top-color: var(--c-primary);
+.loader-circle {
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--stone);
+  border-top-color: var(--indigo);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s ease-in-out infinite;
 }
 
-.retry-btn, .create-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 12px 24px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  background: var(--c-primary);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.create-btn svg { width: 18px; height: 18px; }
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 20px;
+.state-icon {
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  background: var(--stone);
+}
+
+.state-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--ink-muted);
+}
+
+.state-icon.error {
+  background: var(--coral-soft);
+}
+
+.state-icon.error svg {
+  color: var(--coral);
+}
+
+.state-text {
+  font-size: 15px;
+  color: var(--ink-muted);
+  margin: 0;
+  max-width: 300px;
+}
+
+.state-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--stone);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.state-btn:hover {
+  border-color: var(--stone-dark);
+  background: var(--paper-warm);
+}
+
+.state-btn.primary {
+  background: var(--indigo);
+  border-color: var(--indigo);
+  color: white;
+}
+
+.state-btn.primary:hover {
+  background: var(--indigo-light);
+}
+
+.state-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Empty state zen visual */
+.empty-visual {
+  position: relative;
+  width: 120px;
+  height: 120px;
   margin-bottom: 8px;
 }
 
-.empty-icon svg { width: 36px; height: 36px; }
+.zen-circle {
+  position: absolute;
+  inset: 20px;
+  border: 2px solid var(--stone-dark);
+  border-radius: 50%;
+  animation: breathe 4s ease-in-out infinite;
+}
 
-/* Editor */
-.editor-wrapper {
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.zen-lines {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.zen-lines span {
+  width: 40px;
+  height: 2px;
+  background: var(--stone-dark);
+  border-radius: 1px;
+}
+
+.zen-lines span:nth-child(2) {
+  width: 60px;
+}
+
+.empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ========== EDITOR AREA ========== */
+.editor-area {
   flex: 1;
   display: flex;
   position: relative;
   overflow: hidden;
 }
 
-/* Toolbar */
-.toolbar-left {
+/* ========== TOOLBAR ========== */
+.toolbar {
   position: absolute;
-  left: 16px;
+  left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 10;
-}
-
-.tool-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  padding: 8px;
+  background: white;
+  border: 1px solid var(--stone);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  z-index: 10;
 }
 
 .tool-btn {
@@ -1453,134 +1665,175 @@ onBeforeUnmount(() => {
   justify-content: center;
   background: transparent;
   border: none;
-  border-radius: 8px;
-  color: var(--c-text-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .tool-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.08);
-  color: var(--c-text);
+  background: var(--paper-warm);
+  color: var(--ink);
 }
 
-.tool-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.tool-btn.active { background: var(--c-primary); color: white; }
-.tool-btn svg { width: 18px; height: 18px; }
+.tool-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
 
-.zoom-value {
-  font-size: 10px;
-  color: var(--c-text-muted);
+.tool-btn.active {
+  background: var(--indigo-soft);
+  color: var(--indigo);
+}
+
+.tool-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.zoom-display {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
   padding: 4px 0;
 }
 
-.tool-divider {
-  width: 24px;
+.tool-sep {
+  width: 20px;
   height: 1px;
-  background: var(--c-border);
+  background: var(--stone);
   margin: 4px 0;
 }
 
-/* Canvas */
+/* ========== CANVAS ========== */
 .canvas {
   flex: 1;
   overflow: hidden;
   cursor: grab;
   position: relative;
-  background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
-  transition: margin-right 0.3s ease;
+  transition: margin-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .canvas.panel-open {
   margin-right: var(--panel-w);
 }
 
-@media (max-width: 900px) {
-  .canvas.panel-open { margin-right: 0; }
+@media (max-width: 1024px) {
+  .canvas.panel-open {
+    margin-right: 0;
+  }
 }
 
-.canvas.is-panning { cursor: grabbing; }
-.canvas.is-dragging { cursor: move; }
+.canvas.panning {
+  cursor: grabbing;
+}
 
-.canvas-content {
+.canvas.dragging {
+  cursor: move;
+}
+
+.canvas-world {
   position: relative;
   width: 1400px;
   height: 1000px;
+  transform-origin: 0 0;
 }
 
-.grid {
+.grid-pattern {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    radial-gradient(circle, var(--stone) 1px, transparent 1px);
   background-size: 25px 25px;
+  opacity: 0.5;
 }
 
-/* Stage */
-.stage {
+/* ========== STAGE ========== */
+.stage-element {
   position: absolute;
-  top: 10px;
+  top: 20px;
   left: 100px;
   right: 100px;
-  height: 60px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 12px;
+  height: 70px;
+}
+
+.stage-inner {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, var(--paper-warm) 0%, white 100%);
+  border: 1px solid var(--stone);
+  border-radius: 0 0 50% 50% / 0 0 30% 30%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: rgba(255,255,255,0.6);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 
-.stage svg { width: 20px; height: 20px; }
-.stage span { font-size: 12px; font-weight: 600; letter-spacing: 0.15em; }
+.stage-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+}
 
-/* Tables */
-.table-item {
+/* ========== TABLE CARDS ========== */
+.table-card {
   position: absolute;
-  width: 130px;
-  background: #fafafa;
-  border-radius: 10px;
+  width: 140px;
+  background: white;
+  border: 1px solid var(--stone);
+  border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  transition: box-shadow 0.15s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
   user-select: none;
 }
 
-.table-item:hover {
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+.table-card:hover {
+  border-color: var(--stone-dark);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
 }
 
-.table-item.dragging {
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5);
+.table-card.is-dragging {
+  box-shadow: 0 16px 40px rgba(67, 56, 202, 0.2);
+  border-color: var(--indigo);
   z-index: 100;
   transform: scale(1.02);
 }
 
-.table-item.selected {
-  box-shadow: 0 0 0 3px var(--c-primary), 0 8px 30px rgba(99, 102, 241, 0.4);
+.table-card.is-selected {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px var(--indigo-soft), 0 8px 24px rgba(0,0,0,0.08);
 }
 
-.table-item.vip { border: 2px solid var(--c-warning); }
-.table-item.sold { opacity: 0.5; }
+.table-card.vip {
+  border-color: var(--gold);
+}
 
-.table-top {
+.table-card.vip:hover {
+  border-color: var(--gold);
+}
+
+.table-card.is-sold {
+  opacity: 0.6;
+}
+
+.table-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  background: #18181b;
+  padding: 10px 12px;
+  background: var(--ink);
 }
 
-.table-item.vip .table-top {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+.table-card.vip .table-header {
+  background: linear-gradient(135deg, var(--gold) 0%, #C4956A 100%);
 }
 
 .table-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: white;
   white-space: nowrap;
@@ -1588,722 +1841,306 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-.vip-badge {
-  font-size: 8px;
-  font-weight: 700;
-  color: var(--c-warning);
-  background: rgba(245, 158, 11, 0.2);
-  padding: 2px 5px;
+.vip-tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  background: rgba(255,255,255,0.15);
+  padding: 2px 6px;
   border-radius: 4px;
 }
 
-.table-item.vip .vip-badge {
+.table-card.vip .vip-tag {
   color: white;
   background: rgba(255,255,255,0.25);
 }
 
-.table-middle {
-  padding: 10px;
+.table-body {
+  padding: 14px 12px;
   min-height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.vip-content {
+.vip-info {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: #525252;
+  color: var(--ink-muted);
 }
 
-.vip-content svg { width: 22px; height: 22px; }
-.vip-content span { font-size: 10px; font-weight: 500; }
-
-.seats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+.vip-info svg {
+  width: 24px;
+  height: 24px;
 }
 
-.seat-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.vip-info span {
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.seat-dot.available { background: #d1fae5; }
-.seat-dot.reserved { background: #fef3c7; }
-.seat-dot.sold { background: #e5e5e5; }
-
-.seats-more {
-  font-size: 8px;
-  font-weight: 600;
-  color: #a1a1aa;
+.seats-preview {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   justify-content: center;
 }
 
-.table-bottom {
+.seat-pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--sage-soft);
+  border: 1px solid var(--sage);
+}
+
+.seat-pip.reserved {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+}
+
+.seat-pip.sold {
+  background: var(--stone);
+  border-color: var(--stone-dark);
+}
+
+.seats-overflow {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  padding: 0 4px;
+}
+
+.table-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
-  background: #f4f4f5;
-  border-top: 1px solid #e4e4e7;
+  padding: 8px 12px;
+  background: var(--paper-warm);
+  border-top: 1px solid var(--stone);
 }
 
 .table-price {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  color: #0a0a0a;
+  color: var(--ink);
 }
 
-.seats-count {
-  font-size: 10px;
-  color: #71717a;
+.table-seats {
+  font-size: 11px;
+  color: var(--ink-muted);
 }
 
-/* Position Indicator */
-.position-indicator {
+/* ========== DRAG TOOLTIP ========== */
+.drag-tooltip {
   position: absolute;
-  bottom: 16px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 12px;
-  font-size: 11px;
-  color: var(--c-text);
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--stone);
   border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* Instructions */
-.instructions-overlay {
+/* ========== WELCOME OVERLAY ========== */
+.welcome-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(250, 248, 245, 0.9);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: 15;
 }
 
-.instructions-card {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: 16px;
-  padding: 24px;
+.welcome-card {
+  background: white;
+  border: 1px solid var(--stone);
+  border-radius: 20px;
+  padding: 32px;
   text-align: center;
-  max-width: 300px;
+  max-width: 320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
 }
 
-.instructions-card h4 {
-  font-size: 16px;
+.welcome-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--indigo-soft);
+  border-radius: 16px;
+}
+
+.welcome-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--indigo);
+}
+
+.welcome-card h3 {
+  font-size: 18px;
   font-weight: 600;
-  color: var(--c-text);
-  margin: 0 0 16px 0;
-}
-
-.instructions-card ul {
-  list-style: none;
-  padding: 0;
+  color: var(--ink);
   margin: 0 0 20px 0;
 }
 
-.instructions-card li {
+.controls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.control-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 0;
-  font-size: 13px;
-  color: var(--c-text-secondary);
+  gap: 12px;
+  text-align: left;
 }
 
-.instructions-card kbd {
-  display: inline-block;
-  padding: 3px 8px;
+.control-item kbd {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-family: var(--font);
   font-size: 11px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 4px;
-  color: var(--c-text);
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--paper-warm);
+  border: 1px solid var(--stone);
+  border-radius: 6px;
 }
 
-.got-it-btn {
+.control-item span {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.welcome-btn {
   width: 100%;
-  padding: 12px;
-  font-family: var(--font-sans);
+  padding: 14px;
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 500;
   color: white;
-  background: var(--c-primary);
+  background: var(--indigo);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius);
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-/* Side Panel */
+.welcome-btn:hover {
+  background: var(--indigo-light);
+}
+
+/* ========== SIDE PANEL ========== */
 .side-panel {
   position: absolute;
   top: 0;
   right: 0;
   width: var(--panel-w);
   height: 100%;
-  background: var(--c-surface);
-  border-left: 1px solid var(--c-border);
+  background: white;
+  border-left: 1px solid var(--stone);
   display: flex;
   flex-direction: column;
-  z-index: 15;
-  overflow: hidden;
+  z-index: 10;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .side-panel {
     width: 100%;
-    max-width: 400px;
-    box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+    max-width: 420px;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.1);
   }
 }
 
-.panel-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--c-border);
-  flex-shrink: 0;
+/* Panel styles moved to Tailwind classes */
+
+/* Form, button, seats, modal, and preview styles moved to Tailwind classes */
+
+/* ========== TRANSITIONS ========== */
+.tooltip-enter-active,
+.tooltip-leave-active {
+  transition: all 0.2s ease;
 }
 
-.panel-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+.tooltip-enter-from,
+.tooltip-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
 }
 
-.panel-title-row h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text);
-  margin: 0;
+.overlay-enter-active,
+.overlay-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.close-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--c-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
+.overlay-enter-from,
+.overlay-leave-to {
+  opacity: 0;
 }
 
-.close-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--c-text);
+.panel-enter-active,
+.panel-leave-active {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.close-btn svg { width: 18px; height: 18px; }
-
-.panel-tabs {
-  display: flex;
-  gap: 4px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 8px 12px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-text-muted);
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tab-btn:hover { color: var(--c-text-secondary); }
-.tab-btn.active {
-  background: rgba(255,255,255,0.08);
-  color: var(--c-text);
-}
-
-.panel-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px;
-}
-
-.panel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  min-width: 0;
-}
-
-/* Forms */
-.table-form, .modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  min-width: 0;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.form-group label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--c-text-secondary);
-}
-
-.form-group input {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  color: var(--c-text);
-  background: var(--c-surface-elevated);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  transition: all 0.15s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--c-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.form-group input::placeholder {
-  color: var(--c-text-muted);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-width: 0;
-}
-
-.form-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.form-toggle input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  accent-color: var(--c-primary);
-}
-
-.form-toggle label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  cursor: pointer;
-  min-width: 0;
-  flex: 1;
-}
-
-.toggle-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-text);
-}
-
-.toggle-desc {
-  font-size: 12px;
-  color: var(--c-text-muted);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.form-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-top: 8px;
-}
-
-.btn-primary, .btn-secondary, .btn-ghost, .btn-danger {
-  padding: 10px 16px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-primary {
-  flex: 1;
-  color: white;
-  background: var(--c-primary);
-}
-
-.btn-primary:hover { background: var(--c-primary-hover); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-secondary {
-  color: var(--c-text);
-  background: var(--c-surface-elevated);
-}
-
-.btn-secondary:hover { background: rgba(255,255,255,0.15); }
-
-.btn-ghost {
-  color: var(--c-text-secondary);
-  background: transparent;
-}
-
-.btn-ghost:hover { background: rgba(255,255,255,0.06); }
-
-.btn-danger {
-  color: var(--c-danger);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
-
-/* Seats Section */
-.seats-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--c-border);
-}
-
-.seats-stats {
-  display: flex;
-  gap: 12px;
-}
-
-.seats-stats .stat {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.seats-stats .stat.available { color: var(--c-success); }
-.seats-stats .stat.sold { color: var(--c-text-muted); }
-
-.seats-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.seats-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.seat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-}
-
-.seat-item.sold {
-  opacity: 0.6;
-}
-
-.seat-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.seat-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.seat-status {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.seat-status.available { color: var(--c-success); }
-.seat-status.reserved { color: var(--c-warning); }
-.seat-status.sold { color: var(--c-text-muted); }
-
-.seat-price {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-text-secondary);
-}
-
-.seat-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.icon-btn {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--c-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.icon-btn svg { width: 14px; height: 14px; }
-
-.icon-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--c-text);
-}
-
-.icon-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--c-danger);
-}
-
-.empty-seats {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.empty-seats p {
-  font-size: 14px;
-  color: var(--c-text-muted);
-  margin: 0;
-}
-
-/* Transitions */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s;
-}
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.3s ease;
-}
-.slide-enter-from, .slide-leave-to {
+.panel-enter-from,
+.panel-leave-to {
   transform: translateX(100%);
 }
 
-/* Mobile */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card {
+  transition: transform 0.2s ease;
+}
+
+.modal-enter-from .modal-card,
+.modal-leave-to .modal-card {
+  transform: scale(0.95);
+}
+
+/* ========== MOBILE ========== */
 @media (max-width: 640px) {
-  .toolbar-left {
-    left: 8px;
+  .editor-header {
+    padding: 0 16px;
+  }
+
+  .toolbar {
+    left: 12px;
     padding: 6px;
   }
+
   .tool-btn {
     width: 32px;
     height: 32px;
   }
-}
-</style>
 
-<!-- Non-scoped styles for teleported modals -->
-<style>
-.floor-plan-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 20px;
-  backdrop-filter: blur(4px);
-}
-
-.floor-plan-modal-content {
-  width: 100%;
-  max-width: 420px;
-  background: #18181b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-.floor-plan-modal-content h3 {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #fafafa;
-  margin: 0 0 20px 0;
-}
-
-.floor-plan-modal-content .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.floor-plan-modal-content .form-group label {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #a1a1aa;
-}
-
-.floor-plan-modal-content .form-group input {
-  padding: 10px 12px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  color: #fafafa;
-  background: #27272a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  transition: all 0.15s;
-}
-
-.floor-plan-modal-content .form-group input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.floor-plan-modal-content .form-group input::placeholder {
-  color: #71717a;
-}
-
-.floor-plan-modal-content .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-width: 0;
-}
-
-.floor-plan-modal-content .form-row .form-group {
-  margin-bottom: 0;
-}
-
-.floor-plan-modal-content .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.floor-plan-modal-content .btn-ghost {
-  padding: 10px 16px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: #a1a1aa;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.floor-plan-modal-content .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fafafa;
-}
-
-.floor-plan-modal-content .btn-primary {
-  padding: 10px 20px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: white;
-  background: #6366f1;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.floor-plan-modal-content .btn-primary:hover {
-  background: #818cf8;
-}
-
-.floor-plan-modal-content .btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.floor-plan-modal-content .bulk-preview {
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  margin-top: 16px;
-}
-
-.floor-plan-modal-content .preview-label {
-  display: block;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #a1a1aa;
-  margin-bottom: 8px;
-}
-
-.floor-plan-modal-content .preview-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.floor-plan-modal-content .preview-chip {
-  padding: 4px 8px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px;
-  color: #fafafa;
-  background: #27272a;
-  border-radius: 4px;
-}
-
-.floor-plan-modal-content .preview-more {
-  padding: 4px 8px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 12px;
-  color: #71717a;
+  .panel-body {
+    padding: 20px;
+  }
 }
 </style>

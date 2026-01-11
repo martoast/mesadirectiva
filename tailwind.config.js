@@ -12,6 +12,50 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Japanese minimalist palette
+        paper: {
+          DEFAULT: "#FAF8F5",
+          warm: "#F5F3EF",
+        },
+        ink: {
+          DEFAULT: "#1C1917",
+          muted: "#78716C",
+          light: "#A8A29E",
+        },
+        washi: {
+          50: "#FDFCFB",
+          100: "#FAF8F5",
+          200: "#F5F3EF",
+          300: "#E7E5E4",
+          400: "#D6D3D1",
+          500: "#A8A29E",
+          600: "#78716C",
+          700: "#57534E",
+          800: "#44403C",
+          900: "#1C1917",
+        },
+        // Accent colors (Japanese-inspired)
+        indigo: {
+          DEFAULT: "#4338CA",
+          light: "#6366F1",
+          dark: "#3730A3",
+        },
+        sage: {
+          DEFAULT: "#6B9080",
+          light: "#8CB3A2",
+          dark: "#4A6B5D",
+        },
+        gold: {
+          DEFAULT: "#B08968",
+          light: "#C9A785",
+          dark: "#8B6B4E",
+        },
+        coral: {
+          DEFAULT: "#DC6B6B",
+          light: "#E89090",
+          dark: "#C94D4D",
+        },
+        // Keep existing primary colors
         primary: {
           50: "#eff6ff",
           100: "#dbeafe",
@@ -80,6 +124,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        outfit: ["Outfit", "system-ui", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",

@@ -1,74 +1,60 @@
 <template>
   <div class="create-event-page">
-    <!-- Page Header -->
+    <!-- Minimal Header -->
     <div class="page-header">
       <NuxtLink to="/app/admin/events" class="back-link">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        <span>{{ t.backToEvents }}</span>
       </NuxtLink>
-      <h1>{{ t.createNewEvent }}</h1>
-      <p>{{ t.setupInSteps }}</p>
     </div>
 
-    <!-- Event Form -->
-    <AdminEventForm
+    <!-- Simplified Event Form -->
+    <AdminEventFormSimple
       @draft="handleSaveDraft"
       @publish="handlePublish"
       @slug-created="handleSlugCreated"
     />
 
-    <!-- Success Modal (for seated events without tables) -->
-    <div v-if="showSuccessModal" class="modal-backdrop" @click.self="closeSuccessModal">
-      <div class="success-modal">
-        <div class="modal-icon success">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h3>{{ successData.isPublished ? t.eventPublished : t.eventCreated }}</h3>
-        <p v-if="successData.isPublished">{{ t.eventLiveNow }}</p>
-        <p v-else>{{ t.eventSavedDraft }}</p>
+    <!-- Success Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showSuccessModal" class="modal-backdrop" @click.self="closeSuccessModal">
+          <div class="success-modal">
+            <div class="modal-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3>{{ successData.isPublished ? t.eventPublished : t.eventCreated }}</h3>
+            <p>{{ successData.isPublished ? t.eventLiveNow : t.eventSavedDraft }}</p>
 
-        <!-- Floor Plan CTA for seated events -->
-        <div v-if="successData.isSeated && !successData.hasTables" class="floor-plan-prompt">
-          <div class="prompt-icon">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
+            <!-- Floor Plan CTA for seated events -->
+            <div v-if="successData.isSeated" class="floor-plan-prompt">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+              </svg>
+              <div>
+                <strong>{{ t.nextStep }}</strong>
+                <span>{{ t.setupFloorPlanDesc }}</span>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button v-if="successData.isSeated" class="btn-primary" @click="goToFloorPlan">
+                {{ t.setupFloorPlan }}
+              </button>
+              <button v-else class="btn-primary" @click="goToEvent">
+                {{ t.viewEvent }}
+              </button>
+              <button class="btn-secondary" @click="closeSuccessModal">
+                {{ successData.isSeated ? t.doLater : t.close }}
+              </button>
+            </div>
           </div>
-          <div class="prompt-content">
-            <strong>{{ t.setupFloorPlan }}</strong>
-            <p>{{ t.arrangeTablesDescription }}</p>
-          </div>
         </div>
-
-        <div class="modal-actions">
-          <button v-if="successData.isSeated && !successData.hasTables" class="btn-primary" @click="goToFloorPlan">
-            {{ t.setupFloorPlanBtn }}
-          </button>
-          <button v-else class="btn-primary" @click="goToEvent">
-            {{ t.viewEvent }}
-          </button>
-          <button class="btn-secondary" @click="closeSuccessModal">
-            {{ successData.isSeated && !successData.hasTables ? t.skipForNow : t.close }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Error Toast -->
-    <Transition name="toast">
-      <div v-if="error" class="error-toast">
-        <span>{{ error }}</span>
-        <button @click="error = ''" class="toast-close">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -83,44 +69,34 @@ definePageMeta({
 const router = useRouter()
 const { t: createT } = useLanguage()
 
-// Translations
 const translations = {
-  backToEvents: { es: 'Volver a Eventos', en: 'Back to Events' },
-  createNewEvent: { es: 'Crear Nuevo Evento', en: 'Create New Event' },
-  setupInSteps: { es: 'Configura tu evento en pocos pasos', en: 'Set up your event in just a few steps' },
-  eventPublished: { es: '¡Evento Publicado!', en: 'Event Published!' },
-  eventCreated: { es: '¡Evento Creado!', en: 'Event Created!' },
-  eventLiveNow: { es: 'Tu evento está en vivo y listo para los asistentes.', en: 'Your event is now live and ready for attendees.' },
-  eventSavedDraft: { es: 'Tu evento ha sido guardado como borrador.', en: 'Your event has been saved as a draft.' },
-  setupFloorPlan: { es: 'Configura tu plano de piso', en: 'Set up your floor plan' },
-  arrangeTablesDescription: { es: 'Organiza las mesas y configura los asientos para tu evento', en: 'Arrange tables and configure seating for your event' },
-  setupFloorPlanBtn: { es: 'Configurar Plano de Piso', en: 'Set Up Floor Plan' },
-  viewEvent: { es: 'Ver Evento', en: 'View Event' },
-  skipForNow: { es: 'Omitir por Ahora', en: 'Skip for Now' },
+  eventPublished: { es: '¡Evento publicado!', en: 'Event published!' },
+  eventCreated: { es: 'Borrador guardado', en: 'Draft saved' },
+  eventLiveNow: { es: 'Tu evento está en vivo', en: 'Your event is now live' },
+  eventSavedDraft: { es: 'Puedes continuar editándolo después', en: 'You can continue editing later' },
+  nextStep: { es: 'Siguiente paso', en: 'Next step' },
+  setupFloorPlanDesc: { es: 'Configura las mesas de tu evento', en: 'Set up your event tables' },
+  setupFloorPlan: { es: 'Configurar mesas', en: 'Set up tables' },
+  viewEvent: { es: 'Ver evento', en: 'View event' },
+  doLater: { es: 'Hacer después', en: 'Do later' },
   close: { es: 'Cerrar', en: 'Close' }
 }
 
 const t = createT(translations)
 
-const error = ref('')
 const createdSlug = ref('')
 const showSuccessModal = ref(false)
 const successData = reactive({
   isPublished: false,
   isSeated: false,
-  hasTables: false,
   slug: ''
 })
 
-// Track when slug is created via auto-save
 const handleSlugCreated = (slug) => {
   createdSlug.value = slug
 }
 
 const handleSaveDraft = async (eventData) => {
-  error.value = ''
-
-  // Event was already saved by the form, just navigate
   const slug = eventData.slug || createdSlug.value
   if (slug) {
     router.push(`/app/admin/events/${slug}`)
@@ -128,15 +104,11 @@ const handleSaveDraft = async (eventData) => {
 }
 
 const handlePublish = async (eventData) => {
-  error.value = ''
-
   const slug = eventData.slug || createdSlug.value
   if (slug) {
-    // Check if it's a seated event that might need floor plan setup
     if (eventData.seating_type === 'seated') {
       successData.isPublished = true
       successData.isSeated = true
-      successData.hasTables = false // We don't know yet, user can skip
       successData.slug = slug
       showSuccessModal.value = true
     } else {
@@ -167,206 +139,182 @@ const closeSuccessModal = () => {
 
 <style scoped>
 .create-event-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  background: #ffffff;
 }
 
+/* Minimal Header */
 .page-header {
-  margin-bottom: 2rem;
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 16px;
+  z-index: 40;
 }
 
 .back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: #111827;
-}
-
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.5rem;
-}
-
-.page-header p {
-  font-size: 0.9375rem;
-  color: #6b7280;
-}
-
-/* Success Modal */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  padding: 1rem;
+  width: 40px;
+  height: 40px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.back-link:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.back-link svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
 }
 
 .success-modal {
   width: 100%;
-  max-width: 420px;
-  padding: 2rem;
+  max-width: 380px;
+  padding: 32px 24px;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   text-align: center;
 }
 
 .modal-icon {
   width: 64px;
   height: 64px;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #dcfce7;
   border-radius: 50%;
 }
 
-.modal-icon.success {
-  background: #d1fae5;
-  color: #059669;
+.modal-icon svg {
+  width: 32px;
+  height: 32px;
+  color: #16a34a;
 }
 
 .success-modal h3 {
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 700;
   color: #111827;
-  margin-bottom: 0.5rem;
+  margin: 0 0 8px 0;
 }
 
 .success-modal > p {
-  font-size: 0.9375rem;
+  font-size: 15px;
   color: #6b7280;
-  margin-bottom: 1.5rem;
+  margin: 0 0 24px 0;
 }
 
 /* Floor Plan Prompt */
 .floor-plan-prompt {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(99, 102, 241, 0.08) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  background: #f0fdf4;
   border-radius: 12px;
   text-align: left;
 }
 
-.prompt-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border-radius: 10px;
-  color: #6366f1;
+.floor-plan-prompt svg {
+  width: 24px;
+  height: 24px;
+  color: #16a34a;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.prompt-content strong {
+.floor-plan-prompt strong {
   display: block;
-  font-size: 0.9375rem;
+  font-size: 14px;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 0.125rem;
 }
 
-.prompt-content p {
-  font-size: 0.8125rem;
+.floor-plan-prompt span {
+  font-size: 13px;
   color: #6b7280;
-  margin: 0;
 }
 
 /* Modal Actions */
 .modal-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .btn-primary,
 .btn-secondary {
   width: 100%;
-  padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  padding: 14px 20px;
+  font-size: 15px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-primary {
-  background: #6366f1;
+  background: #111827;
   border: none;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #4f46e5;
+  background: #1f2937;
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: transparent;
+  border: none;
   color: #6b7280;
 }
 
 .btn-secondary:hover {
-  background: #f9fafb;
   color: #111827;
 }
 
-/* Error Toast */
-.error-toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  background: #1a1a1a;
-  color: white;
-  border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-  z-index: 1000;
+/* Modal Transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.toast-close {
-  padding: 4px;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.6);
-  cursor: pointer;
+.modal-enter-active .success-modal,
+.modal-leave-active .success-modal {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.toast-close:hover {
-  color: white;
-}
-
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s ease;
-}
-
-.toast-enter-from,
-.toast-leave-to {
+.modal-enter-from,
+.modal-leave-to {
   opacity: 0;
-  transform: translateX(-50%) translateY(20px);
+}
+
+.modal-enter-from .success-modal,
+.modal-leave-to .success-modal {
+  transform: scale(0.95);
+  opacity: 0;
 }
 </style>

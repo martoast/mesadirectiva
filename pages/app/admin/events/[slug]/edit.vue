@@ -45,7 +45,7 @@
 
     <!-- Event Form -->
     <div v-else-if="event" class="form-container">
-      <AdminEventForm
+      <AdminEventFormSimple
         :initial-data="event"
         @draft="handleSave"
         @publish="handleSaveAndPublish"
@@ -374,9 +374,6 @@ onMounted(() => {
 /* Form Container */
 .form-container {
   width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px;
 }
 
 /* Toast */
@@ -456,10 +453,6 @@ onMounted(() => {
 
   .title-row h1 {
     font-size: 20px;
-  }
-
-  .form-container {
-    padding: 16px;
   }
 
   .toast-error {

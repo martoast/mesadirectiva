@@ -609,15 +609,19 @@ const fitToView = () => {
 
   // Step 4: Calculate pan to center bounds in viewport
   // With origin-top-left: point P at (px,py) appears at (px*zoom + panX, py*zoom + panY)
-  // We want boundsCenter to appear at viewport center
-  const boundsCenter = {
-    x: (bounds.minX + bounds.maxX) / 2,
-    y: (bounds.minY + bounds.maxY) / 2
-  }
+  // We want the bounds to be centered in the viewport
 
-  // Pan so that boundsCenter * zoom + pan = viewport center
-  panX.value = (viewport.width / 2) - (boundsCenter.x * zoom.value)
-  panY.value = (viewport.height / 2) - (boundsCenter.y * zoom.value)
+  // Calculate where bounds edges appear after scaling
+  const scaledMinX = bounds.minX * zoom.value
+  const scaledMaxX = bounds.maxX * zoom.value
+  const scaledMinY = bounds.minY * zoom.value
+  const scaledMaxY = bounds.maxY * zoom.value
+  const scaledWidth = scaledMaxX - scaledMinX
+  const scaledHeight = scaledMaxY - scaledMinY
+
+  // Center the scaled content in viewport
+  panX.value = (viewport.width - scaledWidth) / 2 - scaledMinX
+  panY.value = (viewport.height - scaledHeight) / 2 - scaledMinY
 }
 
 const handleWheel = (e) => {

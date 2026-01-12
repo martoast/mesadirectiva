@@ -299,7 +299,7 @@
                     @click.stop="toggleSeat(seat)"
                     :title="`${seat.label} - $${formatPrice(seat.price)}`"
                   >
-                    {{ getSeatNumber(seat, idx) }}
+                    {{ getSeatDisplayLabel(seat, idx) }}
                   </button>
 
                   <!-- Center table circle -->
@@ -793,10 +793,8 @@ const getTableCenterStyle = (table) => {
   }
 }
 
-const getSeatNumber = (seat, idx) => {
-  // Try to extract number from label, fallback to index
-  const num = seat.label?.match(/\d+/)
-  return num ? num[0] : idx + 1
+const getSeatDisplayLabel = (seat, idx) => {
+  return seat.label || `${idx + 1}`
 }
 
 // Whole table visualization helpers

@@ -199,7 +199,7 @@
                   ]"
                   :style="getSeatPosition(table, idx)"
                 >
-                  {{ getSeatNumber(seat, idx) }}
+                  {{ getSeatLabel(seat, idx) }}
                 </div>
 
                 <!-- Center table circle -->
@@ -1000,9 +1000,8 @@ const getTableCenterStyle = (table) => {
   }
 }
 
-const getSeatNumber = (seat, idx) => {
-  const num = seat.label?.match(/\d+/)
-  return num ? num[0] : idx + 1
+const getSeatLabel = (seat, idx) => {
+  return seat.label || `${idx + 1}`
 }
 
 // Whole table visualization helpers

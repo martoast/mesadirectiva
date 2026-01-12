@@ -566,62 +566,45 @@ const fitToView = () => {
   if (!canvasRef.value || tables.value.length === 0) return
   const viewport = canvasRef.value.getBoundingClientRect()
 
-  // Step 1: Calculate bounding box of ALL content
-  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+  // Step 1: Find the actual extent of all content
+  const tableWidth = 144
+  const tableHeight = 80
 
-  // Include stage (top=24, height=80px, centered on tables with width=500)
-  const stageCenterX = stageCenter.value
-  const stageTop = 24
-  const stageHeight = 80
-  const stageWidth = 500
-  bounds.minX = Math.min(bounds.minX, stageCenterX - stageWidth / 2)
-  bounds.maxX = Math.max(bounds.maxX, stageCenterX + stageWidth / 2)
-  bounds.minY = Math.min(bounds.minY, stageTop)
-  bounds.maxY = Math.max(bounds.maxY, stageTop + stageHeight)
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
 
-  // Include all tables
-  const tableWidth = 144  // w-36 = 9rem = 144px
-  const tableHeight = 80  // approximate height
+  // Get table bounds
   tables.value.forEach(table => {
     const x = table.position_x || 100
     const y = (table.position_y || 150) + 100
-    bounds.minX = Math.min(bounds.minX, x)
-    bounds.maxX = Math.max(bounds.maxX, x + tableWidth)
-    bounds.minY = Math.min(bounds.minY, y)
-    bounds.maxY = Math.max(bounds.maxY, y + tableHeight)
+    minX = Math.min(minX, x)
+    maxX = Math.max(maxX, x + tableWidth)
+    minY = Math.min(minY, y)
+    maxY = Math.max(maxY, y + tableHeight)
   })
 
-  // Step 2: Add padding around bounds
-  const padding = 50
-  bounds.minX -= padding
-  bounds.minY -= padding
-  bounds.maxX += padding
-  bounds.maxY += padding
+  // Include stage (at top, centered on tables)
+  const stageCenterX = (minX + maxX) / 2
+  minX = Math.min(minX, stageCenterX - 250)
+  maxX = Math.max(maxX, stageCenterX + 250)
+  minY = Math.min(minY, 24)
+  maxY = Math.max(maxY, 104)
 
-  // Step 3: Calculate zoom level to fit bounds in viewport
-  const boundsWidth = bounds.maxX - bounds.minX
-  const boundsHeight = bounds.maxY - bounds.minY
-  const scaleX = viewport.width / boundsWidth
-  const scaleY = viewport.height / boundsHeight
-  const fitZoom = Math.min(scaleX, scaleY) * 0.95  // 95% to leave margin
+  // Step 2: Calculate content center
+  const contentCenterX = (minX + maxX) / 2
+  const contentCenterY = (minY + maxY) / 2
+  const contentWidth = maxX - minX
+  const contentHeight = maxY - minY
 
-  zoom.value = Math.max(0.3, Math.min(1.5, fitZoom))
+  // Step 3: Calculate zoom to fit with padding
+  const paddedWidth = contentWidth + 100
+  const paddedHeight = contentHeight + 100
+  const fitZoom = Math.min(viewport.width / paddedWidth, viewport.height / paddedHeight)
+  zoom.value = Math.max(0.3, Math.min(1.2, fitZoom))
 
-  // Step 4: Calculate pan to center bounds in viewport
-  // With origin-top-left: point P at (px,py) appears at (px*zoom + panX, py*zoom + panY)
-  // We want the bounds to be centered in the viewport
-
-  // Calculate where bounds edges appear after scaling
-  const scaledMinX = bounds.minX * zoom.value
-  const scaledMaxX = bounds.maxX * zoom.value
-  const scaledMinY = bounds.minY * zoom.value
-  const scaledMaxY = bounds.maxY * zoom.value
-  const scaledWidth = scaledMaxX - scaledMinX
-  const scaledHeight = scaledMaxY - scaledMinY
-
-  // Center the scaled content in viewport
-  panX.value = (viewport.width - scaledWidth) / 2 - scaledMinX
-  panY.value = (viewport.height - scaledHeight) / 2 - scaledMinY
+  // Step 4: Pan so content center appears at viewport center
+  // Formula: contentCenter * zoom + pan = viewportCenter
+  panX.value = (viewport.width / 2) - (contentCenterX * zoom.value)
+  panY.value = (viewport.height / 2) - (contentCenterY * zoom.value)
 }
 
 const handleWheel = (e) => {

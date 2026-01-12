@@ -567,7 +567,7 @@ const fitToView = () => {
   if (!canvasRef.value || tables.value.length === 0) return
   const rect = canvasRef.value.getBoundingClientRect()
 
-  // Calculate bounding box of all tables
+  // Calculate bounding box of tables only
   let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0
   tables.value.forEach(table => {
     const x = table.position_x || 100
@@ -578,31 +578,26 @@ const fitToView = () => {
     maxY = Math.max(maxY, y + 100) // table height approx
   })
 
-  // Include stage in bounding box (stage is centered on tables, width=500)
-  const stageCenterX = stageCenter.value
-  const stageLeft = stageCenterX - 250
-  const stageRight = stageCenterX + 250
-  minX = Math.min(minX, stageLeft)
-  maxX = Math.max(maxX, stageRight)
-  minY = Math.min(minY, 24) // stage top
+  // Include stage height in Y bounds (stage is above tables at y=24)
+  minY = Math.min(minY, 24)
 
   // Add padding
-  const padding = 60
-  minX -= padding
+  const padding = 80
   minY -= padding
-  maxX += padding
   maxY += padding
 
-  const contentWidth = maxX - minX
+  const contentWidth = maxX - minX + (padding * 2)
   const contentHeight = maxY - minY
   const scaleX = rect.width / contentWidth
   const scaleY = rect.height / contentHeight
-  const newZoom = Math.min(scaleX, scaleY, 1) * 0.85
+  const newZoom = Math.min(scaleX, scaleY, 1) * 0.9
 
-  zoom.value = Math.max(0.3, Math.min(1.2, newZoom))
-  const centerX = (minX + maxX) / 2
+  zoom.value = Math.max(0.4, Math.min(1.2, newZoom))
+
+  // Center horizontally on tables, vertically on whole content
+  const tablesCenterX = (minX + maxX) / 2
   const centerY = (minY + maxY) / 2
-  panX.value = (rect.width / 2) - (centerX * zoom.value)
+  panX.value = (rect.width / 2) - (tablesCenterX * zoom.value)
   panY.value = (rect.height / 2) - (centerY * zoom.value)
 }
 

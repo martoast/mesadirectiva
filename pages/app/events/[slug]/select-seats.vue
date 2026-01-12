@@ -236,47 +236,11 @@
       </div>
 
       <!-- Floor Plan Canvas -->
-      <div class="flex-1 overflow-hidden">
-        <!-- Toolbar -->
-        <div class="flex items-center justify-between px-4 py-3 bg-white border-b border-washi-300">
-          <div class="flex items-center gap-2">
-            <button @click="zoomOut" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/>
-              </svg>
-            </button>
-            <span class="text-sm font-medium text-ink-muted w-12 text-center">{{ Math.round(zoom * 100) }}%</span>
-            <button @click="zoomIn" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
-              </svg>
-            </button>
-            <button @click="fitToView" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-              </svg>
-            </button>
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-sage"></span>
-              <span class="text-xs text-ink-muted">{{ t.available }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-indigo"></span>
-              <span class="text-xs text-ink-muted">{{ t.inCart }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-washi-400"></span>
-              <span class="text-xs text-ink-muted">{{ t.sold }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Canvas -->
+      <div class="flex-1 overflow-hidden relative">
+        <!-- Canvas (full height now) -->
         <div
           ref="canvasRef"
-          class="h-[calc(100vh-180px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing flex items-center justify-center"
+          class="h-[calc(100vh-120px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing flex items-center justify-center"
           @wheel.prevent="handleWheel"
           @mousedown="startPan"
           @mousemove="doPan"
@@ -342,6 +306,41 @@
                 </svg>
               </span>
             </button>
+          </div>
+        </div>
+
+        <!-- Floating Zoom Controls (bottom-left) -->
+        <div class="absolute bottom-4 left-4 flex flex-col gap-1 z-10">
+          <button @click="zoomIn" class="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur rounded-lg shadow-card text-ink hover:bg-white transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+          <button @click="zoomOut" class="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur rounded-lg shadow-card text-ink hover:bg-white transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"/>
+            </svg>
+          </button>
+          <button @click="fitToView" class="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur rounded-lg shadow-card text-ink hover:bg-white transition-colors mt-1">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Floating Legend (top-right) -->
+        <div class="absolute top-4 right-4 flex items-center gap-4 px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-card z-10">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-sage"></span>
+            <span class="text-xs text-ink-muted">{{ t.available }}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo"></span>
+            <span class="text-xs text-ink-muted">{{ t.inCart }}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-washi-400"></span>
+            <span class="text-xs text-ink-muted">{{ t.sold }}</span>
           </div>
         </div>
       </div>

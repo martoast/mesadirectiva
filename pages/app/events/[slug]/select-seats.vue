@@ -1,241 +1,419 @@
 <template>
-  <div class="seats-page">
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">
-        <svg viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25" />
-          <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        </svg>
-      </div>
-      <p>{{ t.loadingSeating }}</p>
+  <div class="min-h-screen bg-paper font-outfit">
+    <!-- Loading -->
+    <div v-if="loading" class="min-h-screen flex items-center justify-center">
+      <div class="w-8 h-8 border-3 border-washi-300 border-t-indigo rounded-full animate-spin"></div>
     </div>
 
-    <!-- Not a Seated Event -->
-    <div v-else-if="!isSeatedEvent" class="message-state">
-      <div class="message-card">
-        <div class="message-icon info">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <!-- Not Seated Event -->
+    <div v-else-if="!isSeatedEvent" class="min-h-screen flex items-center justify-center p-6">
+      <div class="bg-white rounded-2xl p-10 text-center max-w-sm shadow-card">
+        <div class="w-14 h-14 mx-auto mb-4 bg-indigo/10 rounded-full flex items-center justify-center">
+          <svg class="w-7 h-7 text-indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <h1>{{ t.notSeatedEvent }}</h1>
-        <p>{{ t.usesGeneralAdmission }}</p>
-        <NuxtLink :to="`/app/events/${route.params.slug}/checkout`" class="btn-primary">
+        <h1 class="text-xl font-semibold text-ink mb-2">{{ t.notSeatedEvent }}</h1>
+        <p class="text-ink-muted mb-6">{{ t.usesGeneralAdmission }}</p>
+        <NuxtLink :to="`/app/events/${route.params.slug}/checkout`" class="inline-block px-8 py-3 bg-ink text-white font-medium rounded-xl hover:bg-ink/90 transition-colors">
           {{ t.goToCheckout }}
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Cannot Purchase State -->
-    <div v-else-if="!canPurchase" class="message-state">
-      <div class="message-card">
-        <div class="message-icon warning">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    <!-- Cannot Purchase -->
+    <div v-else-if="!canPurchase" class="min-h-screen flex items-center justify-center p-6">
+      <div class="bg-white rounded-2xl p-10 text-center max-w-sm shadow-card">
+        <div class="w-14 h-14 mx-auto mb-4 bg-gold/10 rounded-full flex items-center justify-center">
+          <svg class="w-7 h-7 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
-        <h1>{{ t.cannotSelectSeats }}</h1>
-        <p>{{ blockedMessage }}</p>
-        <NuxtLink :to="`/app/events/${route.params.slug}`" class="btn-primary">
+        <h1 class="text-xl font-semibold text-ink mb-2">{{ t.cannotPurchase }}</h1>
+        <p class="text-ink-muted mb-6">{{ blockedMessage }}</p>
+        <NuxtLink :to="`/app/events/${route.params.slug}`" class="inline-block px-8 py-3 bg-ink text-white font-medium rounded-xl hover:bg-ink/90 transition-colors">
           {{ t.backToEvent }}
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Seat Selection -->
-    <div v-else class="seats-content">
-      <!-- Header -->
-      <header class="seats-header">
-        <NuxtLink :to="`/app/events/${route.params.slug}`" class="back-link">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          {{ t.backToEvent }}
-        </NuxtLink>
-        <div class="header-content">
-          <h1>{{ t.selectYourSeats }}</h1>
-          <p v-if="event?.name">{{ event.name }}</p>
-        </div>
-      </header>
-
-      <!-- Error Message -->
-      <div v-if="error" class="error-banner">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        {{ error }}
-      </div>
-
-      <div class="seats-layout">
-        <!-- Seating Map -->
-        <div class="map-section">
-          <div class="map-container">
-            <PublicSeatingMap
-              :tables="tables"
-              :selected-tables="selectedTables"
-              :selected-seats="selectedSeats"
-              :loading="tablesLoading"
-              @update:selected-tables="selectedTables = $event"
-              @update:selected-seats="selectedSeats = $event"
-            />
-          </div>
-
-          <!-- Legend -->
-          <div class="map-legend">
-            <div class="legend-item">
-              <span class="legend-dot available"></span>
-              <span>{{ t.available }}</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot selected"></span>
-              <span>{{ t.selected }}</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot sold"></span>
-              <span>{{ t.sold }}</span>
+    <!-- Main Interface -->
+    <template v-else>
+      <!-- Welcome Modal -->
+      <Teleport to="body">
+        <Transition name="modal">
+          <div v-if="showWelcome" class="fixed inset-0 bg-ink/50 flex items-end sm:items-center justify-center z-[200] p-0 sm:p-6" @click.self="showWelcome = false">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl p-8 w-full max-w-md text-center">
+              <div class="w-16 h-16 mx-auto mb-4 bg-sage/10 rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-sage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                </svg>
+              </div>
+              <h2 class="text-2xl font-bold text-ink mb-2">{{ t.welcomeTitle }}</h2>
+              <p class="text-ink-muted mb-6">{{ t.welcomeText }}</p>
+              <div class="space-y-3 mb-8">
+                <div class="flex items-center gap-3 p-4 bg-paper rounded-xl text-left">
+                  <span class="w-7 h-7 bg-ink text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span class="text-sm text-ink">{{ t.step1 }}</span>
+                </div>
+                <div class="flex items-center gap-3 p-4 bg-paper rounded-xl text-left">
+                  <span class="w-7 h-7 bg-ink text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span class="text-sm text-ink">{{ t.step2 }}</span>
+                </div>
+              </div>
+              <button @click="showWelcome = false" class="w-full py-4 bg-ink text-white text-lg font-semibold rounded-xl hover:bg-ink/90 transition-colors">
+                {{ t.gotIt }}
+              </button>
             </div>
           </div>
-        </div>
+        </Transition>
+      </Teleport>
 
-        <!-- Selection Summary -->
-        <div class="summary-section">
-          <div class="summary-card">
-            <h2>{{ t.yourSelection }}</h2>
+      <!-- Seat Selection Modal -->
+      <Teleport to="body">
+        <Transition name="modal">
+          <div v-if="activeTable && !activeTable.sell_as_whole" class="fixed inset-0 bg-ink/50 flex items-end sm:items-center justify-center z-[200] p-0 sm:p-6" @click.self="closeModal">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] flex flex-col">
+              <!-- Modal Header -->
+              <div class="flex items-center justify-between p-5 border-b border-washi-300">
+                <div>
+                  <h3 class="text-xl font-bold text-ink">{{ activeTable.name }}</h3>
+                  <p class="text-sm text-ink-muted">{{ t.selectSeatsModal }}</p>
+                </div>
+                <button @click="closeModal" class="w-10 h-10 flex items-center justify-center bg-paper hover:bg-washi-300 rounded-full text-ink-muted transition-colors">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
 
-            <!-- Empty State -->
-            <div v-if="!hasSelections" class="empty-selection">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-              </svg>
-              <p class="empty-title">{{ t.noSeatsSelected }}</p>
-              <p class="empty-desc">{{ t.clickToSelect }}</p>
-            </div>
-
-            <!-- Selected Items -->
-            <div v-else class="selection-list">
-              <!-- Tables -->
-              <div v-if="selectedTables.length > 0" class="selection-group">
-                <span class="group-label">{{ t.tables }}</span>
-                <div class="selection-items">
-                  <div v-for="tableId in selectedTables" :key="tableId" class="selection-item">
-                    <span class="item-name">{{ getTableName(tableId) }}</span>
-                    <span class="item-price">${{ getTablePrice(tableId) }}</span>
-                    <button @click="removeTable(tableId)" class="item-remove">
-                      <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              <!-- Seats Grid -->
+              <div class="flex-1 overflow-y-auto p-5">
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  <button
+                    v-for="seat in activeTable.seats"
+                    :key="seat.id"
+                    :class="[
+                      'relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all',
+                      seat.status === 'sold'
+                        ? 'bg-washi-200 border-washi-300 opacity-50 cursor-not-allowed'
+                        : isSeatSelected(seat.id)
+                          ? 'bg-indigo border-indigo text-white'
+                          : 'bg-paper border-washi-300 hover:border-sage cursor-pointer'
+                    ]"
+                    :disabled="seat.status === 'sold'"
+                    @click="toggleSeat(seat)"
+                  >
+                    <span :class="['text-sm font-semibold', isSeatSelected(seat.id) ? 'text-white' : 'text-ink']">{{ seat.label }}</span>
+                    <span :class="['text-xs mt-1', isSeatSelected(seat.id) ? 'text-white/80' : 'text-ink-muted']">${{ formatPrice(seat.price) }}</span>
+                    <span v-if="isSeatSelected(seat.id)" class="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow">
+                      <svg class="w-3 h-3 text-indigo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M5 13l4 4L19 7"/>
                       </svg>
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
 
-              <!-- Seats -->
-              <div v-if="selectedSeats.length > 0" class="selection-group">
-                <span class="group-label">{{ t.seats }}</span>
-                <div class="selection-items">
-                  <div v-for="seatId in selectedSeats" :key="seatId" class="selection-item">
-                    <span class="item-name">{{ getSeatInfo(seatId) }}</span>
-                    <span class="item-price">${{ getSeatPrice(seatId) }}</span>
-                    <button @click="removeSeat(seatId)" class="item-remove">
-                      <svg fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
+              <!-- Modal Footer -->
+              <div class="p-5 border-t border-washi-300 bg-paper-warm">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-ink-muted">{{ getTableSelectedCount(activeTable) }} {{ t.seatsSelected }}</span>
+                  <span class="text-xl font-bold text-ink">${{ getTableSelectedTotal(activeTable) }}</span>
                 </div>
-              </div>
-
-              <!-- Total -->
-              <div class="selection-total">
-                <div class="total-row">
-                  <span class="total-label">{{ t.total }}</span>
-                  <span class="total-value">${{ totalPrice.toFixed(2) }}</span>
-                </div>
-
-                <p class="hold-notice">
-                  {{ holdNoticeText }}
-                </p>
-
-                <button
-                  @click="handleContinue"
-                  :disabled="reserving"
-                  class="btn-continue"
-                >
-                  <span v-if="reserving" class="btn-loading">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25" />
-                      <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                    </svg>
-                    {{ t.reserving }}
-                  </span>
-                  <span v-else>{{ t.continueToCheckout }}</span>
+                <button @click="closeModal" class="w-full py-4 bg-ink text-white text-lg font-semibold rounded-xl hover:bg-ink/90 transition-colors">
+                  {{ t.done }}
                 </button>
               </div>
             </div>
           </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Cart Drawer -->
+      <Teleport to="body">
+        <Transition name="drawer">
+          <div v-if="showCart" class="fixed inset-0 bg-ink/50 z-[200]" @click.self="showCart = false">
+            <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-modal flex flex-col">
+              <!-- Drawer Header -->
+              <div class="flex items-center justify-between p-5 border-b border-washi-300">
+                <h3 class="text-xl font-bold text-ink">{{ t.yourCart }}</h3>
+                <button @click="showCart = false" class="w-10 h-10 flex items-center justify-center bg-paper hover:bg-washi-300 rounded-full text-ink-muted transition-colors">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Cart Empty -->
+              <div v-if="!hasSelections" class="flex-1 flex flex-col items-center justify-center p-10 text-ink-light">
+                <svg class="w-12 h-12 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <p>{{ t.cartEmpty }}</p>
+              </div>
+
+              <!-- Cart Items -->
+              <div v-else class="flex-1 overflow-y-auto p-5 space-y-3">
+                <!-- Tables -->
+                <div v-for="tableId in selectedTables" :key="'t-' + tableId" class="flex items-center gap-4 p-4 bg-paper rounded-xl">
+                  <div class="flex-1 min-w-0">
+                    <span class="block text-xs font-semibold text-ink-light uppercase tracking-wide mb-1">{{ t.table }}</span>
+                    <span class="block text-base font-semibold text-ink">{{ getTableName(tableId) }}</span>
+                    <span class="text-sm text-ink-muted">{{ getTableCapacity(tableId) }} {{ t.guests }}</span>
+                  </div>
+                  <span class="text-base font-semibold text-sage">${{ getTablePrice(tableId) }}</span>
+                  <button @click="removeTable(tableId)" class="w-9 h-9 flex items-center justify-center text-ink-light hover:text-coral hover:bg-coral/10 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Seats -->
+                <div v-for="seatId in selectedSeats" :key="'s-' + seatId" class="flex items-center gap-4 p-4 bg-paper rounded-xl">
+                  <div class="flex-1 min-w-0">
+                    <span class="block text-xs font-semibold text-ink-light uppercase tracking-wide mb-1">{{ t.seat }}</span>
+                    <span class="block text-base font-semibold text-ink">{{ getSeatLabel(seatId) }}</span>
+                    <span class="text-sm text-ink-muted">{{ getSeatTableName(seatId) }}</span>
+                  </div>
+                  <span class="text-base font-semibold text-sage">${{ getSeatPrice(seatId) }}</span>
+                  <button @click="removeSeat(seatId)" class="w-9 h-9 flex items-center justify-center text-ink-light hover:text-coral hover:bg-coral/10 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cart Footer -->
+              <div v-if="hasSelections" class="p-5 border-t border-washi-300 bg-paper-warm">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-ink">{{ t.total }}</span>
+                  <span class="text-3xl font-bold text-ink">${{ totalPrice.toFixed(2) }}</span>
+                </div>
+                <p class="text-sm text-ink-light mb-4">{{ holdNoticeText }}</p>
+                <div class="flex gap-3">
+                  <button @click="clearCart" :disabled="reserving || clearing" class="flex-shrink-0 px-4 py-4 border border-washi-400 text-ink-muted font-medium rounded-xl hover:bg-washi-200 transition-colors disabled:opacity-50">
+                    {{ clearing ? t.clearing : t.startOver }}
+                  </button>
+                  <button @click="handleCheckout" :disabled="reserving || clearing" class="flex-1 py-4 bg-sage text-white text-lg font-semibold rounded-xl hover:bg-sage-dark transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3">
+                    <span v-if="reserving" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    {{ reserving ? t.reserving : t.checkout }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Header -->
+      <header class="sticky top-0 z-10 bg-white border-b border-washi-300">
+        <div class="flex items-center gap-3 px-4 py-3">
+          <NuxtLink :to="`/app/events/${route.params.slug}`" class="w-10 h-10 flex items-center justify-center text-ink hover:bg-paper rounded-lg transition-colors">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 19l-7-7 7-7"/>
+            </svg>
+          </NuxtLink>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-lg font-semibold text-ink">{{ t.selectSeats }}</h1>
+            <p v-if="event?.name" class="text-sm text-ink-muted truncate">{{ event.name }}</p>
+          </div>
+          <button @click="showWelcome = true" class="w-10 h-10 flex items-center justify-center text-ink-muted hover:text-ink hover:bg-paper rounded-lg transition-colors">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Error Banner -->
+      <div v-if="error" class="px-4 py-3 bg-coral/10 text-coral flex items-center justify-between">
+        <span class="text-sm">{{ error }}</span>
+        <button @click="error = ''" class="text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Floor Plan Canvas -->
+      <div class="flex-1 overflow-hidden">
+        <!-- Toolbar -->
+        <div class="flex items-center justify-between px-4 py-3 bg-white border-b border-washi-300">
+          <div class="flex items-center gap-2">
+            <button @click="zoomOut" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M8 11h6"/>
+              </svg>
+            </button>
+            <span class="text-sm font-medium text-ink-muted w-12 text-center">{{ Math.round(zoom * 100) }}%</span>
+            <button @click="zoomIn" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+              </svg>
+            </button>
+            <button @click="fitToView" class="w-9 h-9 flex items-center justify-center bg-paper border border-washi-300 rounded-lg text-ink-muted hover:text-ink hover:border-washi-400 transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+              </svg>
+            </button>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-sage"></span>
+              <span class="text-xs text-ink-muted">{{ t.available }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-indigo"></span>
+              <span class="text-xs text-ink-muted">{{ t.inCart }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-washi-400"></span>
+              <span class="text-xs text-ink-muted">{{ t.sold }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div
+          ref="canvasRef"
+          class="h-[calc(100vh-180px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing"
+          @wheel.prevent="handleWheel"
+          @mousedown="startPan"
+          @mousemove="doPan"
+          @mouseup="endPan"
+          @mouseleave="endPan"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="endPan"
+        >
+          <div
+            class="relative origin-top-left transition-transform duration-100"
+            :style="{
+              width: '1600px',
+              height: '1200px',
+              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`
+            }"
+          >
+            <!-- Grid -->
+            <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle, #D6D3D1 1px, transparent 1px); background-size: 25px 25px;"></div>
+
+            <!-- Stage (centered above tables) -->
+            <div
+              class="absolute top-6 w-[500px] h-20 bg-gradient-to-b from-washi-300 to-washi-400 rounded-b-[100px] flex items-center justify-center shadow-sm border border-washi-500"
+              :style="{ left: `${stageCenter}px`, transform: 'translateX(-50%)' }"
+            >
+              <span class="text-sm font-bold tracking-widest text-ink-muted">{{ t.stage }}</span>
+            </div>
+
+            <!-- Tables (Positioned) -->
+            <button
+              v-for="table in tables"
+              :key="table.id"
+              :class="[
+                'absolute w-36 bg-white border-2 rounded-2xl text-center transition-all duration-150 shadow-card hover:shadow-card-hover',
+                isTableSoldOut(table)
+                  ? 'border-washi-300 opacity-50 cursor-not-allowed'
+                  : isTableInCart(table)
+                    ? 'border-indigo ring-4 ring-indigo/20'
+                    : 'border-washi-300 hover:border-sage cursor-pointer'
+              ]"
+              :style="{
+                left: `${table.position_x || 100}px`,
+                top: `${(table.position_y || 150) + 100}px`
+              }"
+              @click="handleTableClick(table)"
+            >
+              <div class="p-4">
+                <span class="block text-sm font-semibold text-ink mb-1">{{ table.name }}</span>
+                <span class="text-xs text-ink-muted">
+                  <template v-if="table.sell_as_whole">
+                    {{ table.capacity }} {{ t.guests }} &bull; ${{ formatPrice(table.price) }}
+                  </template>
+                  <template v-else>
+                    {{ getAvailableSeatsCount(table) }}/{{ table.seats?.length || 0 }} {{ t.available }}
+                  </template>
+                </span>
+              </div>
+              <!-- Badge -->
+              <span v-if="isTableInCart(table)" class="absolute -top-2 -right-2 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow">
+                <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- Floating Cart Button -->
+      <Transition name="slide-up">
+        <button
+          v-if="hasSelections"
+          @click="showCart = true"
+          class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 bg-ink text-white rounded-full shadow-modal hover:bg-ink/90 transition-colors"
+        >
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span class="bg-indigo px-2 py-0.5 rounded-md text-sm font-semibold">{{ totalItems }}</span>
+          <span class="text-lg font-bold">${{ totalPrice.toFixed(2) }}</span>
+        </button>
+      </Transition>
+
+      <!-- Hint for empty state -->
+      <div v-if="!hasSelections" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-ink/80 text-white text-sm rounded-full animate-pulse">
+        {{ t.tapToStart }}
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 
 definePageMeta({
   layout: 'public'
 })
 
-const { t: createT, language } = useLanguage()
+const { t: createT } = useLanguage()
 
 const translations = {
-  // Loading
-  loadingSeating: { es: 'Cargando asientos...', en: 'Loading seating...' },
-
-  // Not seated event
-  notSeatedEvent: { es: 'No es un Evento con Asientos', en: 'Not a Seated Event' },
-  usesGeneralAdmission: { es: 'Este evento usa boletos de admisión general.', en: 'This event uses general admission tickets.' },
-  goToCheckout: { es: 'Ir al Pago', en: 'Go to Checkout' },
-
-  // Cannot purchase
-  cannotSelectSeats: { es: 'No se pueden seleccionar asientos', en: 'Cannot Select Seats' },
+  notSeatedEvent: { es: 'Este evento no tiene asientos asignados', en: 'This event does not have assigned seating' },
+  usesGeneralAdmission: { es: 'Puedes comprar boletos directamente.', en: 'You can purchase tickets directly.' },
+  goToCheckout: { es: 'Comprar Boletos', en: 'Buy Tickets' },
+  cannotPurchase: { es: 'Compra no disponible', en: 'Purchase Unavailable' },
   backToEvent: { es: 'Volver al Evento', en: 'Back to Event' },
-
-  // Blocked messages
   notAvailableForPurchase: { es: 'Este evento no está disponible para compra.', en: 'This event is not available for purchase.' },
-  registrationClosed: { es: 'El registro para este evento está actualmente cerrado.', en: 'Registration for this event is currently closed.' },
-  deadlinePassed: { es: 'La fecha límite de registro ha pasado.', en: 'The registration deadline has passed.' },
-  soldOut: { es: 'Este evento está agotado.', en: 'This event is sold out.' },
-  notAvailable: { es: 'Este evento no está disponible para compra.', en: 'This event is not available for purchase.' },
-
-  // Header
-  selectYourSeats: { es: 'Selecciona tus Asientos', en: 'Select Your Seats' },
-
-  // Legend
+  registrationClosed: { es: 'El registro está cerrado.', en: 'Registration is closed.' },
+  deadlinePassed: { es: 'La fecha límite ha pasado.', en: 'The deadline has passed.' },
+  soldOut: { es: 'Agotado.', en: 'Sold out.' },
+  notAvailable: { es: 'No disponible.', en: 'Not available.' },
+  welcomeTitle: { es: 'Selecciona tus lugares', en: 'Select your seats' },
+  welcomeText: { es: 'Es muy fácil:', en: 'It\'s super easy:' },
+  step1: { es: 'Toca una mesa para ver los asientos', en: 'Tap a table to see available seats' },
+  step2: { es: 'Selecciona y agrégalos al carrito', en: 'Select seats and add to cart' },
+  gotIt: { es: 'Entendido', en: 'Got it' },
+  selectSeats: { es: 'Elige tus lugares', en: 'Choose your seats' },
+  selectSeatsModal: { es: 'Selecciona los asientos que deseas', en: 'Select the seats you want' },
   available: { es: 'Disponible', en: 'Available' },
-  selected: { es: 'Seleccionado', en: 'Selected' },
+  inCart: { es: 'En carrito', en: 'In cart' },
   sold: { es: 'Vendido', en: 'Sold' },
-
-  // Summary
-  yourSelection: { es: 'Tu Selección', en: 'Your Selection' },
-  noSeatsSelected: { es: 'No hay asientos seleccionados', en: 'No seats selected' },
-  clickToSelect: { es: 'Haz clic en las mesas o asientos para seleccionarlos', en: 'Click on tables or seats to select them' },
-  tables: { es: 'Mesas', en: 'Tables' },
-  seats: { es: 'Asientos', en: 'Seats' },
-
-  // Total
+  stage: { es: 'ESCENARIO', en: 'STAGE' },
+  guests: { es: 'personas', en: 'guests' },
+  table: { es: 'Mesa', en: 'Table' },
+  seat: { es: 'Asiento', en: 'Seat' },
+  seatsSelected: { es: 'seleccionados', en: 'selected' },
+  done: { es: 'Listo', en: 'Done' },
+  yourCart: { es: 'Tu carrito', en: 'Your cart' },
+  cartEmpty: { es: 'Tu carrito está vacío', en: 'Your cart is empty' },
   total: { es: 'Total', en: 'Total' },
-  holdNotice: { es: 'Tu selección se mantendrá reservada por {minutes} minutos después de continuar.', en: 'Your selection will be held for {minutes} minutes after you proceed.' },
-
-  // Buttons
+  holdNotice: { es: 'Tu selección se reservará por {minutes} minutos al continuar.', en: 'Your selection will be held for {minutes} minutes.' },
+  checkout: { es: 'Continuar al pago', en: 'Continue to payment' },
   reserving: { es: 'Reservando...', en: 'Reserving...' },
-  continueToCheckout: { es: 'Continuar al Pago', en: 'Continue to Checkout' },
-
-  // Errors
-  failedToLoadSeating: { es: 'Error al cargar la información de asientos', en: 'Failed to load seating information' },
-  failedToLoadEvent: { es: 'Error al cargar el evento', en: 'Failed to load event' },
-  failedToReserve: { es: 'Error al reservar los asientos. Por favor intenta de nuevo.', en: 'Failed to reserve seats. Please try again.' }
+  tapToStart: { es: 'Toca una mesa para comenzar', en: 'Tap a table to get started' },
+  failedToReserve: { es: 'No se pudo reservar. Intenta de nuevo.', en: 'Could not reserve. Please try again.' },
+  startOver: { es: 'Empezar de nuevo', en: 'Start over' },
+  clearing: { es: 'Limpiando...', en: 'Clearing...' }
 }
 
 const t = createT(translations)
@@ -244,43 +422,89 @@ const route = useRoute()
 const router = useRouter()
 const { getPublicEvent, checkAvailability } = useEvents()
 const { getPublicTables } = useTables()
-const { createReservation } = useReservations()
+const { createReservation, releaseReservation } = useReservations()
 
+// Data
 const event = ref(null)
 const availability = ref(null)
 const tables = ref([])
 const loading = ref(true)
-const tablesLoading = ref(false)
 const reserving = ref(false)
+const clearing = ref(false)
 const error = ref('')
 
+// UI State
+const showWelcome = ref(false)
+const showCart = ref(false)
+const activeTable = ref(null)
+
+// Selection State
 const selectedTables = ref([])
 const selectedSeats = ref([])
+const existingReservationToken = ref(null)
+
+// Canvas State
+const canvasRef = ref(null)
+const zoom = ref(0.7)
+const panX = ref(0)
+const panY = ref(0)
+const isPanning = ref(false)
+const panStartX = ref(0)
+const panStartY = ref(0)
+const lastPanX = ref(0)
+const lastPanY = ref(0)
 
 // Load data
 onMounted(async () => {
   try {
-    const [eventResponse, availabilityResponse] = await Promise.all([
+    const [eventRes, availRes] = await Promise.all([
       getPublicEvent(route.params.slug),
       checkAvailability(route.params.slug)
     ])
 
-    event.value = eventResponse.event
-    availability.value = availabilityResponse
+    event.value = eventRes.event
+    availability.value = availRes
 
     if (event.value?.seating_type === 'seated') {
-      tablesLoading.value = true
-      try {
-        const tablesResponse = await getPublicTables(route.params.slug)
-        tables.value = tablesResponse.tables || []
-      } catch (e) {
-        error.value = t.failedToLoadSeating
-      } finally {
-        tablesLoading.value = false
+      const tablesRes = await getPublicTables(route.params.slug)
+      tables.value = tablesRes.tables || []
+
+      // Restore selection from existing reservation (if user came back from checkout)
+      const reservationKey = `reservation_${route.params.slug}`
+      const savedReservation = sessionStorage.getItem(reservationKey)
+      if (savedReservation) {
+        try {
+          const reservation = JSON.parse(savedReservation)
+          // Check if reservation is still valid (not expired)
+          const expiresAt = new Date(reservation.expires_at).getTime()
+          const now = Date.now()
+          if (expiresAt > now) {
+            // Restore selections and track token
+            selectedTables.value = reservation.tables || []
+            selectedSeats.value = reservation.seats || []
+            existingReservationToken.value = reservation.token
+          } else {
+            // Reservation expired, clear it
+            sessionStorage.removeItem(reservationKey)
+          }
+        } catch (e) {
+          // Invalid JSON, clear it
+          sessionStorage.removeItem(reservationKey)
+        }
       }
+
+      // Show welcome on first visit
+      const welcomeKey = `seats_welcome_${route.params.slug}`
+      if (!sessionStorage.getItem(welcomeKey)) {
+        showWelcome.value = true
+        sessionStorage.setItem(welcomeKey, 'true')
+      }
+
+      await nextTick()
+      fitToView()
     }
   } catch (e) {
-    error.value = e.message || t.failedToLoadEvent
+    error.value = e.message
   } finally {
     loading.value = false
   }
@@ -305,96 +529,254 @@ const holdNoticeText = computed(() => {
   return t.holdNotice.replace('{minutes}', minutes)
 })
 
-const hasSelections = computed(() => {
-  return selectedTables.value.length > 0 || selectedSeats.value.length > 0
+// Calculate stage center based on tables positions
+const stageCenter = computed(() => {
+  if (tables.value.length === 0) return 800 // default
+  let minX = Infinity, maxX = 0
+  tables.value.forEach(table => {
+    const x = table.position_x || 100
+    minX = Math.min(minX, x)
+    maxX = Math.max(maxX, x + 144)
+  })
+  return (minX + maxX) / 2
 })
+
+const hasSelections = computed(() => selectedTables.value.length > 0 || selectedSeats.value.length > 0)
+const totalItems = computed(() => selectedTables.value.length + selectedSeats.value.length)
 
 const totalPrice = computed(() => {
   let total = 0
-
   for (const tableId of selectedTables.value) {
     const table = tables.value.find(t => t.id === tableId)
-    if (table) total += table.price || 0
+    if (table) total += Number(table.price) || 0
   }
-
   for (const seatId of selectedSeats.value) {
     for (const table of tables.value) {
-      if (table.seats) {
-        const seat = table.seats.find(s => s.id === seatId)
-        if (seat) {
-          total += seat.price || 0
-          break
-        }
-      }
+      const seat = table.seats?.find(s => s.id === seatId)
+      if (seat) { total += Number(seat.price) || 0; break }
     }
   }
-
   return total
 })
 
-// Helper functions
-const getTableName = (tableId) => {
-  const table = tables.value.find(t => t.id === tableId)
-  return table ? table.name : ''
+// Zoom & Pan
+const zoomIn = () => { zoom.value = Math.min(1.5, zoom.value + 0.15) }
+const zoomOut = () => { zoom.value = Math.max(0.3, zoom.value - 0.15) }
+
+const fitToView = () => {
+  if (!canvasRef.value || tables.value.length === 0) return
+  const rect = canvasRef.value.getBoundingClientRect()
+
+  // Calculate bounding box of all tables
+  let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0
+  tables.value.forEach(table => {
+    const x = table.position_x || 100
+    const y = (table.position_y || 150) + 100
+    minX = Math.min(minX, x)
+    minY = Math.min(minY, y)
+    maxX = Math.max(maxX, x + 144) // table width
+    maxY = Math.max(maxY, y + 100) // table height approx
+  })
+
+  // Include stage in bounding box (stage is centered on tables, width=500)
+  const stageCenterX = stageCenter.value
+  const stageLeft = stageCenterX - 250
+  const stageRight = stageCenterX + 250
+  minX = Math.min(minX, stageLeft)
+  maxX = Math.max(maxX, stageRight)
+  minY = Math.min(minY, 24) // stage top
+
+  // Add padding
+  const padding = 60
+  minX -= padding
+  minY -= padding
+  maxX += padding
+  maxY += padding
+
+  const contentWidth = maxX - minX
+  const contentHeight = maxY - minY
+  const scaleX = rect.width / contentWidth
+  const scaleY = rect.height / contentHeight
+  const newZoom = Math.min(scaleX, scaleY, 1) * 0.85
+
+  zoom.value = Math.max(0.3, Math.min(1.2, newZoom))
+  const centerX = (minX + maxX) / 2
+  const centerY = (minY + maxY) / 2
+  panX.value = (rect.width / 2) - (centerX * zoom.value)
+  panY.value = (rect.height / 2) - (centerY * zoom.value)
 }
 
-const getTablePrice = (tableId) => {
-  const table = tables.value.find(t => t.id === tableId)
-  return table ? Number(table.price).toFixed(2) : '0.00'
+const handleWheel = (e) => {
+  const delta = e.deltaY > 0 ? -0.08 : 0.08
+  zoom.value = Math.max(0.3, Math.min(1.5, zoom.value + delta))
 }
 
-const getSeatInfo = (seatId) => {
-  for (const table of tables.value) {
-    if (table.seats) {
-      const seat = table.seats.find(s => s.id === seatId)
-      if (seat) {
-        return `${table.name} - ${seat.label}`
-      }
+const startPan = (e) => {
+  if (e.target.closest('button')) return
+  isPanning.value = true
+  panStartX.value = e.clientX
+  panStartY.value = e.clientY
+  lastPanX.value = panX.value
+  lastPanY.value = panY.value
+}
+
+const doPan = (e) => {
+  if (!isPanning.value) return
+  panX.value = lastPanX.value + (e.clientX - panStartX.value)
+  panY.value = lastPanY.value + (e.clientY - panStartY.value)
+}
+
+const endPan = () => { isPanning.value = false }
+
+const handleTouchStart = (e) => {
+  if (e.touches.length === 1 && !e.target.closest('button')) {
+    isPanning.value = true
+    panStartX.value = e.touches[0].clientX
+    panStartY.value = e.touches[0].clientY
+    lastPanX.value = panX.value
+    lastPanY.value = panY.value
+  }
+}
+
+const handleTouchMove = (e) => {
+  if (!isPanning.value || e.touches.length !== 1) return
+  panX.value = lastPanX.value + (e.touches[0].clientX - panStartX.value)
+  panY.value = lastPanY.value + (e.touches[0].clientY - panStartY.value)
+}
+
+// Helpers
+const formatPrice = (price) => Number(price || 0).toFixed(2)
+const getAvailableSeatsCount = (table) => table.seats?.filter(s => s.status === 'available').length || 0
+const isTableSoldOut = (table) => table.sell_as_whole ? table.status === 'sold' : table.seats?.every(s => s.status === 'sold') ?? false
+
+const isTableInCart = (table) => {
+  if (table.sell_as_whole) return selectedTables.value.includes(table.id)
+  return table.seats?.some(s => selectedSeats.value.includes(s.id)) ?? false
+}
+
+const isSeatSelected = (seatId) => selectedSeats.value.includes(seatId)
+
+const handleTableClick = (table) => {
+  if (isTableSoldOut(table)) return
+  if (table.sell_as_whole) {
+    if (selectedTables.value.includes(table.id)) {
+      selectedTables.value = selectedTables.value.filter(id => id !== table.id)
+    } else {
+      selectedTables.value = [...selectedTables.value, table.id]
     }
+  } else {
+    activeTable.value = table
+  }
+}
+
+const toggleSeat = (seat) => {
+  if (seat.status === 'sold') return
+  if (selectedSeats.value.includes(seat.id)) {
+    selectedSeats.value = selectedSeats.value.filter(id => id !== seat.id)
+  } else {
+    selectedSeats.value = [...selectedSeats.value, seat.id]
+  }
+}
+
+const closeModal = () => { activeTable.value = null }
+
+const getTableSelectedCount = (table) => table?.seats?.filter(s => selectedSeats.value.includes(s.id)).length || 0
+
+const getTableSelectedTotal = (table) => {
+  if (!table?.seats) return '0.00'
+  let total = 0
+  for (const seat of table.seats) {
+    if (selectedSeats.value.includes(seat.id)) total += Number(seat.price) || 0
+  }
+  return total.toFixed(2)
+}
+
+const getTableName = (tableId) => tables.value.find(t => t.id === tableId)?.name || ''
+const getTablePrice = (tableId) => formatPrice(tables.value.find(t => t.id === tableId)?.price)
+const getTableCapacity = (tableId) => tables.value.find(t => t.id === tableId)?.capacity || 0
+
+const getSeatLabel = (seatId) => {
+  for (const table of tables.value) {
+    const seat = table.seats?.find(s => s.id === seatId)
+    if (seat) return seat.label
+  }
+  return ''
+}
+
+const getSeatTableName = (seatId) => {
+  for (const table of tables.value) {
+    if (table.seats?.find(s => s.id === seatId)) return table.name
   }
   return ''
 }
 
 const getSeatPrice = (seatId) => {
   for (const table of tables.value) {
-    if (table.seats) {
-      const seat = table.seats.find(s => s.id === seatId)
-      if (seat) return Number(seat.price).toFixed(2)
-    }
+    const seat = table.seats?.find(s => s.id === seatId)
+    if (seat) return formatPrice(seat.price)
   }
   return '0.00'
 }
 
-const removeTable = (tableId) => {
-  selectedTables.value = selectedTables.value.filter(id => id !== tableId)
+const removeTable = (tableId) => { selectedTables.value = selectedTables.value.filter(id => id !== tableId) }
+const removeSeat = (seatId) => { selectedSeats.value = selectedSeats.value.filter(id => id !== seatId) }
+
+// Clear cart and release any existing reservation
+const clearCart = async () => {
+  clearing.value = true
+  const reservationKey = `reservation_${route.params.slug}`
+
+  // Release existing reservation on server
+  if (existingReservationToken.value) {
+    try {
+      await releaseReservation(route.params.slug, existingReservationToken.value)
+    } catch (e) {
+      // Ignore errors - reservation may have already expired
+    }
+  }
+
+  // Clear local state
+  selectedTables.value = []
+  selectedSeats.value = []
+  existingReservationToken.value = null
+  sessionStorage.removeItem(reservationKey)
+  showCart.value = false
+
+  // Refresh tables to get updated availability
+  try {
+    const tablesRes = await getPublicTables(route.params.slug)
+    tables.value = tablesRes.tables || []
+  } catch (e) {
+    // Ignore
+  }
+
+  clearing.value = false
 }
 
-const removeSeat = (seatId) => {
-  selectedSeats.value = selectedSeats.value.filter(id => id !== seatId)
-}
-
-const handleContinue = async () => {
-  if (!hasSelections.value) return
-
+const handleCheckout = async () => {
   reserving.value = true
   error.value = ''
-
   try {
+    // Release existing reservation first (if any)
+    if (existingReservationToken.value) {
+      try {
+        await releaseReservation(route.params.slug, existingReservationToken.value)
+      } catch (e) {
+        // Ignore - may have already expired
+      }
+      existingReservationToken.value = null
+    }
+
     const response = await createReservation(route.params.slug, {
       tables: selectedTables.value,
       seats: selectedSeats.value
     })
-
-    // Save reservation to session storage
-    const reservationData = {
+    sessionStorage.setItem(`reservation_${route.params.slug}`, JSON.stringify({
       token: response.reservation.token,
       expires_at: response.reservation.expires_at,
       tables: selectedTables.value,
       seats: selectedSeats.value
-    }
-    sessionStorage.setItem(`reservation_${route.params.slug}`, JSON.stringify(reservationData))
-
-    // Navigate to checkout
+    }))
     router.push(`/app/events/${route.params.slug}/checkout`)
   } catch (e) {
     error.value = e.message || t.failedToReserve
@@ -404,469 +786,48 @@ const handleContinue = async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-
-.seats-page {
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --color-text: #1a1a1a;
-  --color-text-light: #666;
-  --color-text-muted: #999;
-  --color-bg: #fff;
-  --color-bg-alt: #f8f8f8;
-  --color-border: #eee;
-  --color-primary: #2563eb;
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --radius: 12px;
-
-  font-family: var(--font-body);
-  min-height: 100vh;
-  background: var(--color-bg-alt);
+/* Modal transitions */
+.modal-enter-active, .modal-leave-active {
+  transition: opacity 0.2s ease;
 }
-
-/* Loading State */
-.loading-state {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
+.modal-enter-active > div, .modal-leave-active > div {
+  transition: transform 0.3s ease;
 }
-
-.loading-spinner svg {
-  width: 48px;
-  height: 48px;
-  color: var(--color-primary);
-  animation: spin 1s linear infinite;
+.modal-enter-from, .modal-leave-to {
+  opacity: 0;
 }
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.modal-enter-from > div {
+  transform: translateY(100%);
 }
-
-.loading-state p {
-  font-size: 15px;
-  color: var(--color-text-light);
+.modal-leave-to > div {
+  transform: translateY(100%);
 }
-
-/* Message States */
-.message-state {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-}
-
-.message-card {
-  background: var(--color-bg);
-  border-radius: var(--radius);
-  padding: 40px 24px;
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-}
-
-.message-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-
-.message-icon.info {
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-}
-
-.message-icon.info svg {
-  color: var(--color-primary);
-}
-
-.message-icon.warning {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-}
-
-.message-icon.warning svg {
-  color: var(--color-warning);
-}
-
-.message-icon svg {
-  width: 32px;
-  height: 32px;
-}
-
-.message-card h1 {
-  font-family: var(--font-heading);
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 8px;
-}
-
-.message-card p {
-  font-size: 15px;
-  color: var(--color-text-light);
-  margin-bottom: 24px;
-}
-
-/* Seats Content */
-.seats-content {
-  padding: 20px 16px 100px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Header */
-.seats-header {
-  margin-bottom: 24px;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--color-primary);
-  text-decoration: none;
-  margin-bottom: 16px;
-}
-
-.back-link svg {
-  width: 16px;
-  height: 16px;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.header-content h1 {
-  font-family: var(--font-heading);
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.header-content p {
-  font-size: 15px;
-  color: var(--color-text-light);
-}
-
-/* Error Banner */
-.error-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: var(--color-danger);
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-.error-banner svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-/* Layout */
-.seats-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* Map Section */
-.map-section {
-  order: 1;
-}
-
-.map-container {
-  background: var(--color-bg);
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  min-height: 300px;
-}
-
-.map-legend {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 16px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--color-text-light);
-}
-
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-.legend-dot.available {
-  background: #d1fae5;
-  border: 1px solid #6ee7b7;
-}
-
-.legend-dot.selected {
-  background: var(--color-primary);
-}
-
-.legend-dot.sold {
-  background: #e5e7eb;
-  border: 1px solid #d1d5db;
-}
-
-/* Summary Section */
-.summary-section {
-  order: 2;
-}
-
-.summary-card {
-  background: var(--color-bg);
-  border-radius: var(--radius);
-  padding: 24px 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-}
-
-.summary-card h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 20px;
-}
-
-/* Empty Selection */
-.empty-selection {
-  text-align: center;
-  padding: 32px 16px;
-}
-
-.empty-selection svg {
-  width: 48px;
-  height: 48px;
-  color: #d1d5db;
-  margin-bottom: 12px;
-}
-
-.empty-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text-light);
-  margin-bottom: 4px;
-}
-
-.empty-desc {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-/* Selection List */
-.selection-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.selection-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.group-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.selection-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.selection-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--color-bg-alt);
-  border-radius: 8px;
-}
-
-.item-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.item-price {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-.item-remove {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.item-remove:hover {
-  color: var(--color-danger);
-  background: #fef2f2;
-}
-
-.item-remove svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Selection Total */
-.selection-total {
-  padding-top: 20px;
-  border-top: 1px solid var(--color-border);
-}
-
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.total-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.total-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.hold-notice {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-
-/* Buttons */
-.btn-primary,
-.btn-continue {
-  display: block;
-  width: 100%;
-  padding: 14px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  text-align: center;
-  text-decoration: none;
-  background: var(--color-text);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover,
-.btn-continue:hover:not(:disabled) {
-  background: #333;
-}
-
-.btn-continue:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.btn-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-loading svg {
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-}
-
-/* Tablet */
 @media (min-width: 640px) {
-  .seats-content {
-    padding: 32px 24px 100px;
-  }
-
-  .header-content h1 {
-    font-size: 32px;
-  }
-
-  .map-container {
-    padding: 24px;
-    min-height: 400px;
+  .modal-enter-from > div, .modal-leave-to > div {
+    transform: translateY(20px) scale(0.95);
   }
 }
 
-/* Desktop */
-@media (min-width: 1024px) {
-  .seats-content {
-    padding: 40px 40px 60px;
-  }
+/* Drawer transitions */
+.drawer-enter-active, .drawer-leave-active {
+  transition: opacity 0.2s ease;
+}
+.drawer-enter-active > div, .drawer-leave-active > div {
+  transition: transform 0.3s ease;
+}
+.drawer-enter-from, .drawer-leave-to {
+  opacity: 0;
+}
+.drawer-enter-from > div, .drawer-leave-to > div {
+  transform: translateX(100%);
+}
 
-  .seats-layout {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .map-section {
-    flex: 1;
-    order: 1;
-  }
-
-  .summary-section {
-    width: 340px;
-    flex-shrink: 0;
-    order: 2;
-    position: sticky;
-    top: 100px;
-  }
-
-  .map-container {
-    min-height: 500px;
-  }
+/* Slide up */
+.slide-up-enter-active, .slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-up-enter-from, .slide-up-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
 }
 </style>

@@ -270,41 +270,77 @@
             </div>
 
             <!-- Tables (Positioned) -->
-            <button
+            <div
               v-for="table in tables"
               :key="table.id"
-              :class="[
-                'absolute w-36 bg-white border-2 rounded-2xl text-center transition-all duration-150 shadow-card hover:shadow-card-hover',
-                isTableSoldOut(table)
-                  ? 'border-washi-300 opacity-50 cursor-not-allowed'
-                  : isTableInCart(table)
-                    ? 'border-indigo ring-4 ring-indigo/20'
-                    : 'border-washi-300 hover:border-sage cursor-pointer'
-              ]"
+              class="absolute"
               :style="{
                 left: `${table.position_x || 100}px`,
                 top: `${(table.position_y || 150) + 100}px`
               }"
-              @click="handleTableClick(table)"
             >
-              <div class="p-4">
-                <span class="block text-sm font-semibold text-ink mb-1">{{ table.name }}</span>
-                <span class="text-xs text-ink-muted">
-                  <template v-if="table.sell_as_whole">
-                    {{ table.capacity }} {{ t.guests }} &bull; ${{ formatPrice(table.price) }}
-                  </template>
-                  <template v-else>
-                    {{ getAvailableSeatsCount(table) }}/{{ table.seats?.length || 0 }} {{ t.available }}
-                  </template>
-                </span>
-              </div>
-              <!-- Badge -->
-              <span v-if="isTableInCart(table)" class="absolute -top-2 -right-2 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow">
-                <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
-              </span>
-            </button>
+              <!-- Table with visual seats (individual seat sales) -->
+              <template v-if="!table.sell_as_whole && table.seats?.length">
+                <div class="relative" :style="{ width: `${getTableSize(table)}px`, height: `${getTableSize(table)}px` }">
+                  <!-- Seats arranged in circle around table -->
+                  <button
+                    v-for="(seat, idx) in table.seats"
+                    :key="seat.id"
+                    :class="[
+                      'absolute w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-150',
+                      seat.status === 'sold'
+                        ? 'bg-washi-300 border-washi-400 text-washi-500 cursor-not-allowed'
+                        : isSeatSelected(seat.id)
+                          ? 'bg-indigo border-indigo text-white shadow-lg scale-110'
+                          : 'bg-white border-sage text-sage hover:bg-sage hover:text-white hover:scale-110 cursor-pointer'
+                    ]"
+                    :style="getSeatPosition(table, idx)"
+                    :disabled="seat.status === 'sold'"
+                    @click.stop="toggleSeat(seat)"
+                    :title="`${seat.label} - $${formatPrice(seat.price)}`"
+                  >
+                    {{ getSeatNumber(seat, idx) }}
+                  </button>
+
+                  <!-- Center table circle -->
+                  <div
+                    class="absolute bg-white border-2 border-washi-300 rounded-full shadow-card flex flex-col items-center justify-center"
+                    :style="getTableCenterStyle(table)"
+                  >
+                    <span class="text-xs font-semibold text-ink">{{ table.name }}</span>
+                    <span class="text-[10px] text-ink-muted">{{ getAvailableSeatsCount(table) }}/{{ table.seats.length }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Whole table purchase (no individual seats) -->
+              <template v-else>
+                <button
+                  :class="[
+                    'w-36 bg-white border-2 rounded-2xl text-center transition-all duration-150 shadow-card hover:shadow-card-hover',
+                    isTableSoldOut(table)
+                      ? 'border-washi-300 opacity-50 cursor-not-allowed'
+                      : isTableInCart(table)
+                        ? 'border-indigo ring-4 ring-indigo/20'
+                        : 'border-washi-300 hover:border-sage cursor-pointer'
+                  ]"
+                  @click="handleTableClick(table)"
+                >
+                  <div class="p-4">
+                    <span class="block text-sm font-semibold text-ink mb-1">{{ table.name }}</span>
+                    <span class="text-xs text-ink-muted">
+                      {{ table.capacity }} {{ t.guests }} &bull; ${{ formatPrice(table.price) }}
+                    </span>
+                  </div>
+                  <!-- Badge -->
+                  <span v-if="isTableInCart(table)" class="absolute -top-2 -right-2 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <path d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </span>
+                </button>
+              </template>
+            </div>
           </div>
         </div>
 
@@ -567,19 +603,20 @@ const fitToView = () => {
   const viewport = canvasRef.value.getBoundingClientRect()
 
   // Step 1: Find the actual extent of all content
-  const tableWidth = 144
-  const tableHeight = 80
-
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
 
-  // Get table bounds
+  // Get table bounds (account for visual seat arrangement size)
   tables.value.forEach(table => {
     const x = table.position_x || 100
     const y = (table.position_y || 150) + 100
+    // Use dynamic size for tables with seats, fixed size for whole tables
+    const size = (!table.sell_as_whole && table.seats?.length)
+      ? getTableSize(table)
+      : 144
     minX = Math.min(minX, x)
-    maxX = Math.max(maxX, x + tableWidth)
+    maxX = Math.max(maxX, x + size)
     minY = Math.min(minY, y)
-    maxY = Math.max(maxY, y + tableHeight)
+    maxY = Math.max(maxY, y + size)
   })
 
   // Include stage (at top, centered on tables)
@@ -649,6 +686,41 @@ const handleTouchMove = (e) => {
 const formatPrice = (price) => Number(price || 0).toFixed(2)
 const getAvailableSeatsCount = (table) => table.seats?.filter(s => s.status === 'available').length || 0
 const isTableSoldOut = (table) => table.sell_as_whole ? table.status === 'sold' : table.seats?.every(s => s.status === 'sold') ?? false
+
+// Visual seat arrangement helpers
+const getTableSize = (table) => {
+  const seatCount = table.seats?.length || 6
+  // Base size + extra space per seat
+  return Math.max(120, 60 + seatCount * 15)
+}
+
+const getSeatPosition = (table, idx) => {
+  const seatCount = table.seats?.length || 6
+  const tableSize = getTableSize(table)
+  const radius = (tableSize / 2) - 4 // seats on the edge
+  const angle = (idx / seatCount) * 2 * Math.PI - Math.PI / 2 // start from top
+  const x = (tableSize / 2) + radius * Math.cos(angle) - 16 // 16 = half of seat width (32/2)
+  const y = (tableSize / 2) + radius * Math.sin(angle) - 16
+  return { left: `${x}px`, top: `${y}px` }
+}
+
+const getTableCenterStyle = (table) => {
+  const tableSize = getTableSize(table)
+  const centerSize = tableSize * 0.55 // center table is 55% of total size
+  const offset = (tableSize - centerSize) / 2
+  return {
+    width: `${centerSize}px`,
+    height: `${centerSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
+}
+
+const getSeatNumber = (seat, idx) => {
+  // Try to extract number from label, fallback to index
+  const num = seat.label?.match(/\d+/)
+  return num ? num[0] : idx + 1
+}
 
 const isTableInCart = (table) => {
   if (table.sell_as_whole) return selectedTables.value.includes(table.id)

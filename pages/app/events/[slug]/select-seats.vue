@@ -313,31 +313,104 @@
                 </div>
               </template>
 
-              <!-- Whole table purchase (no individual seats) -->
+              <!-- Whole table purchase - Premium unified visualization -->
               <template v-else>
                 <button
                   :class="[
-                    'w-36 bg-white border-2 rounded-2xl text-center transition-all duration-150 shadow-card hover:shadow-card-hover',
+                    'group relative transition-all duration-300 ease-out',
                     isTableSoldOut(table)
-                      ? 'border-washi-300 opacity-50 cursor-not-allowed'
-                      : isTableInCart(table)
-                        ? 'border-indigo ring-4 ring-indigo/20'
-                        : 'border-washi-300 hover:border-sage cursor-pointer'
+                      ? 'opacity-40 cursor-not-allowed'
+                      : 'cursor-pointer'
                   ]"
+                  :style="{ width: `${getWholeTableSize(table)}px`, height: `${getWholeTableSize(table)}px` }"
                   @click="handleTableClick(table)"
+                  :disabled="isTableSoldOut(table)"
                 >
-                  <div class="p-4">
-                    <span class="block text-sm font-semibold text-ink mb-1">{{ table.name }}</span>
-                    <span class="text-xs text-ink-muted">
-                      {{ table.capacity }} {{ t.guests }} &bull; ${{ formatPrice(table.price) }}
+                  <!-- Outer glow ring (appears on hover/selected) -->
+                  <div
+                    :class="[
+                      'absolute inset-0 rounded-full transition-all duration-300',
+                      isTableInCart(table)
+                        ? 'bg-indigo/20 scale-110'
+                        : 'bg-transparent group-hover:bg-sage/10 group-hover:scale-105'
+                    ]"
+                  ></div>
+
+                  <!-- Seat indicators - unified ring of dots -->
+                  <div class="absolute inset-0">
+                    <div
+                      v-for="n in (table.capacity || 8)"
+                      :key="n"
+                      :class="[
+                        'absolute w-4 h-4 rounded-full border-2 transition-all duration-300',
+                        isTableSoldOut(table)
+                          ? 'bg-washi-200 border-washi-300'
+                          : isTableInCart(table)
+                            ? 'bg-indigo/30 border-indigo'
+                            : 'bg-paper border-washi-400 group-hover:border-sage group-hover:bg-sage/20'
+                      ]"
+                      :style="getWholeTableSeatPosition(table, n - 1)"
+                    ></div>
+                  </div>
+
+                  <!-- Connecting ring -->
+                  <div
+                    :class="[
+                      'absolute rounded-full border-2 border-dashed transition-all duration-300',
+                      isTableSoldOut(table)
+                        ? 'border-washi-300'
+                        : isTableInCart(table)
+                          ? 'border-indigo/40'
+                          : 'border-washi-300 group-hover:border-sage/50'
+                    ]"
+                    :style="getConnectingRingStyle(table)"
+                  ></div>
+
+                  <!-- Center table surface -->
+                  <div
+                    :class="[
+                      'absolute rounded-full shadow-card flex flex-col items-center justify-center transition-all duration-300 border-2',
+                      isTableSoldOut(table)
+                        ? 'bg-washi-100 border-washi-300'
+                        : isTableInCart(table)
+                          ? 'bg-white border-indigo shadow-lg'
+                          : 'bg-white border-washi-300 group-hover:border-sage group-hover:shadow-md'
+                    ]"
+                    :style="getWholeTableCenterStyle(table)"
+                  >
+                    <span :class="['text-xs font-semibold', isTableInCart(table) ? 'text-indigo' : 'text-ink']">
+                      {{ table.name }}
+                    </span>
+                    <span class="text-[10px] text-ink-muted mt-0.5">
+                      {{ table.capacity }} {{ t.guests }}
+                    </span>
+                    <span :class="['text-sm font-bold mt-1', isTableInCart(table) ? 'text-indigo' : 'text-sage']">
+                      ${{ formatPrice(table.price) }}
                     </span>
                   </div>
-                  <!-- Badge -->
-                  <span v-if="isTableInCart(table)" class="absolute -top-2 -right-2 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow">
+
+                  <!-- Selected checkmark -->
+                  <div
+                    v-if="isTableInCart(table)"
+                    class="absolute -top-1 -right-1 w-7 h-7 bg-indigo rounded-full flex items-center justify-center shadow-lg z-10"
+                  >
                     <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                       <path d="M5 13l4 4L19 7"/>
                     </svg>
-                  </span>
+                  </div>
+
+                  <!-- "Full Table" label -->
+                  <div
+                    v-if="!isTableSoldOut(table)"
+                    :class="[
+                      'absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap transition-all duration-300',
+                      isTableInCart(table)
+                        ? 'bg-indigo text-white'
+                        : 'bg-washi-200 text-ink-muted group-hover:bg-sage group-hover:text-white'
+                    ]"
+                  >
+                    {{ t.fullTable || 'Full Table' }}
+                  </div>
                 </button>
               </template>
             </div>
@@ -448,7 +521,8 @@ const translations = {
   tapToStart: { es: 'Toca una mesa para comenzar', en: 'Tap a table to get started' },
   failedToReserve: { es: 'No se pudo reservar. Intenta de nuevo.', en: 'Could not reserve. Please try again.' },
   startOver: { es: 'Empezar de nuevo', en: 'Start over' },
-  clearing: { es: 'Limpiando...', en: 'Clearing...' }
+  clearing: { es: 'Limpiando...', en: 'Clearing...' },
+  fullTable: { es: 'Mesa completa', en: 'Full Table' }
 }
 
 const t = createT(translations)
@@ -609,10 +683,13 @@ const fitToView = () => {
   tables.value.forEach(table => {
     const x = table.position_x || 100
     const y = (table.position_y || 150) + 100
-    // Use dynamic size for tables with seats, fixed size for whole tables
-    const size = (!table.sell_as_whole && table.seats?.length)
-      ? getTableSize(table)
-      : 144
+    // Use dynamic size based on table type
+    let size
+    if (!table.sell_as_whole && table.seats?.length) {
+      size = getTableSize(table) // individual seats table
+    } else {
+      size = getWholeTableSize(table) // whole table purchase
+    }
     minX = Math.min(minX, x)
     maxX = Math.max(maxX, x + size)
     minY = Math.min(minY, y)
@@ -720,6 +797,47 @@ const getSeatNumber = (seat, idx) => {
   // Try to extract number from label, fallback to index
   const num = seat.label?.match(/\d+/)
   return num ? num[0] : idx + 1
+}
+
+// Whole table visualization helpers
+const getWholeTableSize = (table) => {
+  const capacity = table.capacity || 8
+  // Elegant sizing: base 120px + 8px per guest, max 180px
+  return Math.min(180, Math.max(120, 80 + capacity * 10))
+}
+
+const getWholeTableSeatPosition = (table, idx) => {
+  const capacity = table.capacity || 8
+  const size = getWholeTableSize(table)
+  const radius = (size / 2) - 10 // seats slightly inside edge
+  const angle = (idx / capacity) * 2 * Math.PI - Math.PI / 2 // start from top
+  const x = (size / 2) + radius * Math.cos(angle) - 8 // 8 = half of seat indicator (16/2)
+  const y = (size / 2) + radius * Math.sin(angle) - 8
+  return { left: `${x}px`, top: `${y}px` }
+}
+
+const getConnectingRingStyle = (table) => {
+  const size = getWholeTableSize(table)
+  const ringSize = size - 24 // slightly inside the seats
+  const offset = (size - ringSize) / 2
+  return {
+    width: `${ringSize}px`,
+    height: `${ringSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
+}
+
+const getWholeTableCenterStyle = (table) => {
+  const size = getWholeTableSize(table)
+  const centerSize = size * 0.5 // center is 50% of total
+  const offset = (size - centerSize) / 2
+  return {
+    width: `${centerSize}px`,
+    height: `${centerSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
 }
 
 const isTableInCart = (table) => {

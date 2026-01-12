@@ -566,46 +566,61 @@ const zoomOut = () => { zoom.value = Math.max(0.3, zoom.value - 0.15) }
 
 const fitToView = () => {
   if (!canvasRef.value || tables.value.length === 0) return
-  const rect = canvasRef.value.getBoundingClientRect()
+  const viewport = canvasRef.value.getBoundingClientRect()
 
-  // Calculate bounding box of tables only
-  let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0
+  // Step 1: Calculate bounding box of ALL content
+  const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+
+  // Include stage (top=24, height=80px, centered on tables with width=500)
+  const stageCenterX = stageCenter.value
+  const stageTop = 24
+  const stageHeight = 80
+  const stageWidth = 500
+  bounds.minX = Math.min(bounds.minX, stageCenterX - stageWidth / 2)
+  bounds.maxX = Math.max(bounds.maxX, stageCenterX + stageWidth / 2)
+  bounds.minY = Math.min(bounds.minY, stageTop)
+  bounds.maxY = Math.max(bounds.maxY, stageTop + stageHeight)
+
+  // Include all tables
+  const tableWidth = 144  // w-36 = 9rem = 144px
+  const tableHeight = 80  // approximate height
   tables.value.forEach(table => {
     const x = table.position_x || 100
     const y = (table.position_y || 150) + 100
-    minX = Math.min(minX, x)
-    minY = Math.min(minY, y)
-    maxX = Math.max(maxX, x + 144) // table width
-    maxY = Math.max(maxY, y + 100) // table height approx
+    bounds.minX = Math.min(bounds.minX, x)
+    bounds.maxX = Math.max(bounds.maxX, x + tableWidth)
+    bounds.minY = Math.min(bounds.minY, y)
+    bounds.maxY = Math.max(bounds.maxY, y + tableHeight)
   })
 
-  // Include stage height in Y bounds (stage is above tables at y=24)
-  minY = Math.min(minY, 24)
+  // Step 2: Add padding around bounds
+  const padding = 50
+  bounds.minX -= padding
+  bounds.minY -= padding
+  bounds.maxX += padding
+  bounds.maxY += padding
 
-  // Add padding
-  const padding = 80
-  minX -= padding
-  minY -= padding
-  maxX += padding
-  maxY += padding
+  // Step 3: Calculate zoom level to fit bounds in viewport
+  const boundsWidth = bounds.maxX - bounds.minX
+  const boundsHeight = bounds.maxY - bounds.minY
+  const scaleX = viewport.width / boundsWidth
+  const scaleY = viewport.height / boundsHeight
+  const fitZoom = Math.min(scaleX, scaleY) * 0.95  // 95% to leave margin
 
-  const contentWidth = maxX - minX
-  const contentHeight = maxY - minY
-  const scaleX = rect.width / contentWidth
-  const scaleY = rect.height / contentHeight
-  const newZoom = Math.min(scaleX, scaleY, 1) * 0.85
+  zoom.value = Math.max(0.3, Math.min(1.5, fitZoom))
 
-  zoom.value = Math.max(0.4, Math.min(1.2, newZoom))
+  // Step 4: Calculate pan to center bounds in viewport
+  // Canvas center is at (800, 600), we want bounds center to appear there
+  const canvasCenter = { x: 800, y: 600 }
+  const boundsCenter = {
+    x: (bounds.minX + bounds.maxX) / 2,
+    y: (bounds.minY + bounds.maxY) / 2
+  }
 
-  // With center origin (800, 600), calculate offset from canvas center to content center
-  const canvasCenterX = 800
-  const canvasCenterY = 600
-  const contentCenterX = (minX + maxX) / 2
-  const contentCenterY = (minY + maxY) / 2
-
-  // Pan to shift content center to canvas center (which is already screen-centered via flexbox)
-  panX.value = (canvasCenterX - contentCenterX) * zoom.value
-  panY.value = (canvasCenterY - contentCenterY) * zoom.value
+  // With transform-origin: center, pan shifts content relative to canvas center
+  // To show boundsCenter at canvasCenter, pan by the difference (no zoom multiplier needed)
+  panX.value = canvasCenter.x - boundsCenter.x
+  panY.value = canvasCenter.y - boundsCenter.y
 }
 
 const handleWheel = (e) => {

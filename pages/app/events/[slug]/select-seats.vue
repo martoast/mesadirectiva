@@ -240,7 +240,7 @@
         <!-- Canvas (full height now) -->
         <div
           ref="canvasRef"
-          class="h-[calc(100vh-120px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing flex items-center justify-center"
+          class="h-[calc(100vh-120px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing"
           @wheel.prevent="handleWheel"
           @mousedown="startPan"
           @mousemove="doPan"
@@ -251,12 +251,11 @@
           @touchend="endPan"
         >
           <div
-            class="relative transition-transform duration-100"
+            class="relative transition-transform duration-100 origin-top-left"
             :style="{
               width: '1600px',
               height: '1200px',
-              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
-              transformOrigin: 'center center'
+              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`
             }"
           >
             <!-- Grid -->
@@ -609,17 +608,16 @@ const fitToView = () => {
   zoom.value = Math.max(0.3, Math.min(1.5, fitZoom))
 
   // Step 4: Calculate pan to center bounds in viewport
-  // Canvas center is at (800, 600), we want bounds center to appear there
-  const canvasCenter = { x: 800, y: 600 }
+  // With origin-top-left: point P at (px,py) appears at (px*zoom + panX, py*zoom + panY)
+  // We want boundsCenter to appear at viewport center
   const boundsCenter = {
     x: (bounds.minX + bounds.maxX) / 2,
     y: (bounds.minY + bounds.maxY) / 2
   }
 
-  // With transform-origin: center, pan shifts content relative to canvas center
-  // To show boundsCenter at canvasCenter, pan by the difference (no zoom multiplier needed)
-  panX.value = canvasCenter.x - boundsCenter.x
-  panY.value = canvasCenter.y - boundsCenter.y
+  // Pan so that boundsCenter * zoom + pan = viewport center
+  panX.value = (viewport.width / 2) - (boundsCenter.x * zoom.value)
+  panY.value = (viewport.height / 2) - (boundsCenter.y * zoom.value)
 }
 
 const handleWheel = (e) => {

@@ -276,7 +276,7 @@
         <!-- Canvas -->
         <div
           ref="canvasRef"
-          class="h-[calc(100vh-180px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing"
+          class="h-[calc(100vh-180px)] overflow-hidden bg-paper-warm cursor-grab active:cursor-grabbing flex items-center justify-center"
           @wheel.prevent="handleWheel"
           @mousedown="startPan"
           @mousemove="doPan"
@@ -287,11 +287,12 @@
           @touchend="endPan"
         >
           <div
-            class="relative origin-top-left transition-transform duration-100"
+            class="relative transition-transform duration-100"
             :style="{
               width: '1600px',
               height: '1200px',
-              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`
+              transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
+              transformOrigin: 'center center'
             }"
           >
             <!-- Grid -->
@@ -583,22 +584,28 @@ const fitToView = () => {
 
   // Add padding
   const padding = 80
+  minX -= padding
   minY -= padding
+  maxX += padding
   maxY += padding
 
-  const contentWidth = maxX - minX + (padding * 2)
+  const contentWidth = maxX - minX
   const contentHeight = maxY - minY
   const scaleX = rect.width / contentWidth
   const scaleY = rect.height / contentHeight
-  const newZoom = Math.min(scaleX, scaleY, 1) * 0.9
+  const newZoom = Math.min(scaleX, scaleY, 1) * 0.85
 
   zoom.value = Math.max(0.4, Math.min(1.2, newZoom))
 
-  // Center horizontally on tables, vertically on whole content
-  const tablesCenterX = (minX + maxX) / 2
-  const centerY = (minY + maxY) / 2
-  panX.value = (rect.width / 2) - (tablesCenterX * zoom.value)
-  panY.value = (rect.height / 2) - (centerY * zoom.value)
+  // With center origin (800, 600), calculate offset from canvas center to content center
+  const canvasCenterX = 800
+  const canvasCenterY = 600
+  const contentCenterX = (minX + maxX) / 2
+  const contentCenterY = (minY + maxY) / 2
+
+  // Pan to shift content center to canvas center (which is already screen-centered via flexbox)
+  panX.value = (canvasCenterX - contentCenterX) * zoom.value
+  panY.value = (canvasCenterY - contentCenterY) * zoom.value
 }
 
 const handleWheel = (e) => {

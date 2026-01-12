@@ -164,56 +164,151 @@
             </div>
           </div>
 
-          <!-- Table Cards -->
+          <!-- Table Cards - Cinema Style -->
           <div
             v-for="table in tables"
             :key="table.id"
-            :class="[
-              'table-card',
-              { 'whole-table': table.sell_as_whole },
-              { 'is-dragging': draggingTable?.id === table.id },
-              { 'is-selected': selectedTable?.id === table.id },
-              { 'is-sold': table.status === 'sold' }
-            ]"
+            class="absolute"
             :style="{
               left: `${table.position_x}px`,
               top: `${table.position_y}px`
             }"
             @mousedown.stop="startDrag($event, table)"
           >
-            <div class="table-header">
-              <span class="table-name">{{ table.name }}</span>
-            </div>
+            <!-- Individual seats table - Circular arrangement -->
+            <template v-if="!table.sell_as_whole && table.seats?.length">
+              <div
+                :class="[
+                  'table-visual relative cursor-pointer transition-all duration-200',
+                  { 'is-dragging': draggingTable?.id === table.id },
+                  { 'is-selected': selectedTable?.id === table.id }
+                ]"
+                :style="{ width: `${getTableSize(table)}px`, height: `${getTableSize(table)}px` }"
+              >
+                <!-- Seats arranged in circle -->
+                <div
+                  v-for="(seat, idx) in table.seats"
+                  :key="seat.id"
+                  :class="[
+                    'absolute w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all',
+                    seat.status === 'sold'
+                      ? 'bg-washi-300 border-washi-400 text-washi-500'
+                      : seat.status === 'reserved'
+                        ? 'bg-gold/20 border-gold text-gold'
+                        : 'bg-white border-sage text-sage'
+                  ]"
+                  :style="getSeatPosition(table, idx)"
+                >
+                  {{ getSeatNumber(seat, idx) }}
+                </div>
 
-            <div class="table-body">
-              <template v-if="table.sell_as_whole">
-                <div class="whole-table-info">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                <!-- Center table circle -->
+                <div
+                  :class="[
+                    'absolute bg-white rounded-full shadow-card flex flex-col items-center justify-center border-2 transition-all',
+                    selectedTable?.id === table.id ? 'border-indigo shadow-lg' : 'border-washi-300'
+                  ]"
+                  :style="getTableCenterStyle(table)"
+                >
+                  <span :class="['text-xs font-semibold', selectedTable?.id === table.id ? 'text-indigo' : 'text-ink']">{{ table.name }}</span>
+                  <span class="text-[10px] text-ink-muted">{{ getAvailableSeatsCount(table) }}/{{ table.seats.length }}</span>
+                  <span class="text-xs font-semibold text-sage mt-0.5">${{ formatPrice(table.price) }}</span>
+                </div>
+
+                <!-- Selection indicator -->
+                <div v-if="selectedTable?.id === table.id" class="absolute -top-1 -right-1 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow-lg z-10">
+                  <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M5 13l4 4L19 7"/>
                   </svg>
-                  <span>{{ table.capacity }}</span>
                 </div>
-              </template>
-              <template v-else>
-                <div class="seats-preview">
-                  <div
-                    v-for="seat in table.seats?.slice(0, 8)"
-                    :key="seat.id"
-                    :class="['seat-pip', seat.status]"
-                  ></div>
-                  <div v-if="(table.seats?.length || 0) > 8" class="seats-overflow">
-                    +{{ table.seats.length - 8 }}
-                  </div>
-                </div>
-              </template>
-            </div>
+              </div>
+            </template>
 
-            <div class="table-footer">
-              <span class="table-price">${{ formatPrice(table.price) }}</span>
-              <span class="table-seats">{{ table.seats?.length || table.capacity }} {{ t.seatsLabel }}</span>
-            </div>
+            <!-- Whole table - Premium unified visualization -->
+            <template v-else>
+              <div
+                :class="[
+                  'table-visual relative cursor-pointer transition-all duration-200',
+                  { 'is-dragging': draggingTable?.id === table.id },
+                  { 'is-selected': selectedTable?.id === table.id },
+                  { 'opacity-50': table.status === 'sold' }
+                ]"
+                :style="{ width: `${getWholeTableSize(table)}px`, height: `${getWholeTableSize(table)}px` }"
+              >
+                <!-- Outer glow ring -->
+                <div
+                  :class="[
+                    'absolute inset-0 rounded-full transition-all duration-200',
+                    selectedTable?.id === table.id ? 'bg-indigo/15 scale-105' : 'bg-transparent'
+                  ]"
+                ></div>
+
+                <!-- Seat indicators - unified ring of dots -->
+                <div class="absolute inset-0">
+                  <div
+                    v-for="n in (table.capacity || 8)"
+                    :key="n"
+                    :class="[
+                      'absolute w-4 h-4 rounded-full border-2 transition-all',
+                      table.status === 'sold'
+                        ? 'bg-washi-200 border-washi-300'
+                        : selectedTable?.id === table.id
+                          ? 'bg-indigo/20 border-indigo'
+                          : 'bg-paper border-washi-400'
+                    ]"
+                    :style="getWholeTableSeatPosition(table, n - 1)"
+                  ></div>
+                </div>
+
+                <!-- Connecting ring -->
+                <div
+                  :class="[
+                    'absolute rounded-full border-2 border-dashed transition-all',
+                    table.status === 'sold'
+                      ? 'border-washi-300'
+                      : selectedTable?.id === table.id
+                        ? 'border-indigo/40'
+                        : 'border-washi-300'
+                  ]"
+                  :style="getConnectingRingStyle(table)"
+                ></div>
+
+                <!-- Center table surface -->
+                <div
+                  :class="[
+                    'absolute rounded-full shadow-card flex flex-col items-center justify-center border-2 transition-all',
+                    table.status === 'sold'
+                      ? 'bg-washi-100 border-washi-300'
+                      : selectedTable?.id === table.id
+                        ? 'bg-white border-indigo shadow-lg'
+                        : 'bg-white border-washi-300'
+                  ]"
+                  :style="getWholeTableCenterStyle(table)"
+                >
+                  <span :class="['text-xs font-semibold', selectedTable?.id === table.id ? 'text-indigo' : 'text-ink']">{{ table.name }}</span>
+                  <span class="text-[10px] text-ink-muted mt-0.5">{{ table.capacity }} {{ t.seatsLabel }}</span>
+                  <span :class="['text-sm font-bold mt-1', selectedTable?.id === table.id ? 'text-indigo' : 'text-sage']">${{ formatPrice(table.price) }}</span>
+                </div>
+
+                <!-- Selection indicator -->
+                <div v-if="selectedTable?.id === table.id" class="absolute -top-1 -right-1 w-6 h-6 bg-indigo rounded-full flex items-center justify-center shadow-lg z-10">
+                  <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+
+                <!-- "Full Table" label -->
+                <div
+                  v-if="table.status !== 'sold'"
+                  :class="[
+                    'absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider whitespace-nowrap transition-all',
+                    selectedTable?.id === table.id ? 'bg-indigo text-white' : 'bg-washi-200 text-ink-muted'
+                  ]"
+                >
+                  {{ t.fullTable || 'Full Table' }}
+                </div>
+              </div>
+            </template>
           </div>
         </div>
 
@@ -698,6 +793,7 @@ const translations = {
   // Canvas
   stage: { es: 'ESCENARIO', en: 'STAGE' },
   seatsLabel: { es: 'asientos', en: 'seats' },
+  fullTable: { es: 'Mesa completa', en: 'Full Table' },
 
   // Instructions
   quickControls: { es: 'Controles Rápidos', en: 'Quick Controls' },
@@ -875,6 +971,81 @@ const bulkPreview = computed(() => {
 })
 
 const formatPrice = (price) => Number(price || 0).toFixed(0)
+
+// Visual table sizing helpers (matching public seat selection)
+const getTableSize = (table) => {
+  const seatCount = table.seats?.length || 6
+  return Math.max(120, 60 + seatCount * 15)
+}
+
+const getSeatPosition = (table, idx) => {
+  const seatCount = table.seats?.length || 6
+  const tableSize = getTableSize(table)
+  const radius = (tableSize / 2) - 4
+  const angle = (idx / seatCount) * 2 * Math.PI - Math.PI / 2
+  const x = (tableSize / 2) + radius * Math.cos(angle) - 16
+  const y = (tableSize / 2) + radius * Math.sin(angle) - 16
+  return { left: `${x}px`, top: `${y}px` }
+}
+
+const getTableCenterStyle = (table) => {
+  const tableSize = getTableSize(table)
+  const centerSize = tableSize * 0.55
+  const offset = (tableSize - centerSize) / 2
+  return {
+    width: `${centerSize}px`,
+    height: `${centerSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
+}
+
+const getSeatNumber = (seat, idx) => {
+  const num = seat.label?.match(/\d+/)
+  return num ? num[0] : idx + 1
+}
+
+// Whole table visualization helpers
+const getWholeTableSize = (table) => {
+  const capacity = table.capacity || 8
+  return Math.min(180, Math.max(120, 80 + capacity * 10))
+}
+
+const getWholeTableSeatPosition = (table, idx) => {
+  const capacity = table.capacity || 8
+  const size = getWholeTableSize(table)
+  const radius = (size / 2) - 10
+  const angle = (idx / capacity) * 2 * Math.PI - Math.PI / 2
+  const x = (size / 2) + radius * Math.cos(angle) - 8
+  const y = (size / 2) + radius * Math.sin(angle) - 8
+  return { left: `${x}px`, top: `${y}px` }
+}
+
+const getConnectingRingStyle = (table) => {
+  const size = getWholeTableSize(table)
+  const ringSize = size - 24
+  const offset = (size - ringSize) / 2
+  return {
+    width: `${ringSize}px`,
+    height: `${ringSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
+}
+
+const getWholeTableCenterStyle = (table) => {
+  const size = getWholeTableSize(table)
+  const centerSize = size * 0.5
+  const offset = (size - centerSize) / 2
+  return {
+    width: `${centerSize}px`,
+    height: `${centerSize}px`,
+    left: `${offset}px`,
+    top: `${offset}px`
+  }
+}
+
+const getAvailableSeatsCount = (table) => table.seats?.filter(s => s.status === 'available').length || 0
 
 // Data fetching
 const fetchData = async () => {
@@ -1809,135 +1980,27 @@ onBeforeUnmount(() => {
   color: #57534E;
 }
 
-/* ========== TABLE CARDS ========== */
-.table-card {
-  position: absolute;
-  width: 140px;
-  background: white;
-  border: 1px solid var(--stone);
-  border-radius: var(--radius);
-  overflow: hidden;
+/* ========== TABLE VISUAL (Cinema Style) ========== */
+.table-visual {
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: all 0.2s ease;
   user-select: none;
 }
 
-.table-card:hover {
-  border-color: var(--stone-dark);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+.table-visual:hover {
   transform: translateY(-2px);
 }
 
-.table-card.is-dragging {
-  box-shadow: 0 16px 40px rgba(67, 56, 202, 0.2);
-  border-color: var(--indigo);
+.table-visual.is-dragging {
   z-index: 100;
-  transform: scale(1.02);
+  transform: scale(1.05);
 }
 
-.table-card.is-selected {
-  border-color: var(--indigo);
-  box-shadow: 0 0 0 3px var(--indigo-soft), 0 8px 24px rgba(0,0,0,0.08);
+.table-visual.is-dragging > div:first-child {
+  box-shadow: 0 16px 40px rgba(67, 56, 202, 0.25);
 }
 
-.table-card.is-sold {
-  opacity: 0.6;
-}
-
-.table-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--ink);
-}
-
-.table-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.table-body {
-  padding: 14px 12px;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.whole-table-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--ink-muted);
-}
-
-.whole-table-info svg {
-  width: 24px;
-  height: 24px;
-}
-
-.whole-table-info span {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.seats-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-}
-
-.seat-pip {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  background: var(--sage-soft);
-  border: 1px solid var(--sage);
-}
-
-.seat-pip.reserved {
-  background: var(--gold-soft);
-  border-color: var(--gold);
-}
-
-.seat-pip.sold {
-  background: var(--stone);
-  border-color: var(--stone-dark);
-}
-
-.seats-overflow {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--ink-muted);
-  padding: 0 4px;
-}
-
-.table-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--paper-warm);
-  border-top: 1px solid var(--stone);
-}
-
-.table-price {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.table-seats {
-  font-size: 11px;
-  color: var(--ink-muted);
+.table-visual.is-selected {
+  z-index: 50;
 }
 
 /* ========== DRAG TOOLTIP ========== */

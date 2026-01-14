@@ -160,7 +160,7 @@
       <div v-show="currentStep === 1" class="step-panel">
         <!-- Event Image -->
         <div class="field">
-          <label>{{ t.eventImage }} <span class="optional">({{ t.optional }})</span></label>
+          <label>{{ t.eventImage }}</label>
           <AdminEventImageUpload
             :existing-url="mediaData.image_url"
             @file-selected="handleMainImageFile"

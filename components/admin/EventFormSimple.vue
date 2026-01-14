@@ -158,13 +158,16 @@
 
       <!-- Step 2: Details -->
       <div v-show="currentStep === 1" class="step-panel">
-        <!-- Event Image -->
+        <!-- Media (Main Image + Gallery) -->
         <div class="field">
-          <label>{{ t.eventImage }}</label>
-          <AdminEventImageUpload
-            :existing-url="mediaData.image_url"
-            @file-selected="handleMainImageFile"
-            @clear="handleMainImageClear"
+          <AdminEventMediaStep
+            :event-slug="eventSlug"
+            :initial-data="mediaData"
+            @upload-main-image="handleMainImageUpload"
+            @upload-gallery-image="handleGalleryImageUpload"
+            @add-video="handleAddVideo"
+            @remove-gallery-image="handleRemoveGalleryImage"
+            @remove-video="handleRemoveVideo"
           />
         </div>
 
@@ -236,19 +239,6 @@
           </div>
         </div>
 
-        <!-- Gallery (if slug exists) -->
-        <div v-if="eventSlug" class="field">
-          <label>{{ t.gallery }} <span class="optional">({{ t.optional }})</span></label>
-          <AdminEventMediaStep
-            :event-slug="eventSlug"
-            :initial-data="mediaData"
-            mode="gallery-only"
-            @upload-gallery-image="handleGalleryImageUpload"
-            @add-video="handleAddVideo"
-            @remove-gallery-image="handleRemoveGalleryImage"
-            @remove-video="handleRemoveVideo"
-          />
-        </div>
       </div>
 
       <!-- Step 3: Review & Publish -->
@@ -464,7 +454,6 @@ const translations = {
   seatedShort: { es: 'Mesas con lugares asignados', en: 'Tables with assigned seats' },
 
   // Step 2
-  eventImage: { es: 'Imagen del evento', en: 'Event image' },
   tellPeopleAbout: { es: 'Cuéntale a la gente sobre tu evento', en: 'Tell people about your event' },
   descriptionPlaceholder: { es: '¿De qué trata? ¿Por qué deberían asistir?', en: "What's it about? Why should they attend?" },
   optional: { es: 'opcional', en: 'optional' },
@@ -480,7 +469,6 @@ const translations = {
   noFaqHint: { es: 'Sin preguntas agregadas', en: 'No questions added' },
   questionPlaceholder: { es: 'Pregunta...', en: 'Question...' },
   answerPlaceholder: { es: 'Respuesta...', en: 'Answer...' },
-  gallery: { es: 'Galería', en: 'Gallery' },
 
   // Step 3
   untitled: { es: 'Sin título', en: 'Untitled' },
@@ -742,13 +730,12 @@ const removeFaqItem = (index) => {
   form.faq_items.splice(index, 1)
 }
 
-// Main image handlers
-const handleMainImageFile = (file) => {
-  pendingImageFile.value = file
-}
-
-const handleMainImageClear = () => {
-  pendingImageFile.value = null
+// Main image handler
+const handleMainImageUpload = (imageData) => {
+  if (imageData.type === 'file') {
+    pendingImageFile.value = imageData.file
+  }
+  // URL type not supported for main image upload currently
 }
 
 const uploadPendingImage = async (slug) => {

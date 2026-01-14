@@ -103,14 +103,22 @@
             <label>{{ t.venueName }} <span class="required">*</span></label>
             <input v-model="form.location.name" type="text" :placeholder="t.venueNamePlaceholder" />
           </div>
+          <div class="field">
+            <label>{{ t.streetAddress }}</label>
+            <input v-model="form.location.address" type="text" :placeholder="t.streetAddressPlaceholder" />
+          </div>
           <div class="field-row">
             <div class="field">
               <label>{{ t.city }}</label>
               <input v-model="form.location.city" type="text" :placeholder="t.cityPlaceholder" />
             </div>
-            <div class="field flex-2">
-              <label>{{ t.streetAddress }}</label>
-              <input v-model="form.location.address" type="text" :placeholder="t.streetAddressPlaceholder" />
+            <div class="field">
+              <label>{{ t.state }}</label>
+              <input v-model="form.location.state" type="text" :placeholder="t.statePlaceholder" />
+            </div>
+            <div class="field">
+              <label>{{ t.country }}</label>
+              <input v-model="form.location.country" type="text" :placeholder="t.countryPlaceholder" />
             </div>
           </div>
         </template>
@@ -439,6 +447,10 @@ const translations = {
   venueNamePlaceholder: { es: 'Ej: Centro de Convenciones', en: 'E.g. Convention Center' },
   city: { es: 'Ciudad', en: 'City' },
   cityPlaceholder: { es: 'Ciudad...', en: 'City...' },
+  state: { es: 'Estado', en: 'State' },
+  statePlaceholder: { es: 'Estado/Provincia...', en: 'State/Province...' },
+  country: { es: 'País', en: 'Country' },
+  countryPlaceholder: { es: 'País...', en: 'Country...' },
   streetAddress: { es: 'Dirección', en: 'Address' },
   streetAddressPlaceholder: { es: 'Calle y número...', en: 'Street address...' },
   platform: { es: 'Plataforma', en: 'Platform' },

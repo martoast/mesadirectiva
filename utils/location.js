@@ -130,7 +130,7 @@ export const getEmptyVenueLocation = () => ({
   address: '',
   city: '',
   state: '',
-  country: 'Mexico',
+  country: '',
   postal_code: '',
   map_url: ''
 })

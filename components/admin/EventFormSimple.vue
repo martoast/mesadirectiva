@@ -158,6 +158,16 @@
 
       <!-- Step 2: Details -->
       <div v-show="currentStep === 1" class="step-panel">
+        <!-- Event Image -->
+        <div class="field">
+          <label>{{ t.eventImage }} <span class="optional">({{ t.optional }})</span></label>
+          <AdminEventImageUpload
+            :existing-url="mediaData.image_url"
+            @file-selected="handleMainImageFile"
+            @clear="handleMainImageClear"
+          />
+        </div>
+
         <!-- Description -->
         <div class="field">
           <label>{{ t.description }} <span class="optional">({{ t.optional }})</span></label>
@@ -247,7 +257,7 @@
           <!-- Event Card Preview -->
           <div class="preview-card">
             <div class="preview-image" :style="previewImageStyle">
-              <div v-if="!mediaData.image_url" class="no-image">
+              <div v-if="!hasPreviewImage" class="no-image">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -454,6 +464,7 @@ const translations = {
   seatedShort: { es: 'Mesas con lugares asignados', en: 'Tables with assigned seats' },
 
   // Step 2
+  eventImage: { es: 'Imagen del evento', en: 'Event image' },
   tellPeopleAbout: { es: 'Cuéntale a la gente sobre tu evento', en: 'Tell people about your event' },
   descriptionPlaceholder: { es: '¿De qué trata? ¿Por qué deberían asistir?', en: "What's it about? Why should they attend?" },
   optional: { es: 'opcional', en: 'optional' },
@@ -506,7 +517,7 @@ const props = defineProps({
 const emit = defineEmits(['draft', 'publish', 'slug-created'])
 
 const { getGroups } = useGroups()
-const { createEvent, updateEvent, addMedia, removeMedia } = useEvents()
+const { createEvent, updateEvent, addMedia, removeMedia, uploadEventImage } = useEvents()
 
 // State
 const currentStep = ref(0)
@@ -546,6 +557,9 @@ const mediaData = reactive({
   image_url: '',
   media: { images: [], videos: [] }
 })
+
+// Pending image file (not yet uploaded)
+const pendingImageFile = ref(null)
 
 // Computed
 const stepTitle = computed(() => {
@@ -602,10 +616,18 @@ const locationPreview = computed(() => {
 })
 
 const previewImageStyle = computed(() => {
+  // Show pending file preview first, then existing image
+  if (pendingImageFile.value) {
+    return { backgroundImage: `url('${URL.createObjectURL(pendingImageFile.value)}')` }
+  }
   if (mediaData.image_url) {
     return { backgroundImage: `url('${mediaData.image_url}')` }
   }
   return {}
+})
+
+const hasPreviewImage = computed(() => {
+  return !!pendingImageFile.value || !!mediaData.image_url
 })
 
 // Methods
@@ -664,14 +686,19 @@ const handleSaveDraft = async () => {
     const data = prepareData()
     data.status = 'draft'
 
-    if (eventSlug.value) {
-      await updateEvent(eventSlug.value, data)
-      emit('draft', { ...data, slug: eventSlug.value })
+    let slug = eventSlug.value
+    if (slug) {
+      await updateEvent(slug, data)
     } else {
       const response = await createEvent(data)
-      savedSlug.value = response.event.slug
-      emit('draft', response.event)
+      slug = response.event.slug
+      savedSlug.value = slug
     }
+
+    // Upload pending image if exists
+    await uploadPendingImage(slug)
+
+    emit('draft', { ...data, slug })
   } catch (e) {
     error.value = translateError(e.message, language.value) || t.failedToSave
   } finally {
@@ -686,14 +713,19 @@ const handlePublish = async () => {
     const data = prepareData()
     data.status = 'live'
 
-    if (eventSlug.value) {
-      await updateEvent(eventSlug.value, data)
-      emit('publish', { ...data, slug: eventSlug.value })
+    let slug = eventSlug.value
+    if (slug) {
+      await updateEvent(slug, data)
     } else {
       const response = await createEvent(data)
-      savedSlug.value = response.event.slug
-      emit('publish', response.event)
+      slug = response.event.slug
+      savedSlug.value = slug
     }
+
+    // Upload pending image if exists
+    await uploadPendingImage(slug)
+
+    emit('publish', { ...data, slug })
   } catch (e) {
     error.value = translateError(e.message, language.value) || t.failedToPublish
   } finally {
@@ -708,6 +740,30 @@ const addFaqItem = () => {
 
 const removeFaqItem = (index) => {
   form.faq_items.splice(index, 1)
+}
+
+// Main image handlers
+const handleMainImageFile = (file) => {
+  pendingImageFile.value = file
+}
+
+const handleMainImageClear = () => {
+  pendingImageFile.value = null
+}
+
+const uploadPendingImage = async (slug) => {
+  if (!pendingImageFile.value || !slug) return
+
+  try {
+    const response = await uploadEventImage(slug, pendingImageFile.value)
+    if (response.url) {
+      mediaData.image_url = response.url
+    }
+    pendingImageFile.value = null
+  } catch (e) {
+    console.error('Failed to upload image:', e)
+    error.value = translateError(e.message, language.value) || 'Failed to upload image'
+  }
 }
 
 // Media handlers

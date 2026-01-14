@@ -143,6 +143,16 @@
             <span class="text-lg">{{ event.location_type === 'online' ? '💻' : '📍' }}</span>
             <div class="text-sm">
               <p class="font-semibold text-gray-900">{{ formattedLocation }}</p>
+              <p v-if="fullAddress && event.location_type === 'venue'" class="text-gray-600 mt-1">{{ fullAddress }}</p>
+              <a
+                v-if="mapUrl && event.location_type === 'venue'"
+                :href="mapUrl"
+                target="_blank"
+                rel="noopener"
+                class="text-primary-600 hover:underline mt-1 inline-block"
+              >
+                {{ t.viewOnMap }} →
+              </a>
             </div>
           </div>
           <div class="flex items-start gap-3">
@@ -165,7 +175,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
-import { formatLocation } from '~/utils/location'
+import { formatLocation, formatFullAddress, buildMapUrl } from '~/utils/location'
 
 const { t: createT, language } = useLanguage()
 
@@ -208,7 +218,8 @@ const translations = {
   seatedEvent: { es: 'Evento con Asientos', en: 'Seated Event' },
   totalCapacity: { es: 'Capacidad Total', en: 'Total Capacity' },
   generalAdmission: { es: 'Admisión General', en: 'General Admission' },
-  tables: { es: 'mesas', en: 'tables' }
+  tables: { es: 'mesas', en: 'tables' },
+  viewOnMap: { es: 'Ver en Mapa', en: 'View on Map' }
 }
 
 const t = createT(translations)
@@ -374,7 +385,17 @@ const formattedTime = computed(() => {
 })
 
 const formattedLocation = computed(() => {
-  return formatLocation(props.event?.location_type, props.event?.location)
+  return formatLocation(props.event?.location, props.event?.location_type)
+})
+
+const fullAddress = computed(() => {
+  if (!props.event?.location) return ''
+  return formatFullAddress(props.event.location)
+})
+
+const mapUrl = computed(() => {
+  if (!props.event?.location) return ''
+  return buildMapUrl(props.event.location)
 })
 
 const formatPrice = (price) => {

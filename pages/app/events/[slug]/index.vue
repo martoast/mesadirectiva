@@ -366,7 +366,7 @@ const formattedTime = computed(() => {
 })
 
 const formattedLocation = computed(() => {
-  return formatLocation(event.value?.location_type, event.value?.location)
+  return formatLocation(event.value?.location, event.value?.location_type)
 })
 
 const galleryImages = computed(() => {

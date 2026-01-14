@@ -8,71 +8,90 @@
 
     <!-- Event Content -->
     <div v-else-if="event" class="event-content">
-      <!-- Hero Section -->
-      <section class="hero">
-        <div class="hero-bg" :style="heroBackground"></div>
-        <div class="hero-overlay"></div>
-        <div class="hero-inner">
-          <div class="hero-content">
-            <div v-if="event.group" class="hero-badge" :style="{ backgroundColor: event.group.color }">
-              {{ event.group.name }}
-            </div>
-            <h1 class="hero-title">{{ event.name }}</h1>
-            <p v-if="truncatedDescription" class="hero-subtitle">{{ truncatedDescription }}</p>
-
-            <div class="hero-meta">
-              <div class="meta-item">
-                <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <div>
-                  <span class="meta-label">{{ t.date }}</span>
-                  <span class="meta-value">{{ formattedDate }}</span>
-                </div>
-              </div>
-              <div class="meta-item">
-                <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <span class="meta-label">{{ t.time }}</span>
-                  <span class="meta-value">{{ formattedTime }}</span>
-                </div>
-              </div>
-              <div class="meta-item">
-                <svg v-if="event.location_type === 'online'" class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <svg v-else class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <div>
-                  <span class="meta-label">{{ event.location_type === 'online' ? t.platform : t.location }}</span>
-                  <span class="meta-value">{{ formattedLocation }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mobile CTA -->
-            <div class="hero-cta-mobile">
-              <div class="price-tag">
-                <span class="price-label">{{ pricingLabel }}</span>
-                <span class="price-amount">${{ displayPrice }}</span>
-              </div>
-              <button v-if="canPurchase" @click="handleCtaClick" class="cta-button">
-                {{ ctaButtonText }}
-              </button>
-              <span v-else class="cta-blocked">{{ blockedMessage }}</span>
+      <!-- Banner Image -->
+      <section class="banner">
+        <div class="banner-container">
+          <div class="banner-image" :style="bannerBackground">
+            <div v-if="!event.image_url" class="banner-placeholder">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Scroll indicator -->
-        <div class="scroll-hint">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
+      <!-- Event Header Info -->
+      <section class="event-header">
+        <div class="event-header-container">
+          <div class="event-header-content">
+            <!-- Date Badge -->
+            <div class="date-badge">
+              <span class="date-badge-month">{{ formattedMonth }}</span>
+              <span class="date-badge-day">{{ formattedDay }}</span>
+            </div>
+
+            <!-- Event Info -->
+            <div class="event-info">
+              <h1 class="event-title">{{ event.name }}</h1>
+
+              <div class="event-meta-list">
+                <!-- Date & Time -->
+                <div class="event-meta-item">
+                  <svg class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <div>
+                    <span class="event-meta-primary">{{ formattedDate }}</span>
+                    <span class="event-meta-secondary">{{ formattedTime }}</span>
+                  </div>
+                </div>
+
+                <!-- Location -->
+                <div class="event-meta-item">
+                  <svg v-if="event.location_type === 'online'" class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <svg v-else class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <span class="event-meta-primary">{{ formattedLocation }}</span>
+                    <span v-if="fullAddress && event.location_type === 'venue'" class="event-meta-secondary">{{ fullAddress }}</span>
+                  </div>
+                </div>
+
+                <!-- Organizer -->
+                <div v-if="event.organizer_name" class="event-meta-item">
+                  <svg class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <div>
+                    <span class="event-meta-label">{{ t.organizedBy }}</span>
+                    <span class="event-meta-primary">{{ event.organizer_name }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Group Badge -->
+              <div v-if="event.group" class="group-badge" :style="{ backgroundColor: event.group.color }">
+                {{ event.group.name }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile CTA -->
+          <div class="mobile-cta">
+            <div class="mobile-cta-price">
+              <span class="mobile-cta-label">{{ pricingLabel }}</span>
+              <span class="mobile-cta-amount">${{ displayPrice }}</span>
+            </div>
+            <button v-if="canPurchase" @click="handleCtaClick" class="mobile-cta-button">
+              {{ ctaButtonText }}
+            </button>
+            <span v-else class="mobile-cta-blocked">{{ blockedMessage }}</span>
+          </div>
         </div>
       </section>
 
@@ -333,11 +352,23 @@ const hasTiers = computed(() => tiers.value.length > 0)
 const activeTables = computed(() => tables.value.filter(t => t.is_active && t.status !== 'sold'))
 const hasTables = computed(() => activeTables.value.length > 0)
 
-const heroBackground = computed(() => {
+const bannerBackground = computed(() => {
   if (event.value?.image_url) {
     return { backgroundImage: `url('${event.value.image_url}')` }
   }
   return {}
+})
+
+const formattedMonth = computed(() => {
+  if (!event.value?.starts_at) return ''
+  const date = new Date(event.value.starts_at)
+  return date.toLocaleDateString(language.value === 'es' ? 'es-MX' : 'en-US', { month: 'short' }).toUpperCase()
+})
+
+const formattedDay = computed(() => {
+  if (!event.value?.starts_at) return ''
+  const date = new Date(event.value.starts_at)
+  return date.getDate()
 })
 
 const truncatedDescription = computed(() => {
@@ -614,180 +645,199 @@ onMounted(fetchEvent)
   to { transform: rotate(360deg); }
 }
 
-/* Hero Section */
-.hero {
-  position: relative;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+/* Banner Section */
+.banner {
+  background: var(--color-bg-alt);
 }
 
-.hero-bg {
-  position: absolute;
-  inset: 0;
+.banner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.banner-image {
+  width: 100%;
+  aspect-ratio: 2 / 1;
   background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
   background-size: cover;
   background-position: center;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%);
-}
-
-.hero-inner {
-  position: relative;
-  flex: 1;
   display: flex;
   align-items: center;
-  padding: 80px 20px 100px;
+  justify-content: center;
 }
 
-.hero-content {
-  width: 100%;
-  max-width: 600px;
+.banner-placeholder {
+  color: rgba(255,255,255,0.3);
+}
+
+.banner-placeholder svg {
+  width: 64px;
+  height: 64px;
+}
+
+/* Event Header */
+.event-header {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.event-header-container {
+  max-width: 1100px;
   margin: 0 auto;
-  text-align: center;
+  padding: 24px 20px;
 }
 
-.hero-badge {
+.event-header-content {
+  display: flex;
+  gap: 20px;
+}
+
+.date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: var(--color-primary);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.date-badge-month {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.date-badge-day {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+
+.event-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.event-meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.event-meta-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.event-meta-label {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.event-meta-primary {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.event-meta-secondary {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-light);
+}
+
+.group-badge {
   display: inline-block;
-  padding: 6px 14px;
+  padding: 4px 12px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #fff;
   border-radius: 20px;
-  margin-bottom: 16px;
 }
 
-.hero-title {
-  font-family: var(--font-heading);
-  font-size: 32px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.2;
-  margin-bottom: 12px;
-}
-
-.hero-subtitle {
-  font-size: 16px;
-  color: rgba(255,255,255,0.85);
-  line-height: 1.5;
-  margin-bottom: 32px;
-}
-
-.hero-meta {
+/* Mobile CTA */
+.mobile-cta {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 12px;
-  color: #fff;
 }
 
-.meta-icon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.meta-item > div {
-  text-align: left;
-}
-
-.meta-label {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.7;
-}
-
-.meta-value {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Mobile CTA in Hero */
-.hero-cta-mobile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.price-tag {
+.mobile-cta-price {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: #fff;
 }
 
-.price-label {
+.mobile-cta-label {
   font-size: 13px;
-  opacity: 0.8;
+  color: var(--color-text-light);
 }
 
-.price-amount {
-  font-size: 36px;
+.mobile-cta-amount {
+  font-size: 28px;
   font-weight: 700;
+  color: var(--color-text);
 }
 
-.cta-button {
+.mobile-cta-button {
   width: 100%;
-  max-width: 280px;
-  padding: 16px 32px;
+  padding: 14px 24px;
   background: var(--color-success);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
   border: none;
-  border-radius: 50px;
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.2s;
 }
 
-.cta-button:active {
-  transform: scale(0.98);
+.mobile-cta-button:hover {
+  background: #059669;
 }
 
-.cta-blocked {
-  padding: 12px 24px;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.8);
+.mobile-cta-blocked {
+  display: block;
+  text-align: center;
+  padding: 14px 24px;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 500;
-  border-radius: 50px;
-}
-
-.scroll-hint {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255,255,255,0.5);
-  animation: bounce 2s infinite;
-}
-
-.scroll-hint svg {
-  width: 24px;
-  height: 24px;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(8px); }
+  border-radius: var(--radius);
 }
 
 /* Main Content */
@@ -1243,23 +1293,37 @@ onMounted(fetchEvent)
    Tablet (640px+)
    ============================================ */
 @media (min-width: 640px) {
-  .hero-title {
-    font-size: 42px;
+  .banner-container {
+    padding: 24px;
   }
 
-  .hero-subtitle {
-    font-size: 18px;
+  .banner-image {
+    border-radius: var(--radius);
   }
 
-  .hero-meta {
+  .event-header-container {
+    padding: 32px;
+  }
+
+  .event-title {
+    font-size: 28px;
+  }
+
+  .event-meta-list {
     flex-direction: row;
-    justify-content: center;
     flex-wrap: wrap;
     gap: 24px;
   }
 
-  .meta-item {
-    min-width: auto;
+  .mobile-cta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mobile-cta-button {
+    width: auto;
+    padding: 14px 32px;
   }
 
   .gallery-grid {
@@ -1289,19 +1353,36 @@ onMounted(fetchEvent)
    Desktop (1024px+)
    ============================================ */
 @media (min-width: 1024px) {
-  .hero-inner {
-    padding: 120px 40px;
+  .banner-container {
+    padding: 32px 40px;
   }
 
-  .hero-title {
-    font-size: 52px;
+  .banner-image {
+    aspect-ratio: 2.5 / 1;
   }
 
-  .hero-cta-mobile {
-    display: none;
+  .event-header-container {
+    padding: 40px;
   }
 
-  .scroll-hint {
+  .date-badge {
+    width: 70px;
+    height: 70px;
+  }
+
+  .date-badge-month {
+    font-size: 12px;
+  }
+
+  .date-badge-day {
+    font-size: 26px;
+  }
+
+  .event-title {
+    font-size: 32px;
+  }
+
+  .mobile-cta {
     display: none;
   }
 

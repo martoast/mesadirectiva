@@ -135,11 +135,18 @@ export const useApi = () => {
   /**
    * Make a DELETE request
    */
-  const del = async (endpoint, options = {}) => {
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+  const del = async (endpoint, body = null, options = {}) => {
+    const fetchOptions = {
       method: 'DELETE',
       headers: buildHeaders(options.auth !== false)
-    })
+    }
+
+    // Include body if provided
+    if (body) {
+      fetchOptions.body = JSON.stringify(body)
+    }
+
+    const response = await fetch(`${baseUrl}${endpoint}`, fetchOptions)
 
     return handleResponse(response)
   }

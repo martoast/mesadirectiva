@@ -1,17 +1,28 @@
 <template>
   <div class="events-page">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>{{ t.discoverEvents }}</h1>
-        <p>{{ t.findExperience }}</p>
-      </div>
-    </section>
-
-    <!-- Filters -->
+    <!-- Search & Filters -->
     <section class="filters">
       <div class="filters-inner">
-        <span class="results-count">{{ meta.total || 0 }} {{ t.events }}</span>
+        <div class="search-row">
+          <div class="search-box">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t.searchPlaceholder"
+              class="search-input"
+              @input="handleSearch"
+            />
+            <button v-if="searchQuery" @click="clearSearch" class="search-clear">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <span class="results-count">{{ meta.total || 0 }} {{ t.events }}</span>
+        </div>
         <div class="filter-pills">
           <button
             :class="['pill', selectedGroup === null && 'active']"
@@ -132,8 +143,7 @@ const { t: createT, language } = useLanguage()
 
 // Translations
 const translations = {
-  discoverEvents: { es: 'Descubre Eventos', en: 'Discover Events' },
-  findExperience: { es: 'Encuentra tu próxima experiencia inolvidable', en: 'Find your next unforgettable experience' },
+  searchPlaceholder: { es: 'Buscar eventos...', en: 'Search events...' },
   events: { es: 'eventos', en: 'events' },
   all: { es: 'Todos', en: 'All' },
   online: { es: 'En línea', en: 'Online' },
@@ -154,6 +164,8 @@ const groups = ref([])
 const loading = ref(true)
 const error = ref('')
 const selectedGroup = ref(null)
+const searchQuery = ref('')
+const searchTimeout = ref(null)
 const currentPage = ref(1)
 const meta = ref({
   current_page: 1,
@@ -175,6 +187,7 @@ const fetchEvents = async () => {
   try {
     const params = { per_page: 12, page: currentPage.value }
     if (selectedGroup.value) params.group = selectedGroup.value
+    if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
     const response = await getPublicEvents(params)
     events.value = response.events || []
     meta.value = response.meta || meta.value
@@ -188,6 +201,20 @@ const fetchEvents = async () => {
 const selectGroup = (slug) => {
   selectedGroup.value = slug
   currentPage.value = 1
+}
+
+const handleSearch = () => {
+  if (searchTimeout.value) clearTimeout(searchTimeout.value)
+  searchTimeout.value = setTimeout(() => {
+    currentPage.value = 1
+    fetchEvents()
+  }, 300)
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  currentPage.value = 1
+  fetchEvents()
 }
 
 watch([selectedGroup, currentPage], fetchEvents)
@@ -235,26 +262,6 @@ const getLocationDisplay = (event) => {
   font-family: var(--font-body);
 }
 
-/* Hero */
-.hero {
-  background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-  padding: 48px 20px;
-  text-align: center;
-}
-
-.hero-content h1 {
-  font-family: var(--font-heading);
-  font-size: 32px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.hero-content p {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
 /* Filters */
 .filters {
   position: sticky;
@@ -271,6 +278,76 @@ const getLocationDisplay = (event) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.search-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 44px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.search-clear:hover {
+  color: var(--color-text);
+  background: var(--color-border);
+}
+
+.search-clear svg {
+  width: 16px;
+  height: 16px;
 }
 
 .results-count {
@@ -543,23 +620,19 @@ const getLocationDisplay = (event) => {
 
 /* Tablet */
 @media (min-width: 640px) {
-  .hero {
-    padding: 64px 40px;
-  }
-
-  .hero-content h1 {
-    font-size: 42px;
-  }
-
   .filters {
     top: 68px;
     padding: 20px 40px;
   }
 
-  .filters-inner {
+  .search-row {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .search-box {
+    max-width: 400px;
   }
 
   .events-section {

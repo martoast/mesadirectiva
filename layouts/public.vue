@@ -63,7 +63,7 @@
               <span class="brand-icon">✦</span>
               <span>SPFIM A.C.</span>
             </div>
-            <p class="brand-tagline">Premium event ticketing for memorable experiences.</p>
+            <!-- <p class="brand-tagline">Premium event ticketing for memorable experiences.</p> -->
           </div>
           <div class="footer-links">
             <h4>Explore</h4>

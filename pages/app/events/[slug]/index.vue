@@ -338,6 +338,7 @@ const translations = {
 const t = createT(translations)
 
 const route = useRoute()
+const config = useRuntimeConfig()
 const { getPublicEvent, checkAvailability, getPublicEvents } = useEvents()
 const { getPublicTicketTiers } = useTicketTiers()
 const { getPublicTables } = useTables()
@@ -349,6 +350,44 @@ const tiers = ref([])
 const tables = ref([])
 const loading = ref(true)
 const notFound = ref(false)
+
+// Fetch event data server-side for SEO meta tags
+const { data: seoEvent } = await useAsyncData(
+  `event-${route.params.slug}`,
+  async () => {
+    try {
+      const res = await getPublicEvent(route.params.slug)
+      return res.event
+    } catch (e) {
+      return null
+    }
+  }
+)
+
+// Set SEO meta tags (works for social sharing)
+if (seoEvent.value) {
+  const title = seoEvent.value.name
+  const description = seoEvent.value.description
+    ? truncateHtmlText(sanitizeHtml(seoEvent.value.description), 160).replace(/<[^>]*>/g, '')
+    : `${seoEvent.value.name} - SPFIM A.C.`
+  const image = seoEvent.value.image_url || ''
+  const siteUrl = config.public.siteUrl || 'https://mesa-directiva.netlify.app'
+
+  useSeoMeta({
+    title: title,
+    ogTitle: title,
+    description: description,
+    ogDescription: description,
+    ogImage: image,
+    ogUrl: `${siteUrl}/app/events/${seoEvent.value.slug}`,
+    ogType: 'website',
+    ogSiteName: 'SPFIM A.C.',
+    twitterCard: 'summary_large_image',
+    twitterTitle: title,
+    twitterDescription: description,
+    twitterImage: image,
+  })
+}
 const openFaqs = ref([])
 const galleryOpen = ref(false)
 const galleryIndex = ref(0)

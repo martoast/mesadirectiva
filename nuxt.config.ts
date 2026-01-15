@@ -7,7 +7,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiUrl: process.env.VITE_API_URL || 'http://localhost:8001',
-      stripeKey: process.env.VITE_STRIPE_KEY || ''
+      stripeKey: process.env.VITE_STRIPE_KEY || '',
+      siteUrl: process.env.VITE_SITE_URL || 'https://mesa-directiva.netlify.app'
     }
   }
 })

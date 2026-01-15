@@ -338,6 +338,7 @@
           @add-video="handleAddVideo"
           @remove-gallery-image="handleRemoveGalleryImage"
           @remove-video="handleRemoveVideo"
+          @focal-point-changed="handleFocalPointChanged"
         />
       </div>
 
@@ -779,9 +780,11 @@ const savedSlug = ref('')
 const autoSaving = ref(false)
 
 // Media data
-// Structure matches API response: { image_url, media: { images: [], videos: [] } }
+// Structure matches API response: { image_url, image_focal_x, image_focal_y, media: { images: [], videos: [] } }
 const mediaData = reactive({
   image_url: '',
+  image_focal_x: 50,
+  image_focal_y: 50,
   media: {
     images: [],
     videos: []
@@ -865,6 +868,8 @@ const initializeForm = () => {
 
     // Initialize media data from API structure
     mediaData.image_url = data.image_url || ''
+    mediaData.image_focal_x = data.image_focal_x ?? 50
+    mediaData.image_focal_y = data.image_focal_y ?? 50
     mediaData.media = {
       images: data.media?.images || [],
       videos: data.media?.videos || []
@@ -1055,6 +1060,24 @@ const handleRemoveVideo = async (data) => {
   }
 }
 
+const handleFocalPointChanged = async ({ x, y }) => {
+  mediaData.image_focal_x = x
+  mediaData.image_focal_y = y
+
+  // Save focal point immediately if we have an event
+  if (eventSlug.value) {
+    try {
+      await updateEvent(eventSlug.value, {
+        image_focal_x: x,
+        image_focal_y: y
+      })
+    } catch (e) {
+      // Silent fail - focal point will be saved on final submission
+      console.warn('Failed to save focal point:', e)
+    }
+  }
+}
+
 // Handle location type change
 watch(() => form.location_type, (newType) => {
   if (newType === 'venue') {
@@ -1094,6 +1117,10 @@ const prepareData = () => {
   if (mediaData.video_url) {
     data.video_url = mediaData.video_url
   }
+
+  // Add focal point data
+  data.image_focal_x = mediaData.image_focal_x
+  data.image_focal_y = mediaData.image_focal_y
 
   // Clean empty location fields
   Object.keys(data.location).forEach(key => {

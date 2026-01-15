@@ -11,8 +11,15 @@
       <!-- Banner Image -->
       <section class="banner">
         <div class="banner-container">
-          <div class="banner-image" :style="bannerBackground">
-            <div v-if="!event.image_url" class="banner-placeholder">
+          <div class="banner-image">
+            <img
+              v-if="event.image_url"
+              :src="event.image_url"
+              :alt="event.name"
+              class="banner-img"
+              :style="{ objectPosition: `${event.image_focal_x ?? 50}% ${event.image_focal_y ?? 50}%` }"
+            />
+            <div v-else class="banner-placeholder">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -658,13 +665,20 @@ onMounted(fetchEvent)
 
 .banner-image {
   width: 100%;
-  aspect-ratio: 2 / 1;
+  min-height: 200px;
+  max-height: 500px;
   background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-  background-size: cover;
-  background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.banner-img {
+  width: 100%;
+  height: auto;
+  max-height: 500px;
+  object-fit: contain;
 }
 
 .banner-placeholder {
@@ -1299,6 +1313,11 @@ onMounted(fetchEvent)
 
   .banner-image {
     border-radius: var(--radius);
+    max-height: 450px;
+  }
+
+  .banner-img {
+    max-height: 450px;
   }
 
   .event-header-container {
@@ -1358,7 +1377,11 @@ onMounted(fetchEvent)
   }
 
   .banner-image {
-    aspect-ratio: 2.5 / 1;
+    max-height: 550px;
+  }
+
+  .banner-img {
+    max-height: 550px;
   }
 
   .event-header-container {

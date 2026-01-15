@@ -5,7 +5,7 @@
       <div class="nav-inner">
         <NuxtLink to="/app/events" class="nav-brand">
           <span class="brand-icon">✦</span>
-          <span class="brand-text">MesaDirectiva</span>
+          <span class="brand-text">SPFIM A.C.</span>
         </NuxtLink>
 
         <!-- Mobile menu button -->
@@ -61,7 +61,7 @@
           <div class="footer-brand">
             <div class="brand-logo">
               <span class="brand-icon">✦</span>
-              <span>MesaDirectiva</span>
+              <span>SPFIM A.C.</span>
             </div>
             <p class="brand-tagline">Premium event ticketing for memorable experiences.</p>
           </div>
@@ -84,7 +84,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2025 MesaDirectiva. All rights reserved.</p>
+          <p>&copy; 2025 SPFIM A.C. All rights reserved.</p>
         </div>
       </div>
     </footer>

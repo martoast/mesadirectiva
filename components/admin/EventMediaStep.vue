@@ -16,9 +16,12 @@
         :existing-url="existingImageUrl"
         :uploading="uploading"
         :upload-progress="uploadProgress"
+        :initial-focal-x="imageFocalX"
+        :initial-focal-y="imageFocalY"
         @file-selected="handleMainImageFile"
         @url-selected="handleMainImageUrl"
         @clear="handleClearMainImage"
+        @focal-point-changed="handleFocalPointChanged"
       />
     </div>
 
@@ -150,11 +153,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:media', 'upload-main-image', 'upload-gallery-image', 'add-video', 'remove-gallery-image', 'remove-video'])
+const emit = defineEmits(['update:media', 'upload-main-image', 'upload-gallery-image', 'add-video', 'remove-gallery-image', 'remove-video', 'focal-point-changed'])
 
 // State
 const mainImage = ref(null)
 const existingImageUrl = ref('')
+const imageFocalX = ref(50)
+const imageFocalY = ref(50)
 const galleryImages = ref([])
 const videoUrl = ref('')
 const videoError = ref('')
@@ -164,12 +169,18 @@ const galleryInput = ref(null)
 const existingVideo = ref(null)
 
 // Initialize with existing data
-// API returns: { image_url, media: { images: [...], videos: [...] } }
+// API returns: { image_url, image_focal_x, image_focal_y, media: { images: [...], videos: [...] } }
 watch(() => props.initialData, (data) => {
   if (!data) return
 
   if (data.image_url) {
     existingImageUrl.value = data.image_url
+  }
+  if (data.image_focal_x !== undefined) {
+    imageFocalX.value = data.image_focal_x
+  }
+  if (data.image_focal_y !== undefined) {
+    imageFocalY.value = data.image_focal_y
   }
   // Handle media.images array from API
   if (data.media?.images?.length) {
@@ -236,6 +247,12 @@ const handleClearMainImage = () => {
   mainImage.value = null
   existingImageUrl.value = ''
   emitUpdate()
+}
+
+const handleFocalPointChanged = ({ x, y }) => {
+  imageFocalX.value = x
+  imageFocalY.value = y
+  emit('focal-point-changed', { x, y })
 }
 
 // Gallery handlers

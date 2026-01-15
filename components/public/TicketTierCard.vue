@@ -16,7 +16,8 @@
     <!-- Pricing -->
     <div class="mt-3">
       <div class="flex items-baseline gap-2">
-        <span class="text-2xl font-bold text-gray-900">${{ formatPrice(tier.price) }}</span>
+        <span class="text-2xl font-bold text-gray-900">{{ currencySymbol }}{{ formatPrice(tier.price) }}</span>
+        <span class="text-sm text-gray-500">{{ tier.currency || 'MXN' }}</span>
       </div>
 
       <!-- Sales Window Info -->
@@ -76,7 +77,7 @@
     <!-- Line Total -->
     <div v-if="quantity > 0" class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
       <span class="text-sm text-gray-600">{{ t.subtotal }}</span>
-      <span class="font-semibold text-gray-900">${{ formatPrice(lineTotal) }}</span>
+      <span class="font-semibold text-gray-900">{{ currencySymbol }}{{ formatPrice(lineTotal) }} {{ tier.currency || 'MXN' }}</span>
     </div>
   </div>
 </template>
@@ -172,6 +173,10 @@ const orderLimitsText = computed(() => {
 
 const lineTotal = computed(() => {
   return props.quantity * (props.tier.price || 0)
+})
+
+const currencySymbol = computed(() => {
+  return props.tier.currency === 'USD' ? '$' : '$'
 })
 
 const formatPrice = (price) => {

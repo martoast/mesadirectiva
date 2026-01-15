@@ -33,7 +33,7 @@
     <!-- Pricing & Quantity -->
     <div class="form-section">
       <div class="section-title">{{ t.pricingAndQuantity }}</div>
-      <div class="form-row">
+      <div class="form-row form-row-3">
         <div class="form-field">
           <label for="tier-price">{{ t.price }} <span class="required">*</span></label>
           <div class="input-with-prefix">
@@ -50,6 +50,14 @@
             />
           </div>
           <span v-if="errors.price" class="field-error">{{ errors.price[0] }}</span>
+        </div>
+
+        <div class="form-field">
+          <label for="tier-currency">{{ t.currency }}</label>
+          <select id="tier-currency" v-model="form.currency">
+            <option value="MXN">MXN (Pesos)</option>
+            <option value="USD">USD (Dólares)</option>
+          </select>
         </div>
 
         <div class="form-field">
@@ -207,6 +215,7 @@ const translations = {
   // Pricing & Quantity
   pricingAndQuantity: { es: 'Precio y Cantidad', en: 'Pricing & Quantity' },
   price: { es: 'Precio', en: 'Price' },
+  currency: { es: 'Moneda', en: 'Currency' },
   totalQuantity: { es: 'Cantidad Total', en: 'Total Quantity' },
   quantityPlaceholder: { es: 'Dejar vacío para ilimitado', en: 'Leave empty for unlimited' },
   // Sales Window
@@ -261,6 +270,7 @@ const form = ref({
   name: '',
   description: '',
   price: '',
+  currency: 'MXN',
   quantity: '',
   sales_start: '',
   sales_end: '',
@@ -277,6 +287,7 @@ const resetForm = () => {
     name: '',
     description: '',
     price: '',
+    currency: 'MXN',
     quantity: '',
     sales_start: '',
     sales_end: '',
@@ -298,6 +309,7 @@ watch(() => props.tier, (newTier) => {
       name: newTier.name || '',
       description: newTier.description || '',
       price: newTier.price || '',
+      currency: newTier.currency || 'MXN',
       quantity: newTier.quantity || '',
       sales_start: newTier.sales_start ? isoToLocal(newTier.sales_start) : '',
       sales_end: newTier.sales_end ? isoToLocal(newTier.sales_end) : '',
@@ -320,6 +332,7 @@ const handleSubmit = () => {
     name: form.value.name,
     description: form.value.description || null,
     price: parseFloat(form.value.price) || 0,
+    currency: form.value.currency || 'MXN',
     quantity: form.value.quantity ? parseInt(form.value.quantity) : null,
     sort_order: parseInt(form.value.sort_order) || 0,
     is_active: form.value.is_active,
@@ -403,6 +416,10 @@ const handleSubmit = () => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
+}
+
+.form-row.form-row-3 {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .form-field {

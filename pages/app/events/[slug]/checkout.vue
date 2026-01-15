@@ -71,6 +71,10 @@
                 <label for="phone">{{ t.phone }}</label>
                 <input id="phone" v-model="form.customer_phone" type="tel" :placeholder="t.phonePlaceholder" required />
               </div>
+              <div class="field">
+                <label for="company">{{ t.company }} <span class="optional-label">{{ t.optional }}</span></label>
+                <input id="company" v-model="form.customer_company" type="text" :placeholder="t.companyPlaceholder" />
+              </div>
             </div>
           </section>
 
@@ -337,6 +341,9 @@ const translations = {
   emailPlaceholder: { es: 'juan@ejemplo.com', en: 'john@example.com' },
   phone: { es: 'Teléfono', en: 'Phone' },
   phonePlaceholder: { es: '+52 (555) 000-0000', en: '+1 (555) 000-0000' },
+  company: { es: 'Empresa / Organización', en: 'Company / Organization' },
+  companyPlaceholder: { es: 'Nombre de la empresa', en: 'Company name' },
+  optional: { es: '(opcional)', en: '(optional)' },
 
   // Tickets
   selectTickets: { es: 'Seleccionar Boletos', en: 'Select Tickets' },
@@ -398,6 +405,7 @@ const form = ref({
   customer_name: '',
   customer_email: '',
   customer_phone: '',
+  customer_company: '',
   tickets: 1,
   extra_items: {}
 })
@@ -633,6 +641,7 @@ const handleSubmit = async () => {
       customer_name: form.value.customer_name,
       customer_email: form.value.customer_email,
       customer_phone: form.value.customer_phone,
+      customer_company: form.value.customer_company || null,
       extra_items
     }
 
@@ -909,6 +918,11 @@ const handleSubmit = async () => {
   font-weight: 500;
   color: var(--color-text);
   margin-bottom: 6px;
+}
+
+.optional-label {
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 .field input {

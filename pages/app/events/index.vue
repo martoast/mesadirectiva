@@ -213,7 +213,7 @@ const getImageStyle = (event) => {
 }
 
 const getLocationDisplay = (event) => {
-  return formatLocation(event.location_type, event.location)
+  return formatLocation(event.location, event.location_type)
 }
 </script>
 

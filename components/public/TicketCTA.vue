@@ -54,9 +54,13 @@
               </div>
               <span class="font-semibold text-primary-600">${{ formatPrice(table.price) }}</span>
             </div>
-            <p v-if="activeTables.length > 3" class="text-xs text-gray-500 text-center mt-2">
-              +{{ activeTables.length - 3 }} {{ t.moreTables }}
-            </p>
+            <button
+              v-if="activeTables.length > 3"
+              @click="showTablesModal = true"
+              class="w-full text-center py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+            >
+              {{ t.viewAllTables }} ({{ activeTables.length }})
+            </button>
           </div>
         </div>
 
@@ -169,11 +173,89 @@
 
     <!-- Padding for mobile bottom bar -->
     <div class="h-20 md:h-0" />
+
+    <!-- Tables Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showTablesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showTablesModal = false">
+          <div class="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-xl">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-gray-200">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900">{{ t.allTables }}</h3>
+                <button @click="showTablesModal = false" class="p-1 text-gray-400 hover:text-gray-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <!-- Search Input -->
+              <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  v-model="tableSearch"
+                  type="text"
+                  :placeholder="t.searchTables"
+                  class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <!-- Quick Stats -->
+              <div class="flex gap-4 mt-3 text-sm text-gray-600">
+                <span>{{ filteredTables.length }} {{ t.tablesFound }}</span>
+                <span v-if="tableSearch">·</span>
+                <button v-if="tableSearch" @click="tableSearch = ''" class="text-primary-600 hover:underline">{{ t.clearSearch }}</button>
+              </div>
+            </div>
+
+            <!-- Tables List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2">
+              <div v-if="filteredTables.length === 0" class="text-center py-8 text-gray-500">
+                {{ t.noTablesMatch }}
+              </div>
+              <div
+                v-for="table in paginatedTables"
+                :key="table.id"
+                class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div>
+                  <span class="font-medium text-gray-900">{{ table.name }}</span>
+                  <span class="ml-2 text-sm text-gray-500">{{ table.capacity }} {{ t.seats }}</span>
+                </div>
+                <span class="font-semibold text-primary-600">${{ formatPrice(table.price) }}</span>
+              </div>
+
+              <!-- Load More Button -->
+              <button
+                v-if="hasMoreTables"
+                @click="loadMoreTables"
+                class="w-full py-3 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              >
+                {{ t.loadMore }} ({{ remainingTablesCount }} {{ t.more }})
+              </button>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-gray-200">
+              <UiBaseButton
+                @click="handleBuyTickets"
+                variant="success"
+                size="lg"
+                full-width
+              >
+                {{ ctaText }}
+              </UiBaseButton>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
 import { formatLocation, formatFullAddress, buildMapUrl } from '~/utils/location'
 
@@ -196,6 +278,14 @@ const translations = {
   availableAddOns: { es: 'Extras Disponibles:', en: 'Available Add-ons:' },
   seats: { es: 'asientos', en: 'seats' },
   moreTables: { es: 'más mesas', en: 'more tables' },
+  viewAllTables: { es: 'Ver todas las mesas', en: 'View all tables' },
+  allTables: { es: 'Todas las Mesas', en: 'All Tables' },
+  searchTables: { es: 'Buscar mesas...', en: 'Search tables...' },
+  tablesFound: { es: 'mesas encontradas', en: 'tables found' },
+  clearSearch: { es: 'Limpiar', en: 'Clear' },
+  noTablesMatch: { es: 'No se encontraron mesas', en: 'No tables match your search' },
+  loadMore: { es: 'Cargar más', en: 'Load more' },
+  more: { es: 'más', en: 'more' },
   moreTiers: { es: 'más niveles', en: 'more tiers' },
   soldOut: { es: 'AGOTADO', en: 'SOLD OUT' },
   ticketsRemaining: { es: 'boletos restantes', en: 'tickets remaining' },
@@ -243,6 +333,11 @@ const tables = ref([])
 const tiersLoading = ref(false)
 const tablesLoading = ref(false)
 
+// Tables modal state
+const showTablesModal = ref(false)
+const tableSearch = ref('')
+const tablesDisplayLimit = ref(20)
+
 // Event type detection
 const isSeatedEvent = computed(() => props.event?.seating_type === 'seated')
 
@@ -276,6 +371,32 @@ const lowestTablePrice = computed(() => {
   if (!hasTables.value) return null
   return Math.min(...activeTables.value.map(t => Number(t.price || 0)))
 })
+
+// Filtered tables based on search
+const filteredTables = computed(() => {
+  if (!tableSearch.value.trim()) return activeTables.value
+  const search = tableSearch.value.toLowerCase().trim()
+  return activeTables.value.filter(t =>
+    t.name.toLowerCase().includes(search)
+  )
+})
+
+// Paginated tables for modal
+const paginatedTables = computed(() => {
+  return filteredTables.value.slice(0, tablesDisplayLimit.value)
+})
+
+const hasMoreTables = computed(() => {
+  return filteredTables.value.length > tablesDisplayLimit.value
+})
+
+const remainingTablesCount = computed(() => {
+  return filteredTables.value.length - tablesDisplayLimit.value
+})
+
+const loadMoreTables = () => {
+  tablesDisplayLimit.value += 20
+}
 
 // === PRICING ===
 const displayPrice = computed(() => {
@@ -448,4 +569,21 @@ onMounted(() => {
     fetchTiers()
   }
 })
+
+// Reset pagination when search changes
+watch(tableSearch, () => {
+  tablesDisplayLimit.value = 20
+})
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -2,9 +2,23 @@
 <!-- Drag-drop image upload with URL paste option -->
 <template>
   <div class="image-upload">
-    <div v-if="previewUrl" class="preview-container">
-      <img :src="previewUrl" alt="Event image preview" class="preview-image" />
-      <div class="preview-overlay">
+    <div v-if="previewUrl" class="preview-container" :class="{ 'focal-mode': showFocalPicker }">
+      <img
+        ref="previewImageRef"
+        :src="previewUrl"
+        alt="Event image preview"
+        class="preview-image"
+        @click="handleImageClick"
+      />
+      <!-- Focal Point Indicator -->
+      <div
+        v-if="showFocalPicker"
+        class="focal-point-indicator"
+        :style="{ left: `${focalX}%`, top: `${focalY}%` }"
+      >
+        <div class="focal-crosshair"></div>
+      </div>
+      <div class="preview-overlay" :class="{ hidden: showFocalPicker }">
         <button type="button" class="overlay-btn" @click="clearImage">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -17,6 +31,22 @@
           </svg>
           {{ t.replace }}
         </button>
+      </div>
+      <!-- Focal Point Controls -->
+      <div v-if="previewUrl" class="focal-controls">
+        <button
+          type="button"
+          class="focal-toggle-btn"
+          :class="{ active: showFocalPicker }"
+          @click="toggleFocalPicker"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          {{ showFocalPicker ? t.doneFocal : t.setFocalPoint }}
+        </button>
+        <span v-if="showFocalPicker" class="focal-hint">{{ t.clickToSetFocal }}</span>
       </div>
     </div>
 
@@ -103,7 +133,10 @@ const translations = {
   invalidImageType: { es: 'Por favor sube una imagen PNG, JPG o WEBP', en: 'Please upload a PNG, JPG, or WEBP image' },
   imageTooLarge: { es: 'La imagen debe ser menor a 5MB', en: 'Image must be less than 5MB' },
   invalidUrl: { es: 'Por favor ingresa una URL válida', en: 'Please enter a valid URL' },
-  uploading: { es: 'Subiendo...', en: 'Uploading...' }
+  uploading: { es: 'Subiendo...', en: 'Uploading...' },
+  setFocalPoint: { es: 'Ajustar Posición', en: 'Adjust Position' },
+  doneFocal: { es: 'Listo', en: 'Done' },
+  clickToSetFocal: { es: 'Haz clic en la imagen para centrar', en: 'Click on the image to set center point' }
 }
 
 const t = createT(translations)
@@ -124,18 +157,34 @@ const props = defineProps({
   uploadProgress: {
     type: Number,
     default: 0
+  },
+  initialFocalX: {
+    type: Number,
+    default: 50
+  },
+  initialFocalY: {
+    type: Number,
+    default: 50
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'file-selected', 'url-selected', 'clear'])
+const emit = defineEmits(['update:modelValue', 'file-selected', 'url-selected', 'clear', 'focal-point-changed'])
 
 const fileInput = ref(null)
+const previewImageRef = ref(null)
 const isDragging = ref(false)
 const showUrlInput = ref(false)
 const urlInput = ref('')
 const errorMessage = ref('')
 const localFile = ref(null)
 const localUrl = ref('')
+const showFocalPicker = ref(false)
+const focalX = ref(50)
+const focalY = ref(50)
+
+// Initialize focal point from props
+watch(() => props.initialFocalX, (val) => { focalX.value = val }, { immediate: true })
+watch(() => props.initialFocalY, (val) => { focalY.value = val }, { immediate: true })
 
 // Initialize with existing URL
 watch(() => props.existingUrl, (newUrl) => {
@@ -231,11 +280,33 @@ const clearImage = () => {
   localUrl.value = ''
   urlInput.value = ''
   errorMessage.value = ''
+  showFocalPicker.value = false
   if (fileInput.value) {
     fileInput.value.value = ''
   }
   emit('update:modelValue', null)
   emit('clear')
+}
+
+// Focal point functions
+const toggleFocalPicker = () => {
+  showFocalPicker.value = !showFocalPicker.value
+}
+
+const handleImageClick = (event) => {
+  if (!showFocalPicker.value) return
+
+  const img = previewImageRef.value
+  if (!img) return
+
+  const rect = img.getBoundingClientRect()
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  focalX.value = Math.round(Math.max(0, Math.min(100, x)))
+  focalY.value = Math.round(Math.max(0, Math.min(100, y)))
+
+  emit('focal-point-changed', { x: focalX.value, y: focalY.value })
 }
 </script>
 
@@ -452,5 +523,96 @@ const clearImage = () => {
   font-size: 0.75rem;
   color: var(--color-text-muted);
   text-align: center;
+}
+
+/* Focal Point Styles */
+.preview-container.focal-mode {
+  cursor: crosshair;
+}
+
+.preview-container.focal-mode .preview-image {
+  cursor: crosshair;
+}
+
+.focal-point-indicator {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.focal-crosshair {
+  width: 40px;
+  height: 40px;
+  position: relative;
+}
+
+.focal-crosshair::before,
+.focal-crosshair::after {
+  content: '';
+  position: absolute;
+  background: white;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.focal-crosshair::before {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.focal-crosshair::after {
+  width: 100%;
+  height: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.preview-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.focal-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+}
+
+.focal-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.focal-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.focal-toggle-btn.active {
+  background: var(--color-primary);
+}
+
+.focal-hint {
+  font-size: 0.75rem;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 </style>

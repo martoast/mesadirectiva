@@ -359,11 +359,11 @@ const translations = {
 
   // Attendee Information
   attendeeInformation: { es: 'Información del Asistente', en: 'Attendee Information' },
-  attendeeDescription: { es: 'Ingresa el nombre de cada persona que asistirá. Esto es útil cuando el comprador del boleto no es el asistente.', en: 'Enter the name of each person attending. This is helpful when the ticket buyer is not the attendee.' },
+  attendeeDescription: { es: 'Para paseos o graduaciones escolares, favor de poner el nombre del alumno a quien se acreditarán los boletos.', en: 'For school trips or graduations, please enter the name of the student to whom the tickets will be credited.' },
   attendeeName: { es: 'Nombre del Asistente', en: 'Attendee Name' },
   attendeeNamePlaceholder: { es: 'Nombre de la persona que asistirá', en: 'Name of person attending' },
   noteOptional: { es: 'Nota (opcional)', en: 'Note (optional)' },
-  notePlaceholder: { es: 'Restricciones alimenticias, necesidades de accesibilidad, etc.', en: 'Dietary restrictions, accessibility needs, etc.' },
+  notePlaceholder: { es: 'Clave, Salón, Generación, etc.', en: 'ID, Classroom, Grade, etc.' },
   primaryContactName: { es: 'Nombre del Contacto Principal', en: 'Primary Contact Name' },
   tableHostPlaceholder: { es: 'Nombre del anfitrión de la mesa', en: 'Name of table host' },
   specialRequestsPlaceholder: { es: 'Solicitudes especiales, etc.', en: 'Special requests, etc.' },

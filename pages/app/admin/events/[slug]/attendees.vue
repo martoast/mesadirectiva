@@ -29,7 +29,49 @@
           <h1>{{ t.attendees }}</h1>
           <p class="header-subtitle">{{ eventName }}</p>
         </div>
+        <button @click="openScanner" class="btn-scan">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+          </svg>
+          {{ t.scanQR }}
+        </button>
       </header>
+
+      <!-- QR Scanner Modal -->
+      <div v-if="showScanner" class="scanner-modal" @click.self="closeScanner">
+        <div class="scanner-container">
+          <div class="scanner-header">
+            <h2>{{ t.scanTicket }}</h2>
+            <button @click="closeScanner" class="btn-close">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Scan Result -->
+          <div v-if="scanResult" :class="['scan-result', scanResult.success ? 'success' : 'error']">
+            <div class="result-icon">
+              <svg v-if="scanResult.success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <div class="result-content">
+              <p class="result-message">{{ scanResult.message }}</p>
+              <p v-if="scanResult.attendee" class="result-attendee">{{ scanResult.attendee.attendee_name }}</p>
+            </div>
+            <button @click="continueScan" class="btn-continue">{{ t.scanNext }}</button>
+          </div>
+
+          <!-- Scanner -->
+          <div v-show="!scanResult" id="qr-reader" class="scanner-view"></div>
+
+          <p class="scanner-hint">{{ t.scannerHint }}</p>
+        </div>
+      </div>
 
       <!-- Stats Cards -->
       <div class="stats-grid">
@@ -217,7 +259,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 
 definePageMeta({
   layout: 'admin',
@@ -249,12 +291,21 @@ const translations = {
   checkIn: { es: 'Registrar', en: 'Check In' },
   undo: { es: 'Deshacer', en: 'Undo' },
   loadMore: { es: 'Cargar más', en: 'Load More' },
+  scanQR: { es: 'Escanear QR', en: 'Scan QR' },
+  scanTicket: { es: 'Escanear boleto', en: 'Scan Ticket' },
+  scannerHint: { es: 'Apunta la cámara al código QR del boleto', en: 'Point the camera at the ticket QR code' },
+  scanNext: { es: 'Escanear siguiente', en: 'Scan Next' },
+  checkedInSuccess: { es: 'Registrado exitosamente', en: 'Checked in successfully' },
+  alreadyCheckedIn: { es: 'Ya está registrado', en: 'Already checked in' },
+  invalidTicket: { es: 'Boleto no válido', en: 'Invalid ticket' },
+  wrongEvent: { es: 'Este boleto es para otro evento', en: 'This ticket is for another event' },
+  notPaid: { es: 'Este boleto no ha sido pagado', en: 'This ticket has not been paid' },
 }
 
 const t = createT(translations)
 
 const route = useRoute()
-const { getAttendees, checkInAttendee, undoCheckIn } = useAttendees()
+const { getAttendees, checkInAttendee, undoCheckIn, scanCheckIn } = useAttendees()
 
 // State
 const attendees = ref([])
@@ -272,6 +323,11 @@ const searchQuery = ref('')
 const checkedInFilter = ref('all')
 const typeFilter = ref('all')
 let searchTimeout = null
+
+// QR Scanner state
+const showScanner = ref(false)
+const scanResult = ref(null)
+let html5QrCode = null
 
 // Computed
 const eventName = computed(() => eventInfo.value?.name || route.params.slug)
@@ -379,7 +435,124 @@ const formatCheckedInTime = (dateStr) => {
   })
 }
 
+// QR Scanner methods
+const openScanner = async () => {
+  showScanner.value = true
+  scanResult.value = null
+
+  // Wait for DOM to update
+  await nextTick()
+
+  // Dynamically import html5-qrcode to avoid SSR issues
+  const { Html5Qrcode } = await import('html5-qrcode')
+
+  html5QrCode = new Html5Qrcode('qr-reader')
+
+  try {
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+      },
+      onScanSuccess,
+      onScanFailure
+    )
+  } catch (err) {
+    console.error('Failed to start camera:', err)
+  }
+}
+
+const closeScanner = async () => {
+  if (html5QrCode) {
+    try {
+      await html5QrCode.stop()
+    } catch (e) {
+      // Ignore stop errors
+    }
+    html5QrCode = null
+  }
+  showScanner.value = false
+  scanResult.value = null
+}
+
+const onScanSuccess = async (decodedText) => {
+  // Pause scanner while processing
+  if (html5QrCode) {
+    try {
+      await html5QrCode.pause()
+    } catch (e) {
+      // Ignore pause errors
+    }
+  }
+
+  try {
+    const response = await scanCheckIn(route.params.slug, decodedText)
+
+    scanResult.value = {
+      success: true,
+      message: t.value.checkedInSuccess,
+      attendee: response.attendee,
+    }
+
+    // Update the attendee in the list if present
+    if (response.attendee) {
+      const index = attendees.value.findIndex(a => a.id === response.attendee.id)
+      if (index !== -1) {
+        attendees.value[index] = response.attendee
+      }
+      // Update meta counts
+      meta.value.checked_in_count++
+      meta.value.not_checked_in_count--
+    }
+  } catch (error) {
+    const errorData = error?.data || {}
+    let message = t.value.invalidTicket
+
+    if (errorData.already_checked_in) {
+      message = t.value.alreadyCheckedIn
+    } else if (errorData.message?.includes('different event')) {
+      message = t.value.wrongEvent
+    } else if (errorData.message?.includes('not been paid')) {
+      message = t.value.notPaid
+    }
+
+    scanResult.value = {
+      success: false,
+      message,
+      attendee: errorData.attendee || null,
+    }
+  }
+}
+
+const onScanFailure = (error) => {
+  // Silently ignore - QR not found in frame
+}
+
+const continueScan = async () => {
+  scanResult.value = null
+
+  if (html5QrCode) {
+    try {
+      await html5QrCode.resume()
+    } catch (e) {
+      // If resume fails, restart the scanner
+      await openScanner()
+    }
+  }
+}
+
 onMounted(fetchAttendees)
+
+onUnmounted(() => {
+  if (html5QrCode) {
+    try {
+      html5QrCode.stop()
+    } catch (e) {
+      // Ignore stop errors
+    }
+  }
+})
 </script>
 
 <style scoped>
@@ -1001,5 +1174,172 @@ onMounted(fetchAttendees)
   .stat-value {
     font-size: 32px;
   }
+}
+
+/* Page Header with Scan Button */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.btn-scan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-indigo);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-scan:hover {
+  background: #1d3d4a;
+}
+
+.btn-scan svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* QR Scanner Modal */
+.scanner-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.scanner-container {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-stone);
+}
+
+.scanner-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  background: var(--color-stone-light);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-muted);
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: var(--color-stone);
+  color: var(--color-ink);
+}
+
+.btn-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.scanner-view {
+  width: 100%;
+  min-height: 300px;
+}
+
+.scanner-hint {
+  text-align: center;
+  padding: 16px 20px;
+  font-size: 13px;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+/* Scan Result */
+.scan-result {
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.scan-result.success .result-icon {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.scan-result.error .result-icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.result-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.result-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.result-message {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 4px;
+}
+
+.result-attendee {
+  font-size: 14px;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.btn-continue {
+  margin-top: 24px;
+  padding: 12px 32px;
+  background: var(--color-indigo);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-continue:hover {
+  background: #1d3d4a;
 }
 </style>

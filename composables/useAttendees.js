@@ -32,9 +32,19 @@ export const useAttendees = () => {
     return await post(`/events/${eventSlug}/attendees/${orderItemId}/undo-check-in`)
   }
 
+  /**
+   * Check in an attendee by scanning their ticket QR code
+   * @param {string} eventSlug - Event slug
+   * @param {string} ticketCode - Ticket code from QR scan (e.g., TKT-XXXX-XXXX)
+   */
+  const scanCheckIn = async (eventSlug, ticketCode) => {
+    return await post(`/events/${eventSlug}/attendees/scan`, { ticket_code: ticketCode })
+  }
+
   return {
     getAttendees,
     checkInAttendee,
     undoCheckIn,
+    scanCheckIn,
   }
 }

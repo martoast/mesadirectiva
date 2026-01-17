@@ -1,134 +1,285 @@
-# MesaDirectiva - Developer Summary
+# MesaDirectiva Frontend - LLM Developer Guide
 
-A Nuxt 4 event management platform for creating, managing, and selling tickets to events.
+> **Quick Context**: Nuxt 3 event ticketing platform with admin dashboard and public event pages. Supports General Admission (ticket tiers) and Seated events (tables/seats). Bilingual (Spanish/English).
 
 ---
 
 ## Tech Stack
 
-- **Framework:** Nuxt 4.2.1 / Vue 3.5
-- **Styling:** Tailwind CSS
-- **Payments:** Stripe
-- **Auth:** Email/password + Google OAuth
+- **Framework**: Nuxt 3.16 / Vue 3.5 with Composition API (`<script setup>`)
+- **Styling**: Tailwind CSS with Japanese minimalist design system
+- **Payments**: Stripe Checkout
+- **Auth**: Bearer token (Sanctum) + Google OAuth
+- **i18n**: Custom composable (no library)
+- **State**: Reactive composables (no Pinia/Vuex)
 
 ---
 
-## Project Structure
+## Directory Structure
 
 ```
-/app
-├── pages/                 # File-based routing
-│   ├── app/admin/         # Admin dashboard (protected)
-│   └── app/events/        # Public event pages
+app/
+├── pages/                    # File-based routing
+│   ├── index.vue             # Landing page
+│   ├── login.vue             # Auth (middleware: guest)
+│   ├── app/
+│   │   ├── events/           # Public event pages
+│   │   │   ├── index.vue     # Event listing
+│   │   │   └── [slug]/       # Event detail, checkout, seat selection
+│   │   └── admin/            # Admin dashboard (middleware: auth, admin)
+│   │       ├── events/       # Event management
+│   │       │   └── [slug]/   # Event detail, edit, attendees, tiers, tables
+│   │       ├── groups/       # Group management (superAdmin only)
+│   │       ├── users/        # User management (superAdmin only)
+│   │       ├── orders/       # Order management
+│   │       └── reports/      # Sales & order reports
 ├── components/
-│   ├── admin/             # Admin components (EventForm, TicketTierForm, etc.)
-│   ├── public/            # Public components (EventHero, TicketTierSelector, etc.)
-│   └── ui/                # Base UI components
-├── composables/           # API & business logic (auto-imported)
-├── middleware/            # Route guards (auth, admin, superAdmin)
-├── utils/                 # Helper functions (dateTime, location, salesStatus)
-└── layouts/               # Page layouts (admin, public)
+│   ├── admin/                # Admin UI (EventForm, TicketTierForm, TableForm, etc.)
+│   ├── public/               # Public UI (EventHero, TicketTierSelector, SeatingMap, etc.)
+│   └── ui/                   # Base components (BaseButton, BaseInput, Toast, etc.)
+├── composables/              # Business logic (auto-imported)
+│   ├── useApi.js             # HTTP client with auth
+│   ├── useAuth.js            # Auth state & methods
+│   ├── useLanguage.ts        # i18n system
+│   ├── useEvents.js          # Event CRUD
+│   ├── useTicketTiers.js     # Tier management
+│   ├── useTables.js          # Table management
+│   ├── useSeats.js           # Seat management
+│   ├── useReservations.js    # Seat reservation with timer
+│   ├── useCheckout.js        # Stripe checkout
+│   ├── useAttendees.js       # Check-in management
+│   ├── useOrders.js          # Order queries
+│   ├── useGroups.js          # Group CRUD
+│   ├── useUsers.js           # User CRUD (superAdmin)
+│   └── useToast.js           # Notifications
+├── layouts/
+│   ├── admin.vue             # Admin layout (dark sidebar)
+│   ├── admin-fullscreen.vue  # Fullscreen tools (floor plan)
+│   └── public.vue            # Public layout (light navbar)
+├── middleware/
+│   ├── auth.js               # Requires authentication
+│   ├── admin.js              # Requires admin/super_admin role
+│   ├── superAdmin.js         # Requires super_admin role
+│   └── guest.js              # Requires unauthenticated
+└── utils/
+    ├── dateTime.js           # Date formatting
+    ├── location.js           # Location formatting
+    ├── salesStatus.js        # Tier status labels
+    ├── errorTranslations.js  # API error translation
+    └── html.js               # HTML sanitization
 ```
 
 ---
 
-## Core Concepts
+## Key Patterns
 
-### Events
-Events have two types:
-- **General Admission** - Ticket tiers with different prices
-- **Seated** - Tables with individual seats
+### 1. Composable Pattern
+All business logic lives in composables. They use global refs for shared state:
 
-Key fields: `name`, `description`, `starts_at`, `ends_at`, `timezone`, `location_type` (venue/online), `location`, `image_url`, `media`, `faq_items`
+```javascript
+// composables/useAuth.js
+const user = ref(null)           // Global state
+const token = ref(null)
 
-Status flow: `draft` → `live` → `closed`
+export const useAuth = () => {
+  const isAuthenticated = computed(() => !!token.value)
+  const login = async (email, password) => { /* ... */ }
+  return { user, token, isAuthenticated, login, logout }
+}
+```
 
-### Ticket Tiers (General Admission)
-Each tier has: `name`, `price`, `quantity`, `sales_start`, `sales_end`, `min_per_order`, `max_per_order`
+### 2. API Pattern
+All API calls go through `useApi()`:
 
-Sales statuses: `on_sale`, `scheduled`, `ended`, `sold_out`, `inactive`, `hidden`
+```javascript
+const { get, post, put, del, upload } = useApi()
 
-### Tables & Seats (Seated Events)
-- Tables have capacity and can be sold as whole or individual seats
-- Seats are reserved via time-limited tokens before checkout
+// GET with params
+const response = await get('/events', { status: 'live' })
 
-### Groups (Multi-org)
-Events belong to groups. Users have permissions per group: `view`, `edit`, `manage`
+// POST with body
+await post('/events', eventData)
+
+// File upload
+await upload(`/events/${slug}/image`, formData)
+```
+
+### 3. Translation Pattern
+Each component defines its own translations:
+
+```javascript
+const { t: createT } = useLanguage()
+
+const translations = {
+  title: { es: 'Eventos', en: 'Events' },
+  save: { es: 'Guardar', en: 'Save' }
+}
+const t = createT(translations)
+
+// In template: {{ t.title }}
+```
+
+### 4. Page Meta Pattern
+```javascript
+definePageMeta({
+  layout: 'admin',
+  middleware: ['auth', 'admin']
+})
+```
+
+### 5. Form Pattern
+```vue
+<script setup>
+const form = ref({ name: '', email: '' })
+const errors = ref({})
+const loading = ref(false)
+
+const handleSubmit = async () => {
+  loading.value = true
+  errors.value = {}
+  try {
+    await post('/endpoint', form.value)
+    toast.success('Saved!')
+  } catch (e) {
+    errors.value = e.errors || {}
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <form @submit.prevent="handleSubmit">
+    <input v-model="form.name" />
+    <span v-if="errors.name" class="error">{{ errors.name[0] }}</span>
+    <button :disabled="loading">{{ loading ? 'Saving...' : 'Save' }}</button>
+  </form>
+</template>
+```
 
 ---
 
-## Key Composables
+## Styling System
 
-| Composable | Purpose |
-|-----------|---------|
-| `useApi` | HTTP client with auth headers |
-| `useAuth` | Login, logout, user state |
-| `useEvents` | Event CRUD |
-| `useTicketTiers` | Tier management |
-| `useTables` / `useSeats` | Seated events |
-| `useCheckout` | Stripe sessions |
-| `useReservations` | Seat reservations |
-| `useGroups` | Group management |
+### Design Tokens (tailwind.config.js)
+```javascript
+colors: {
+  paper: '#FAF8F5',      // Background
+  ink: '#1C1917',        // Text
+  washi: { /* gray scale */ },
+  indigo: '#4338CA',     // Primary accent
+  sage: '#6B9080',       // Success
+  coral: '#DC6B6B',      // Danger
+  gold: '#B08968'        // Warning
+}
+```
 
----
-
-## API Patterns
-
-**Base URL:** Configured in `nuxt.config.ts` → `runtimeConfig.public.apiUrl`
-
-**Auth:** Bearer token stored in `localStorage.auth_token`, included automatically via `useApi`
-
-**Public endpoints:** `/public/events/*` (no auth required)
-
-**Admin endpoints:** `/events/*`, `/orders/*`, etc. (auth required)
-
----
-
-## Authentication
-
-1. Login via `/auth/login` or Google OAuth
-2. Token stored in localStorage
-3. `useAuth()` provides: `user`, `isAuthenticated`, `isAdmin`, `isSuperAdmin`
-4. Middleware protects routes: `auth`, `admin`, `superAdmin`
+### Component Scoped CSS
+Components use scoped CSS with custom properties:
+```vue
+<style scoped>
+.card {
+  --color-paper: #faf9f7;
+  --color-ink: #1a1a1a;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+</style>
+```
 
 ---
 
-## User Roles
+## Authentication Flow
 
+1. User logs in via `/login` or Google OAuth
+2. Token stored in `localStorage.auth_token`
+3. `useApi()` auto-attaches Bearer token
+4. `useAuth()` provides reactive state:
+   - `user`, `token`, `isAuthenticated`
+   - `isAdmin`, `isSuperAdmin`, `isViewer`
+   - `hasPermission(groupId, 'edit')`
+
+### Role Hierarchy
 | Role | Access |
 |------|--------|
-| `viewer` | Public pages only |
-| `admin` | Events, orders, reports |
-| `super_admin` | + Users, groups |
+| `viewer` | Read-only on assigned groups |
+| `admin` | Edit events in assigned groups |
+| `super_admin` | Full access + users/groups |
 
 ---
 
-## Utility Functions
+## Event Types
 
-- **`utils/dateTime.js`** - Format dates, check event status
-- **`utils/location.js`** - Format venue/online locations
-- **`utils/salesStatus.js`** - Tier status labels/colors
+### General Admission
+- Uses **Ticket Tiers** with prices, quantities, sales windows
+- Tiers have: `name`, `price`, `quantity`, `sales_start`, `sales_end`
+- Sales status: `on_sale`, `scheduled`, `ended`, `sold_out`
+
+### Seated Events
+- Uses **Tables** and **Seats**
+- Tables can be `sell_as_whole: true` (whole table) or `false` (individual seats)
+- Reservations are time-limited (default 15 min)
+- `useReservations()` handles countdown timer
 
 ---
 
 ## Key Flows
 
-### Event Creation
-1. Admin fills 6-step form (EventForm.vue)
-2. Draft auto-saved after location step
-3. Media uploaded to existing draft
-4. Publish makes event live
+### Create Event (Admin)
+1. Navigate to `/app/admin/events/create`
+2. 6-step wizard (`EventForm.vue`):
+   - Basic info → Date/time → Location → Tickets/Seating → Media → Review
+3. Draft auto-saved after location step
+4. Publish to make live
 
-### Ticket Purchase (General Admission)
-1. User selects tiers on public event page
-2. Enters contact info
-3. Stripe checkout session created
-4. Redirect to Stripe → success callback
+### Purchase Tickets (Public)
+1. Browse events at `/app/events`
+2. Select event → `/app/events/[slug]`
+3. Choose tiers or seats
+4. For seated: creates temporary reservation
+5. Checkout via Stripe → redirect to success page
 
-### Seated Event Purchase
-1. User selects seats → creates reservation (time-limited)
-2. Proceeds to checkout with reservation token
-3. Payment converts reservation to order
+### Check-in Attendees (Admin)
+1. Navigate to event → Attendees
+2. Search by name/email/order number
+3. Click check-in button
+4. Can undo check-in if needed
+
+---
+
+## Common Tasks
+
+### Add a New Page
+1. Create file in `pages/` (file-based routing)
+2. Add `definePageMeta()` for layout/middleware
+3. Create translations object with `useLanguage()`
+
+### Add a New API Endpoint
+1. Add method to relevant composable (or create new one)
+2. Use `useApi()` for the HTTP call
+3. Handle errors and loading state
+
+### Add a New Component
+1. Create in appropriate folder (`admin/`, `public/`, `ui/`)
+2. Use `<script setup>` with Composition API
+3. Add scoped styles following design system
+
+### Add Translations
+```javascript
+const translations = {
+  newKey: { es: 'Spanish text', en: 'English text' }
+}
+```
+
+---
+
+## Environment Variables
+
+```bash
+VITE_API_URL=http://localhost:8001    # Backend API
+VITE_STRIPE_KEY=pk_test_...           # Stripe publishable key
+VITE_SITE_URL=https://example.com     # For OG meta tags
+```
 
 ---
 
@@ -136,15 +287,32 @@ Events belong to groups. Users have permissions per group: `view`, `edit`, `mana
 
 ```bash
 yarn install
-yarn dev
+yarn dev          # http://localhost:3000
 ```
 
-API URL defaults to `http://localhost:8001`. Override with `VITE_API_URL`.
+API defaults to `http://localhost:8001`. Backend must be running.
 
 ---
 
-## Notes
+## Important Files to Read First
 
-- Composables are auto-imported (no explicit imports needed)
-- Check `import.meta.client` before accessing localStorage (SSR)
-- All dates stored as ISO strings with timezone field
+| File | Purpose |
+|------|---------|
+| `composables/useAuth.js` | Understand auth state & permissions |
+| `composables/useApi.js` | Understand API integration |
+| `composables/useLanguage.ts` | Understand i18n approach |
+| `layouts/admin.vue` | Understand admin UI structure |
+| `pages/app/admin/events/[slug]/index.vue` | Reference admin page |
+| `pages/app/events/[slug]/index.vue` | Reference public page |
+| `tailwind.config.js` | Design tokens |
+
+---
+
+## Notes for LLMs
+
+- **Composables are auto-imported** - no need for explicit imports
+- **Check `import.meta.client`** before accessing `localStorage` (SSR)
+- **All dates are ISO strings** with separate `timezone` field
+- **Form validation errors** come as `{ field: ['message'] }` from API
+- **Use existing patterns** - look at similar components before creating new ones
+- **Spanish is primary language** - always add both ES and EN translations

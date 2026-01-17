@@ -227,6 +227,21 @@
                 <polyline points="9 18 15 12 9 6" stroke-width="1.5"/>
               </svg>
             </NuxtLink>
+
+            <NuxtLink :to="`/app/admin/events/${event.slug}/attendees`" class="action-link checkin">
+              <div class="action-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="action-text">
+                <span class="action-title">{{ t.attendeesCheckIn }}</span>
+                <span class="action-desc">{{ t.manageCheckIn }}</span>
+              </div>
+              <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <polyline points="9 18 15 12 9 6" stroke-width="1.5"/>
+              </svg>
+            </NuxtLink>
           </div>
         </div>
 
@@ -430,6 +445,8 @@ const translations = {
   arrangeTableLayout: { es: 'Organiza el diseño visual', en: 'Arrange layout visually' },
   publicEventPage: { es: 'Página pública', en: 'Public Page' },
   viewAsAttendees: { es: 'Ver como asistentes', en: 'View as attendees' },
+  attendeesCheckIn: { es: 'Asistentes', en: 'Attendees' },
+  manageCheckIn: { es: 'Check-in y lista de asistentes', en: 'Check-in & attendee list' },
   deleteEvent: { es: 'Eliminar evento', en: 'Delete Event' },
   deleteConfirm: { es: 'Esto eliminará permanentemente', en: 'This will permanently delete' },
   andAllData: { es: 'y todos los datos asociados.', en: 'and all associated data.' },
@@ -1177,6 +1194,19 @@ onMounted(fetchEvent)
 
 .action-link.external .action-icon svg {
   color: var(--color-indigo);
+}
+
+.action-link.checkin:hover {
+  background: var(--color-bamboo-light);
+}
+
+.action-link.checkin .action-icon {
+  border-color: var(--color-bamboo);
+  background: var(--color-bamboo-light);
+}
+
+.action-link.checkin .action-icon svg {
+  color: var(--color-bamboo);
 }
 
 .action-text {

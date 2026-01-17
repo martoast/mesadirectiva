@@ -103,6 +103,14 @@
           >
             {{ actionLoading ? t.closing : t.closeEvent }}
           </button>
+          <button
+            v-if="event.status === 'closed'"
+            @click="handlePublish"
+            :disabled="actionLoading"
+            class="btn-success"
+          >
+            {{ actionLoading ? t.reopening : t.reopenEvent }}
+          </button>
           <button @click="handleDelete" class="btn-icon-danger" :title="t.deleteEvent">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -318,6 +326,17 @@
           </svg>
           <span>{{ t.close }}</span>
         </button>
+        <button
+          v-if="event.status === 'closed'"
+          @click="handlePublish"
+          :disabled="actionLoading"
+          class="fab-btn success"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z"/>
+          </svg>
+          <span>{{ t.reopen }}</span>
+        </button>
       </div>
     </template>
 
@@ -369,6 +388,9 @@ const translations = {
   closeEvent: { es: 'Cerrar evento', en: 'Close Event' },
   close: { es: 'Cerrar', en: 'Close' },
   closing: { es: 'Cerrando...', en: 'Closing...' },
+  reopenEvent: { es: 'Reabrir evento', en: 'Reopen Event' },
+  reopen: { es: 'Reabrir', en: 'Reopen' },
+  reopening: { es: 'Reabriendo...', en: 'Reopening...' },
   seated: { es: 'Con asientos', en: 'Seated' },
   generalAdmission: { es: 'Admisión general', en: 'General Admission' },
   draft: { es: 'Borrador', en: 'Draft' },
@@ -901,6 +923,20 @@ onMounted(fetchEvent)
   opacity: 0.9;
 }
 
+.btn-success {
+  background: var(--color-bamboo);
+  color: #ffffff;
+}
+
+.btn-success:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-danger {
   background: var(--color-vermillion);
   color: #ffffff;
@@ -1419,6 +1455,19 @@ onMounted(fetchEvent)
 .fab-btn.warning {
   background: var(--color-amber);
   color: #ffffff;
+}
+
+.fab-btn.success {
+  background: var(--color-bamboo);
+  color: #ffffff;
+}
+
+.fab-btn.success:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.fab-btn.success:disabled {
+  opacity: 0.6;
 }
 
 /* Modal */

@@ -924,12 +924,12 @@ onMounted(fetchEvent)
 }
 
 .btn-success {
-  background: var(--color-bamboo);
+  background: var(--color-indigo);
   color: #ffffff;
 }
 
 .btn-success:hover:not(:disabled) {
-  opacity: 0.9;
+  background: #1d3d4d;
 }
 
 .btn-success:disabled {
@@ -1458,12 +1458,12 @@ onMounted(fetchEvent)
 }
 
 .fab-btn.success {
-  background: var(--color-bamboo);
+  background: var(--color-indigo);
   color: #ffffff;
 }
 
 .fab-btn.success:hover:not(:disabled) {
-  opacity: 0.9;
+  background: #1d3d4d;
 }
 
 .fab-btn.success:disabled {

@@ -5,7 +5,7 @@
       <div class="nav-inner">
         <NuxtLink to="/app/events" class="nav-brand">
           <span class="brand-icon">✦</span>
-          <span class="brand-text">SPFIM A.C.</span>
+          <span class="brand-text">APFIM A.C.</span>
         </NuxtLink>
 
         <!-- Mobile menu button -->
@@ -61,7 +61,7 @@
           <div class="footer-brand">
             <div class="brand-logo">
               <span class="brand-icon">✦</span>
-              <span>SPFIM A.C.</span>
+              <span>APFIM A.C.</span>
             </div>
             <p class="brand-tagline">Asociación de Padres de Familia del Instituto México A.C.</p>
           </div>
@@ -84,7 +84,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2025 SPFIM A.C. All rights reserved.</p>
+          <p>&copy; 2025 APFIM A.C. All rights reserved.</p>
         </div>
       </div>
     </footer>

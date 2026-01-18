@@ -7,7 +7,7 @@
       </svg>
     </div>
     <div v-if="showText" class="logo-text">
-      <span class="logo-name">SPFIM A.C.</span>
+      <span class="logo-name">APFIM A.C.</span>
       <span v-if="label" class="logo-label">{{ label }}</span>
     </div>
   </component>

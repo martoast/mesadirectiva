@@ -369,7 +369,7 @@ if (seoEvent.value) {
   const title = seoEvent.value.name
   const description = seoEvent.value.description
     ? truncateHtmlText(sanitizeHtml(seoEvent.value.description), 160).replace(/<[^>]*>/g, '')
-    : `${seoEvent.value.name} - SPFIM A.C.`
+    : `${seoEvent.value.name} - APFIM A.C.`
   const image = seoEvent.value.image_url || ''
   const siteUrl = config.public.siteUrl || 'https://mesa-directiva.netlify.app'
 
@@ -384,7 +384,7 @@ if (seoEvent.value) {
     ogImageType: 'image/jpeg',
     ogUrl: `${siteUrl}/app/events/${seoEvent.value.slug}`,
     ogType: 'website',
-    ogSiteName: 'SPFIM A.C.',
+    ogSiteName: 'APFIM A.C.',
     twitterCard: 'summary_large_image',
     twitterTitle: title,
     twitterDescription: description,

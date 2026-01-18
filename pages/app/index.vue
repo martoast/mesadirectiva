@@ -98,14 +98,14 @@
       <div class="footer-inner">
         <div class="footer-brand">
           <div class="brand-mark">S</div>
-          <span>SPFIM A.C.</span>
+          <span>APFIM A.C.</span>
         </div>
         <div class="footer-links">
           <NuxtLink to="/app/events">{{ t.events }}</NuxtLink>
           <span class="link-dot"></span>
           <NuxtLink to="/login">{{ t.signIn }}</NuxtLink>
         </div>
-        <p class="footer-copy">© 2025 SPFIM A.C. {{ t.allRightsReserved }}</p>
+        <p class="footer-copy">© 2025 APFIM A.C. {{ t.allRightsReserved }}</p>
       </div>
     </footer>
   </div>

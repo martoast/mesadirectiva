@@ -4,9 +4,22 @@
  */
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const router = useRouter()
 
   const baseUrl = config.public.apiUrl
+
+  /**
+   * Clear auth state completely (localStorage + reactive state)
+   */
+  const clearAuthState = () => {
+    if (import.meta.client) {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
+
+      // Force page reload to reset all reactive state
+      // This ensures the auth composable reinitializes with empty state
+      window.location.href = '/login'
+    }
+  }
 
   /**
    * Get the auth token from localStorage
@@ -47,17 +60,18 @@ export const useApi = () => {
       // Don't redirect for unauthenticated requests to protected endpoints
       const hadToken = import.meta.client && localStorage.getItem('auth_token')
 
+      if (hadToken) {
+        // Use clearAuthState which forces a full page reload
+        // This resets all reactive state including useAuth's token ref
+        clearAuthState()
+        throw new Error('Session expired. Please login again.')
+      }
+
+      // For unauthenticated requests, just clear any stale data and throw error
       if (import.meta.client) {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
       }
-
-      if (hadToken) {
-        router.push('/login')
-        throw new Error('Session expired. Please login again.')
-      }
-
-      // For unauthenticated requests, just throw error without redirect
       throw new Error('Authentication required')
     }
 

@@ -41,9 +41,9 @@ export default {
           dark: "#3730A3",
         },
         sage: {
-          DEFAULT: "#6B9080",
-          light: "#8CB3A2",
-          dark: "#4A6B5D",
+          DEFAULT: "#10B981",
+          light: "#34D399",
+          dark: "#059669",
         },
         gold: {
           DEFAULT: "#B08968",

@@ -45,11 +45,10 @@
         <div class="event-stats">
           <div class="stat">
             <span class="stat-value">{{ event.total_tickets_sold || 0 }}</span>
-            <span class="stat-label">{{ event.seating_type === 'seated' ? t.seats : t.tickets }}</span>
+            <span class="stat-label">{{ t.sold }}</span>
           </div>
           <div class="stat">
-            <span class="stat-value">${{ (event.total_revenue || 0).toLocaleString() }}</span>
-            <span class="stat-label">{{ t.revenue }}</span>
+            <span class="stat-value">{{ event.seating_type === 'seated' ? t.seats : t.tickets }}</span>
           </div>
         </div>
       </div>
@@ -122,9 +121,9 @@ import { getPlatformLabel } from '~/utils/location'
 const { t: createT } = useLanguage()
 
 const translations = {
+  sold: { es: 'vendidos', en: 'sold' },
   seats: { es: 'asientos', en: 'seats' },
   tickets: { es: 'boletos', en: 'tickets' },
-  revenue: { es: 'ingresos', en: 'revenue' },
   view: { es: 'Ver detalles', en: 'View details' },
   edit: { es: 'Editar', en: 'Edit' },
   publish: { es: 'Publicar', en: 'Publish' },

@@ -57,7 +57,7 @@
           <td class="col-sales">
             <div class="sales-cell">
               <span class="sales-primary">{{ event.total_tickets_sold || 0 }}</span>
-              <span class="sales-secondary">${{ (event.total_revenue || 0).toLocaleString() }}</span>
+              <span class="sales-secondary">{{ event.seating_type === 'seated' ? t.seats : t.tickets }}</span>
             </div>
           </td>
           <td class="col-actions">
@@ -136,7 +136,9 @@ const translations = {
   date: { es: 'Fecha', en: 'Date' },
   location: { es: 'Ubicación', en: 'Location' },
   status: { es: 'Estado', en: 'Status' },
-  sales: { es: 'Ventas', en: 'Sales' },
+  sales: { es: 'Vendidos', en: 'Sold' },
+  seats: { es: 'asientos', en: 'seats' },
+  tickets: { es: 'boletos', en: 'tickets' },
   seated: { es: 'Con asientos', en: 'Seated' },
   generalAdmission: { es: 'Admisión General', en: 'General Admission' },
   noGroup: { es: 'Sin grupo', en: 'No group' },

@@ -8,6 +8,16 @@
 
     <!-- Event Content -->
     <div v-else-if="event" class="event-content">
+      <!-- Back Button -->
+      <nav class="back-nav">
+        <NuxtLink to="/app/events" class="back-button">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>{{ t.allEvents }}</span>
+        </NuxtLink>
+      </nav>
+
       <!-- Banner Image -->
       <section class="banner">
         <div class="banner-container">
@@ -303,6 +313,7 @@ const { t: createT, language } = useLanguage()
 // Translations
 const translations = {
   loadingEvent: { es: 'Cargando evento...', en: 'Loading event...' },
+  allEvents: { es: 'Todos los eventos', en: 'All Events' },
   date: { es: 'Fecha', en: 'Date' },
   time: { es: 'Hora', en: 'Time' },
   platform: { es: 'Plataforma', en: 'Platform' },
@@ -692,6 +703,33 @@ onMounted(fetchEvent)
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Back Navigation */
+.back-nav {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 20px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-light);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.back-button:hover {
+  color: var(--color-text);
+}
+
+.back-button svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* Banner Section */

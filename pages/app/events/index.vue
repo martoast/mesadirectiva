@@ -135,13 +135,6 @@
                 </p>
               </div>
             </div>
-
-            <!-- Arrow indicator -->
-            <div class="card-arrow">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
           </NuxtLink>
         </div>
 
@@ -455,14 +448,13 @@ const getLocationDisplay = (event) => {
 
 /* Grid */
 .events-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 /* Skeleton */
 .skeleton-card {
-  display: flex;
   background: var(--color-bg);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -470,16 +462,14 @@ const getLocationDisplay = (event) => {
 }
 
 .skeleton-image {
-  width: 100px;
-  height: 100px;
-  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 .skeleton-body {
-  flex: 1;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -569,21 +559,22 @@ const getLocationDisplay = (event) => {
   background: var(--color-primary-hover);
 }
 
-/* Event Card - Mobile First (List Style) */
+/* Event Card - Vertical Cards */
 .event-card {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
   background: var(--color-bg);
   border-radius: var(--radius-md);
   overflow: hidden;
   text-decoration: none;
   border: 1px solid var(--color-border);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .event-card:hover {
   border-color: var(--color-text-muted);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .event-card:active {
@@ -593,22 +584,23 @@ const getLocationDisplay = (event) => {
 /* Card Image */
 .card-image {
   position: relative;
-  width: 100px;
-  height: 100px;
-  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   overflow: hidden;
 }
 
 .card-image img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .card-placeholder {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -616,22 +608,22 @@ const getLocationDisplay = (event) => {
 }
 
 .card-placeholder svg {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
 }
 
 .card-badge {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 3px 8px;
-  font-size: 10px;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #fff;
   border-radius: 100px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  max-width: calc(100% - 16px);
+  max-width: calc(100% - 24px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -640,23 +632,23 @@ const getLocationDisplay = (event) => {
 /* Card Body */
 .card-body {
   flex: 1;
-  min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  padding: 12px 8px 12px 12px;
+  padding: 16px;
 }
 
 /* Date Block */
 .card-date {
   flex-shrink: 0;
-  width: 44px;
+  width: 48px;
   text-align: center;
+  padding-top: 2px;
 }
 
 .date-month {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-primary);
   letter-spacing: 0.02em;
@@ -666,7 +658,7 @@ const getLocationDisplay = (event) => {
 
 .date-day {
   display: block;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
@@ -679,11 +671,11 @@ const getLocationDisplay = (event) => {
 }
 
 .card-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
-  line-height: 1.3;
-  margin-bottom: 4px;
+  line-height: 1.35;
+  margin-bottom: 6px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -693,15 +685,15 @@ const getLocationDisplay = (event) => {
 .card-location {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
 }
 
 .card-location svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
   color: var(--color-text-muted);
 }
@@ -710,26 +702,6 @@ const getLocationDisplay = (event) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Card Arrow */
-.card-arrow {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding-right: 8px;
-  color: var(--color-text-muted);
-  transition: color 0.15s, transform 0.15s;
-}
-
-.card-arrow svg {
-  width: 18px;
-  height: 18px;
-}
-
-.event-card:hover .card-arrow {
-  color: var(--color-text);
-  transform: translateX(2px);
 }
 
 /* Pagination */
@@ -777,7 +749,7 @@ const getLocationDisplay = (event) => {
   text-align: center;
 }
 
-/* Tablet - 2 columns grid */
+/* Tablet - 2 columns */
 @media (min-width: 640px) {
   .page-header {
     top: 64px;
@@ -792,74 +764,8 @@ const getLocationDisplay = (event) => {
   }
 
   .events-grid {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .event-card {
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .card-image {
-    width: 100%;
-    height: 0;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  }
-
-  .card-placeholder svg {
-    width: 48px;
-    height: 48px;
-  }
-
-  .card-badge {
-    top: 12px;
-    left: 12px;
-    padding: 4px 10px;
-    font-size: 11px;
-  }
-
-  .card-body {
-    flex-direction: row;
-    align-items: flex-start;
-    padding: 16px;
-    flex: 1;
-  }
-
-  .card-date {
-    width: 48px;
-    padding-top: 2px;
-  }
-
-  .date-month {
-    font-size: 12px;
-  }
-
-  .date-day {
-    font-size: 26px;
-  }
-
-  .card-title {
-    font-size: 16px;
-  }
-
-  .card-arrow {
-    display: none;
-  }
-
-  .skeleton-card {
-    flex-direction: column;
-  }
-
-  .skeleton-image {
-    width: 100%;
-    height: 0;
-    padding-bottom: 56.25%;
-  }
-
-  .skeleton-body {
-    padding: 20px;
+    gap: 20px;
   }
 }
 
@@ -897,10 +803,6 @@ const getLocationDisplay = (event) => {
   .event-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  }
-
-  .card-body {
-    padding: 20px;
   }
 }
 

@@ -56,7 +56,7 @@
           </td>
           <td class="col-sales">
             <div class="sales-cell">
-              <span class="sales-primary">{{ event.tickets_sold || 0 }}</span>
+              <span class="sales-primary">{{ event.total_tickets_sold || 0 }}</span>
               <span class="sales-secondary">${{ (event.total_revenue || 0).toLocaleString() }}</span>
             </div>
           </td>

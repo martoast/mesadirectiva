@@ -276,7 +276,7 @@ const meta = ref({
 // Computed stats
 const liveCount = computed(() => events.value.filter(e => e.status === 'live').length)
 const draftCount = computed(() => events.value.filter(e => e.status === 'draft').length)
-const totalTicketsSold = computed(() => events.value.reduce((sum, e) => sum + (e.tickets_sold || 0), 0))
+const totalTicketsSold = computed(() => events.value.reduce((sum, e) => sum + (e.total_tickets_sold || 0), 0))
 
 // Format large numbers
 const formatNumber = (num) => {

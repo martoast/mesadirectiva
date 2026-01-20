@@ -149,7 +149,7 @@
         <div class="stats-card">
           <h2 class="section-title">{{ t.salesOverview }}</h2>
           <div class="stat-hero">
-            <span class="stat-value">{{ event.seating_type === 'seated' ? soldSeats : (event.tickets_sold || 0) }}</span>
+            <span class="stat-value">{{ event.seating_type === 'seated' ? soldSeats : (event.total_tickets_sold || 0) }}</span>
             <span class="stat-label">{{ event.seating_type === 'seated' ? t.seatsSold : t.ticketsSold }}</span>
           </div>
           <div class="stat-row">

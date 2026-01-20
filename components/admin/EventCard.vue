@@ -44,7 +44,7 @@
 
         <div class="event-stats">
           <div class="stat">
-            <span class="stat-value">{{ event.tickets_sold || 0 }}</span>
+            <span class="stat-value">{{ event.total_tickets_sold || 0 }}</span>
             <span class="stat-label">{{ event.seating_type === 'seated' ? t.seats : t.tickets }}</span>
           </div>
           <div class="stat">

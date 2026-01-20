@@ -65,7 +65,22 @@
               </div>
               <div class="field">
                 <label for="email">{{ t.email }}</label>
-                <input id="email" v-model="form.customer_email" type="email" :placeholder="t.emailPlaceholder" required />
+                <input
+                  id="email"
+                  v-model="form.customer_email"
+                  type="email"
+                  :placeholder="t.emailPlaceholder"
+                  :class="{ 'has-error': emailTouched && !isEmailValid }"
+                  @blur="emailTouched = true"
+                  required
+                />
+                <p v-if="emailTouched && !isEmailValid" class="field-error">{{ t.invalidEmail }}</p>
+                <p class="email-notice">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{{ t.emailNotice }}</span>
+                </p>
               </div>
               <div class="field">
                 <label for="phone">{{ t.phone }}</label>
@@ -339,6 +354,8 @@ const translations = {
   fullNamePlaceholder: { es: 'Juan Pérez', en: 'John Doe' },
   email: { es: 'Correo Electrónico', en: 'Email' },
   emailPlaceholder: { es: 'juan@ejemplo.com', en: 'john@example.com' },
+  emailNotice: { es: 'Asegúrate de ingresar tu correo correctamente. Aquí recibirás tus boletos y confirmación de compra.', en: 'Make sure to enter your email correctly. You will receive your tickets and purchase confirmation here.' },
+  invalidEmail: { es: 'Por favor ingresa un correo electrónico válido', en: 'Please enter a valid email address' },
   phone: { es: 'Teléfono', en: 'Phone' },
   phonePlaceholder: { es: '+52 (555) 000-0000', en: '+1 (555) 000-0000' },
   company: { es: 'Empresa / Organización', en: 'Company / Organization' },
@@ -400,6 +417,7 @@ const tables = ref([])
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
+const emailTouched = ref(false)
 
 const form = ref({
   customer_name: '',
@@ -468,6 +486,15 @@ onMounted(async () => {
 
 const isSeatedEvent = computed(() => event.value?.seating_type === 'seated')
 const canPurchase = computed(() => availability.value?.can_purchase ?? false)
+
+// Email validation
+const isEmailValid = computed(() => {
+  const email = form.value.customer_email.trim()
+  if (!email) return false
+  // Standard email regex pattern
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+})
 
 const blockedMessage = computed(() => {
   const messages = {
@@ -542,7 +569,7 @@ const orderTotal = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  const hasContactInfo = form.value.customer_name.trim() && form.value.customer_email.trim() && form.value.customer_phone.trim()
+  const hasContactInfo = form.value.customer_name.trim() && isEmailValid.value && form.value.customer_phone.trim()
   if (isSeatedEvent.value) return hasContactInfo && (selectedTables.value.length > 0 || selectedSeats.value.length > 0)
   if (hasTierSelections.value) return hasContactInfo
   return hasContactInfo && form.value.tickets > 0
@@ -938,6 +965,41 @@ const handleSubmit = async () => {
 .field input:focus {
   outline: none;
   border-color: var(--color-primary);
+}
+
+.field input.has-error {
+  border-color: var(--color-error);
+}
+
+.field input.has-error:focus {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--color-error);
+  margin-top: 6px;
+}
+
+.email-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.email-notice svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* Ticket Selector */

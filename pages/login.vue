@@ -9,26 +9,6 @@
             <h1>{{ t.welcomeBack }}</h1>
             <p>{{ t.signInDescription }}</p>
           </div>
-          <div class="branding-features">
-            <div class="feature-item">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{{ t.manageEvents }}</span>
-            </div>
-            <div class="feature-item">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{{ t.trackSales }}</span>
-            </div>
-            <div class="feature-item">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{{ t.viewAnalytics }}</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -134,10 +114,7 @@ const route = useRoute()
 // Translations
 const translations = {
   welcomeBack: { es: 'Bienvenido de nuevo', en: 'Welcome back' },
-  signInDescription: { es: 'Inicia sesión para acceder a tu panel de administración de eventos.', en: 'Sign in to access your event management dashboard and continue creating amazing experiences.' },
-  manageEvents: { es: 'Gestionar eventos', en: 'Manage events' },
-  trackSales: { es: 'Seguir ventas', en: 'Track sales' },
-  viewAnalytics: { es: 'Ver analíticas', en: 'View analytics' },
+  signInDescription: { es: 'Inicia sesión para acceder a tu panel de administración de eventos.', en: 'Sign in to access your event management dashboard.' },
   signIn: { es: 'Iniciar sesión', en: 'Sign in' },
   enterCredentials: { es: 'Ingresa tus credenciales para acceder a tu cuenta', en: 'Enter your credentials to access your account' },
   emailAddress: { es: 'Correo electrónico', en: 'Email address' },
@@ -286,27 +263,6 @@ const handleSubmit = async () => {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.6;
-  margin-bottom: 40px;
-}
-
-.branding-features {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.feature-item svg {
-  width: 18px;
-  height: 18px;
-  color: var(--color-primary-light);
 }
 
 /* Right Side - Form */

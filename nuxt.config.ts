@@ -18,11 +18,11 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Plataforma para gestión de eventos y venta de boletos' },
+        { name: 'description', content: 'Central de Eventos - Asociación de Padres de Familia del Instituto México A.C.' },
         // Open Graph
         { property: 'og:type', content: 'website' },
         { property: 'og:title', content: 'Mesa Directiva' },
-        { property: 'og:description', content: 'Plataforma para gestión de eventos y venta de boletos' },
+        { property: 'og:description', content: 'Central de Eventos - Asociación de Padres de Familia del Instituto México A.C.' },
         { property: 'og:image', content: 'https://mesa-directiva.netlify.app/logo.jpeg' },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
@@ -30,7 +30,7 @@ export default defineNuxtConfig({
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Mesa Directiva' },
-        { name: 'twitter:description', content: 'Plataforma para gestión de eventos y venta de boletos' },
+        { name: 'twitter:description', content: 'Central de Eventos - Asociación de Padres de Familia del Instituto México A.C.' },
         { name: 'twitter:image', content: 'https://mesa-directiva.netlify.app/logo.jpeg' }
       ],
       link: [

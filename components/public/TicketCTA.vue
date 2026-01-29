@@ -36,7 +36,7 @@
           </p>
           <p v-else-if="isSeatedEvent" class="text-sm text-gray-600">{{ t.tableReservations }}</p>
           <p v-else-if="hasTiers && activeTiers.length > 1" class="text-sm text-gray-600">{{ t.multipleTiersAvailable }}</p>
-          <p v-else class="text-sm text-gray-600">{{ t.individualTicket }}</p>
+          <p v-else class="text-sm text-gray-600">{{ event?.slug === 'fiesta-del-60-aniversario' ? t.tableTicket : t.individualTicket }}</p>
         </div>
 
         <!-- Tables Preview (Seated Events) -->
@@ -267,6 +267,8 @@ const translations = {
   tableReservations: { es: 'Reservaciones de mesa', en: 'Table reservations' },
   startingFrom: { es: 'Desde', en: 'Starting from' },
   pricePerTicket: { es: 'Precio por Boleto', en: 'Price per Ticket' },
+  pricePerTable: { es: 'Precio por Mesa', en: 'Price per Table' },
+  tableTicket: { es: 'Boleto por mesa', en: 'Table ticket' },
 
   // Availability
   tablesAvailable: { es: 'mesas disponibles', en: 'tables available' },
@@ -419,6 +421,8 @@ const priceLabel = computed(() => {
     return hasTables.value ? t.tablesFrom : t.tableReservations
   }
   if (hasTiers.value && activeTiers.value.length > 1) return t.startingFrom
+  // Override for specific event
+  if (props.event?.slug === 'fiesta-del-60-aniversario') return t.pricePerTable
   return t.pricePerTicket
 })
 
@@ -539,6 +543,13 @@ const fetchTiers = async () => {
   try {
     const response = await getPublicTicketTiers(props.event.slug)
     tiers.value = response.tiers || []
+
+    // Override tier name for specific event
+    if (props.event.slug === 'fiesta-del-60-aniversario') {
+      tiers.value = tiers.value.map(t =>
+        t.name === 'Boleto individual' ? { ...t, name: 'Boleto por mesa' } : t
+      )
+    }
   } catch (e) {
     // Tiers are optional - event may use legacy single price
   } finally {

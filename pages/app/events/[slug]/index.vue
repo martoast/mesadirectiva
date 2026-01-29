@@ -631,6 +631,13 @@ const fetchTiers = async () => {
   try {
     const res = await getPublicTicketTiers(route.params.slug)
     tiers.value = res.tiers || []
+
+    // Override tier name for specific event
+    if (route.params.slug === 'fiesta-del-60-aniversario') {
+      tiers.value = tiers.value.map(t =>
+        t.name === 'Boleto individual' ? { ...t, name: 'Boleto por mesa' } : t
+      )
+    }
   } catch (e) {}
 }
 

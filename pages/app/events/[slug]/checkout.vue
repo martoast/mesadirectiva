@@ -455,6 +455,13 @@ onMounted(async () => {
       try {
         const tiersResponse = await getPublicTicketTiers(route.params.slug)
         availableTiers.value = (tiersResponse.tiers || []).filter(t => t.is_active && !t.is_hidden)
+
+        // Override tier name for specific event
+        if (route.params.slug === 'fiesta-del-60-aniversario') {
+          availableTiers.value = availableTiers.value.map(t =>
+            t.name === 'Boleto individual' ? { ...t, name: 'Boleto por mesa' } : t
+          )
+        }
       } catch (e) {
         availableTiers.value = []
       }

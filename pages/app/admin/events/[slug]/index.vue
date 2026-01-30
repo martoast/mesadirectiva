@@ -228,6 +228,21 @@
               </svg>
             </NuxtLink>
 
+            <NuxtLink :to="`/app/admin/events/${event.slug}/email-settings`" class="action-link email">
+              <div class="action-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div class="action-text">
+                <span class="action-title">{{ t.emailAndTickets }}</span>
+                <span class="action-desc">{{ t.customizeEmailDesc }}</span>
+              </div>
+              <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <polyline points="9 18 15 12 9 6" stroke-width="1.5"/>
+              </svg>
+            </NuxtLink>
+
             <NuxtLink :to="`/app/admin/events/${event.slug}/attendees`" class="action-link checkin">
               <div class="action-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,6 +460,8 @@ const translations = {
   arrangeTableLayout: { es: 'Organiza el diseño visual', en: 'Arrange layout visually' },
   publicEventPage: { es: 'Página pública', en: 'Public Page' },
   viewAsAttendees: { es: 'Ver como asistentes', en: 'View as attendees' },
+  emailAndTickets: { es: 'Email y Boletos', en: 'Email & Tickets' },
+  customizeEmailDesc: { es: 'Personaliza correo y boletos', en: 'Customize email & tickets' },
   attendeesCheckIn: { es: 'Asistentes', en: 'Attendees' },
   manageCheckIn: { es: 'Check-in y lista de asistentes', en: 'Check-in & attendee list' },
   deleteEvent: { es: 'Eliminar evento', en: 'Delete Event' },
@@ -1194,6 +1211,19 @@ onMounted(fetchEvent)
 
 .action-link.external .action-icon svg {
   color: var(--color-indigo);
+}
+
+.action-link.email:hover {
+  background: var(--color-amber-light);
+}
+
+.action-link.email .action-icon {
+  border-color: var(--color-amber);
+  background: var(--color-amber-light);
+}
+
+.action-link.email .action-icon svg {
+  color: var(--color-amber);
 }
 
 .action-link.checkin:hover {

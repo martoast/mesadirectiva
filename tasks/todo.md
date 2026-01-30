@@ -1,157 +1,87 @@
-# Current Task: E-Ticket QR Scanner
+# Current Task: Email & Ticket CMS (Per-Event Customization)
 
 ## Overview
-Add QR code scanning to the attendees page so admins can quickly check in attendees by scanning their e-ticket.
+Add an admin page where event organizers can customize the confirmation email and PDF ticket text per event. This connects to the new `email_settings` JSON field on the events API.
 
 ---
 
-## Frontend Tasks
+## Plan
 
-### 1. Install QR Scanner Library
-- [ ] Run: `yarn add html5-qrcode`
-- [ ] Library docs: https://github.com/mebjas/html5-qrcode
+### 1. Update `useEvents` composable
+- `updateEvent(slug, data)` already exists and supports any event field
+- No new composable methods needed — just pass `email_settings` in the update payload
 
-### 2. Update useAttendees Composable
-- [ ] Add `scanCheckIn(eventSlug, ticketCode)` method
-  ```javascript
-  const scanCheckIn = async (eventSlug, ticketCode) => {
-    return await post(`/events/${eventSlug}/attendees/scan`, { ticket_code: ticketCode })
-  }
-  ```
+### 2. Create admin page: `pages/app/admin/events/[slug]/email-settings.vue`
+- New page at `/app/admin/events/{slug}/email-settings`
+- Follows existing admin page patterns (breadcrumb nav, card layout)
+- **Form fields** (all optional, show placeholder with defaults):
+  - **Email Subject** — text input, placeholder: "Tus boletos para {event_name}"
+  - **Greeting** — text input, placeholder: "Hola {customer_name},"
+  - **Intro Text** — textarea, placeholder: "Tus boletos están adjuntos a este correo."
+  - **Instructions** — textarea, placeholder: "Por favor ten tu boleto (impreso o en tu teléfono) listo en la entrada."
+  - **Email Footer** — text input, placeholder: "¡Te esperamos!"
+  - **Ticket Footer** — text input, placeholder: "Presenta este boleto en la entrada"
+- **Placeholders info box** — show available placeholders: `{event_name}`, `{customer_name}`
+- **Save button** — calls `updateEvent(slug, { email_settings: { ... } })`
+- **Reset to defaults button** — clears all fields (saves `email_settings: null`)
+- **Live preview section** — optional, shows a mini preview of how the email will look
 
-### 3. Add Scanner to Attendees Page
-Location: `pages/app/admin/events/[slug]/attendees.vue`
+### 3. Add link to email settings from event detail page
+- In `pages/app/admin/events/[slug]/index.vue`
+- Add a new quick-action link in the Actions Card: "Email y Boletos" / "Email & Tickets"
+- Links to `/app/admin/events/{slug}/email-settings`
 
-- [ ] Add "Scan Ticket" button in header (next to search)
-- [ ] Create scanner modal/overlay component
-- [ ] Scanner states:
-  - Idle (camera off)
-  - Scanning (camera active, viewfinder visible)
-  - Success (green flash, attendee name shown)
-  - Error (red flash, error message)
-  - Already checked in (warning state)
-
-### 4. Scanner UI Design
-
-```
-┌────────────────────────────────────┐
-│  ← Back              Scan Ticket   │
-├────────────────────────────────────┤
-│                                    │
-│    ┌──────────────────────────┐    │
-│    │                          │    │
-│    │                          │    │
-│    │     [ CAMERA FEED ]      │    │
-│    │                          │    │
-│    │    ┌────────────────┐    │    │
-│    │    │   VIEWFINDER   │    │    │
-│    │    └────────────────┘    │    │
-│    │                          │    │
-│    │                          │    │
-│    └──────────────────────────┘    │
-│                                    │
-│    Point camera at QR code         │
-│                                    │
-│    ─────────────────────────────   │
-│                                    │
-│    Last scanned:                   │
-│    ✓ John Doe - VIP Access         │
-│                                    │
-│    [ Scan Another ]                │
-│                                    │
-└────────────────────────────────────┘
-```
-
-### 5. Scanner UX Requirements
-
-**Visual Feedback:**
-- [ ] Green flash/border on successful scan
-- [ ] Red flash/border on error
-- [ ] Yellow/amber for already checked in
-- [ ] Vibration on mobile (if supported)
-
-**After Successful Scan:**
-- [ ] Show attendee name prominently
-- [ ] Show ticket type (tier or table/seat)
-- [ ] Show "Checked In!" confirmation
-- [ ] "Scan Another" button for continuous mode
-- [ ] Auto-clear after 3 seconds if in continuous mode
-
-**Error Handling:**
-- [ ] "Invalid ticket code" - not found in system
-- [ ] "Already checked in" - show who/when
-- [ ] "Wrong event" - ticket is for different event
-- [ ] "Camera permission denied" - show instructions
-- [ ] "Camera not available" - fallback to manual entry
-
-**Manual Entry Fallback:**
-- [ ] Text input to type ticket code manually
-- [ ] Useful if QR is damaged/unreadable
-- [ ] Same validation as scan
-
-### 6. Mobile Optimizations
-- [ ] Full-screen scanner on mobile
-- [ ] Large viewfinder area
-- [ ] Touch-friendly buttons
-- [ ] Works in landscape and portrait
-- [ ] Fast camera initialization
-
-### 7. Translations
-
+### 4. Translations
 ```javascript
-const translations = {
-  scanTicket: { es: 'Escanear boleto', en: 'Scan Ticket' },
-  scanning: { es: 'Escaneando...', en: 'Scanning...' },
-  pointCamera: { es: 'Apunta la cámara al código QR', en: 'Point camera at QR code' },
-  scanAnother: { es: 'Escanear otro', en: 'Scan Another' },
-  lastScanned: { es: 'Último escaneado', en: 'Last scanned' },
-  checkedIn: { es: 'Registrado', en: 'Checked In' },
-  alreadyCheckedIn: { es: 'Ya registrado', en: 'Already checked in' },
-  invalidCode: { es: 'Código inválido', en: 'Invalid code' },
-  wrongEvent: { es: 'Boleto de otro evento', en: 'Ticket for different event' },
-  cameraPermission: { es: 'Se requiere acceso a la cámara', en: 'Camera access required' },
-  manualEntry: { es: 'Ingresar código manual', en: 'Enter code manually' },
-  enterCode: { es: 'Ingresa el código del boleto', en: 'Enter ticket code' },
-  close: { es: 'Cerrar', en: 'Close' }
+{
+  emailSettings: { es: 'Email y Boletos', en: 'Email & Tickets' },
+  emailSettingsDescription: { es: 'Personaliza el correo de confirmación y los boletos PDF para este evento.', en: 'Customize the confirmation email and PDF tickets for this event.' },
+  emailSubject: { es: 'Asunto del correo', en: 'Email Subject' },
+  emailGreeting: { es: 'Saludo', en: 'Greeting' },
+  emailIntro: { es: 'Texto de introducción', en: 'Intro Text' },
+  emailInstructions: { es: 'Instrucciones', en: 'Instructions' },
+  emailFooter: { es: 'Pie del correo', en: 'Email Footer' },
+  ticketFooter: { es: 'Pie del boleto PDF', en: 'PDF Ticket Footer' },
+  availablePlaceholders: { es: 'Placeholders disponibles', en: 'Available Placeholders' },
+  resetDefaults: { es: 'Restablecer valores predeterminados', en: 'Reset to Defaults' },
+  leaveEmptyForDefault: { es: 'Deja vacío para usar el texto predeterminado', en: 'Leave empty to use default text' },
+  saved: { es: 'Guardado', en: 'Saved' },
+  saveChanges: { es: 'Guardar Cambios', en: 'Save Changes' }
 }
 ```
 
 ---
 
-## Files to Modify
+## Files to Create
+- `pages/app/admin/events/[slug]/email-settings.vue`
 
-- `package.json` - Add html5-qrcode
-- `composables/useAttendees.js` - Add scanCheckIn method
-- `pages/app/admin/events/[slug]/attendees.vue` - Add scanner button and modal
+## Files to Modify
+- `pages/app/admin/events/[slug]/index.vue` — add quick-action link
 
 ---
 
-## Testing Checklist
-- [ ] Scanner button appears in header
-- [ ] Clicking opens camera modal
-- [ ] Camera permission prompt works
-- [ ] QR code is detected and decoded
-- [ ] Valid code checks in attendee
-- [ ] Success feedback shown
-- [ ] Already checked-in shows warning
-- [ ] Invalid code shows error
-- [ ] Manual entry works
-- [ ] Works on mobile (iOS Safari, Android Chrome)
-- [ ] Works on desktop (Chrome, Firefox, Safari)
-- [ ] Translations work for ES/EN
+## UI Design Notes
+- Follow existing admin card layout pattern
+- Each field shows the Spanish default as placeholder text
+- Info callout box explaining placeholders (`{event_name}`, `{customer_name}`)
+- Subtitle under page title: "Deja vacío para usar el texto predeterminado"
+- Toast/success message on save
 
 ---
 
 # Previously Completed
 
+## E-Ticket QR Scanner (Done)
+- QR scanner on attendees page
+- Camera-based scanning with manual fallback
+- Check-in confirmation with visual feedback
+
 ## Translation System (Done)
-- Created useLanguage composable
-- Created LanguageToggle component
-- Added translations to all admin and public pages
+- useLanguage composable
+- LanguageToggle component
+- All admin and public pages translated
 
 ## Attendees Check-In System (Done)
-- Created useAttendees composable
-- Created attendees page with search/filters
-- Added check-in/undo functionality
-- Added link from event detail page
-- Full responsive design
+- useAttendees composable
+- Attendees page with search/filters
+- Check-in/undo functionality

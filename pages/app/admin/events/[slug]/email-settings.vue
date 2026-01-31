@@ -249,6 +249,7 @@ const translations = {
 const t = createT(translations)
 
 const route = useRoute()
+const router = useRouter()
 const { getEvent, updateEvent } = useEvents()
 
 const event = ref(null)
@@ -307,10 +308,11 @@ const handleSave = async () => {
     })
 
     saved.value = true
-    setTimeout(() => { saved.value = false }, 3000)
+    setTimeout(() => {
+      router.push(`/app/admin/events/${route.params.slug}`)
+    }, 1500)
   } catch (e) {
     error.value = e.message || 'Failed to save'
-  } finally {
     saving.value = false
   }
 }
@@ -330,10 +332,11 @@ const handleReset = async () => {
     form.ticket_footer = ''
 
     saved.value = true
-    setTimeout(() => { saved.value = false }, 3000)
+    setTimeout(() => {
+      router.push(`/app/admin/events/${route.params.slug}`)
+    }, 1500)
   } catch (e) {
     error.value = e.message || 'Failed to reset'
-  } finally {
     saving.value = false
   }
 }

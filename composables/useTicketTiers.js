@@ -87,6 +87,15 @@ export const useTicketTiers = () => {
     return await del(`/events/${eventSlug}/ticket-tiers/${tierId}`)
   }
 
+  /**
+   * Reorder ticket tiers
+   * @param {string} eventSlug
+   * @param {number[]} tierIds - Array of tier IDs in the desired order
+   */
+  const reorderTicketTiers = async (eventSlug, tierIds) => {
+    return await post(`/events/${eventSlug}/ticket-tiers/reorder`, { tier_ids: tierIds })
+  }
+
   return {
     // Public
     getPublicTicketTiers,
@@ -96,6 +105,7 @@ export const useTicketTiers = () => {
     getTicketTier,
     createTicketTier,
     updateTicketTier,
-    deleteTicketTier
+    deleteTicketTier,
+    reorderTicketTiers
   }
 }

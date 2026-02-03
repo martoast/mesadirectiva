@@ -60,6 +60,7 @@
           :tiers="tiers"
           @edit="openEditModal"
           @delete="openDeleteModal"
+          @reorder="handleReorder"
         />
       </div>
     </template>
@@ -102,7 +103,7 @@ definePageMeta({
 
 const route = useRoute()
 const { getEvent } = useEvents()
-const { getTicketTiers, createTicketTier, updateTicketTier, deleteTicketTier } = useTicketTiers()
+const { getTicketTiers, createTicketTier, updateTicketTier, deleteTicketTier, reorderTicketTiers } = useTicketTiers()
 
 const event = ref(null)
 const tiers = ref([])
@@ -199,6 +200,16 @@ const confirmDelete = async () => {
   } catch (e) {
     error.value = e.message || 'Failed to delete tier'
     showDeleteModal.value = false
+  }
+}
+
+const handleReorder = async (tierIds) => {
+  try {
+    const response = await reorderTicketTiers(route.params.slug, tierIds)
+    tiers.value = response.tiers || []
+  } catch (e) {
+    error.value = e.message || 'Failed to reorder tiers'
+    await fetchData()
   }
 }
 

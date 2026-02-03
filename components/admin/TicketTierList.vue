@@ -11,10 +11,22 @@
 
     <!-- Tier List -->
     <div
-      v-for="tier in sortedTiers"
+      v-for="(tier, index) in sortedTiers"
       :key="tier.id"
-      :class="['tier-card', { inactive: !tier.is_active || tier.is_hidden }]"
+      :class="['tier-card', { inactive: !tier.is_active || tier.is_hidden, dragging: draggedIndex === index }]"
+      :draggable="tiers.length > 1"
+      @dragstart="handleDragStart($event, index)"
+      @dragend="handleDragEnd"
+      @dragover.prevent="handleDragOver($event, index)"
+      @drop.prevent="handleDrop(index)"
     >
+      <!-- Drag Handle -->
+      <div v-if="tiers.length > 1" class="drag-handle" :title="t.dragToReorder">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+        </svg>
+      </div>
+
       <div class="tier-main">
         <!-- Header -->
         <div class="tier-header">
@@ -110,11 +122,19 @@
         </button>
       </div>
     </div>
+
+    <!-- Reorder hint -->
+    <p v-if="tiers.length > 1" class="reorder-hint">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ t.reorderHint }}
+    </p>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import {
   getSalesStatusLabel,
   getSalesStatusColors,
@@ -139,7 +159,9 @@ const translations = {
   salesEnd: { es: 'Ventas terminan', en: 'Sales end' },
   // Action titles
   edit: { es: 'Editar', en: 'Edit' },
-  delete: { es: 'Eliminar', en: 'Delete' }
+  delete: { es: 'Eliminar', en: 'Delete' },
+  dragToReorder: { es: 'Arrastra para reordenar', en: 'Drag to reorder' },
+  reorderHint: { es: 'Arrastra los niveles para cambiar el orden en que aparecen', en: 'Drag tiers to change the order they appear in' }
 }
 
 const t = createT(translations)
@@ -151,13 +173,50 @@ const props = defineProps({
   }
 })
 
-defineEmits(['edit', 'delete'])
+const emit = defineEmits(['edit', 'delete', 'reorder'])
+
+// Drag state
+const draggedIndex = ref(null)
+const dragOverIndex = ref(null)
 
 const sortedTiers = computed(() => {
   return [...props.tiers].sort((a, b) => {
     return (a.sort_order || 0) - (b.sort_order || 0)
   })
 })
+
+const handleDragStart = (event, index) => {
+  draggedIndex.value = index
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', index)
+}
+
+const handleDragEnd = () => {
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
+
+const handleDragOver = (event, index) => {
+  dragOverIndex.value = index
+}
+
+const handleDrop = (dropIndex) => {
+  if (draggedIndex.value === null || draggedIndex.value === dropIndex) {
+    return
+  }
+
+  // Create new order
+  const newOrder = [...sortedTiers.value]
+  const [draggedItem] = newOrder.splice(draggedIndex.value, 1)
+  newOrder.splice(dropIndex, 0, draggedItem)
+
+  // Emit the new order as array of IDs
+  const tierIds = newOrder.map(tier => tier.id)
+  emit('reorder', tierIds)
+
+  draggedIndex.value = null
+  dragOverIndex.value = null
+}
 
 const getStatus = (tier) => {
   return tier.sales_status || calculateSalesStatus(tier)
@@ -233,13 +292,14 @@ const getOrderLimitsText = (tier) => {
 /* Tier Card */
 .tier-card {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   padding: 1rem 1.25rem;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  transition: box-shadow 0.15s;
+  transition: box-shadow 0.15s, opacity 0.15s, transform 0.15s;
+  cursor: grab;
 }
 
 .tier-card:hover {
@@ -248,6 +308,42 @@ const getOrderLimitsText = (tier) => {
 
 .tier-card.inactive {
   opacity: 0.6;
+}
+
+.tier-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tier-card:active {
+  cursor: grabbing;
+}
+
+/* Drag Handle */
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.drag-handle:hover {
+  color: #6b7280;
 }
 
 .tier-main {
@@ -441,6 +537,25 @@ const getOrderLimitsText = (tier) => {
   height: 18px;
 }
 
+/* Reorder hint */
+.reorder-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.reorder-hint svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 640px) {
   .tier-stats {
     flex-wrap: wrap;
@@ -449,6 +564,14 @@ const getOrderLimitsText = (tier) => {
 
   .stat-divider {
     display: none;
+  }
+
+  .drag-handle {
+    display: none;
+  }
+
+  .tier-card {
+    cursor: default;
   }
 }
 </style>

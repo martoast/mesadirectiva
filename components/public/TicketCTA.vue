@@ -2,24 +2,92 @@
   <div>
     <!-- Mobile Sticky Bar -->
     <div
-      class="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 shadow-lg p-4 z-40"
+      class="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 shadow-lg z-40"
     >
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <p class="text-sm text-gray-600">{{ priceLabel }}</p>
-          <p class="text-2xl font-bold text-primary-600">${{ displayPrice }}</p>
+      <!-- Expandable Tiers/Tables Section -->
+      <Transition name="slide">
+        <div v-if="mobileExpanded" class="border-b border-gray-200 max-h-64 overflow-y-auto">
+          <!-- Tables (Seated Events) -->
+          <div v-if="isSeatedEvent && hasTables" class="p-4">
+            <p class="text-sm font-semibold text-gray-700 mb-3">{{ t.availableTables }}</p>
+            <div class="space-y-2">
+              <div
+                v-for="table in activeTables.slice(0, 5)"
+                :key="table.id"
+                class="flex justify-between items-center p-2 rounded-lg bg-gray-50"
+              >
+                <div>
+                  <span class="text-sm font-medium text-gray-900">{{ table.name }}</span>
+                  <span class="ml-2 text-xs text-gray-500">{{ table.capacity }} {{ t.seats }}</span>
+                </div>
+                <span class="font-semibold text-primary-600">${{ formatPrice(table.price) }}</span>
+              </div>
+              <p v-if="activeTables.length > 5" class="text-xs text-gray-500 text-center mt-2">
+                +{{ activeTables.length - 5 }} {{ t.moreTables }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Ticket Tiers (General Admission) -->
+          <div v-else-if="hasTiers && !isSeatedEvent" class="p-4">
+            <p class="text-sm font-semibold text-gray-700 mb-3">{{ t.availableTiers }}</p>
+            <div class="space-y-2">
+              <div
+                v-for="tier in activeTiers.slice(0, 5)"
+                :key="tier.id"
+                class="flex justify-between items-center p-2 rounded-lg bg-gray-50"
+              >
+                <div>
+                  <span class="text-sm font-medium text-gray-900">{{ tier.name }}</span>
+                  <span v-if="tier.available === 0" class="ml-2 text-xs text-red-600 font-semibold">{{ t.soldOut }}</span>
+                </div>
+                <span class="font-semibold text-primary-600">${{ formatPrice(tier.price) }}</span>
+              </div>
+              <p v-if="activeTiers.length > 5" class="text-xs text-gray-500 text-center mt-2">
+                +{{ activeTiers.length - 5 }} {{ t.moreTiers }}
+              </p>
+            </div>
+          </div>
         </div>
-        <UiBaseButton
-          v-if="canPurchase"
-          @click="handleBuyTickets"
-          variant="success"
-          size="lg"
-          class="flex-1"
-        >
-          {{ ctaText }}
-        </UiBaseButton>
-        <div v-else class="flex-1 text-center">
-          <span class="text-sm font-medium text-gray-500">{{ blockedMessage }}</span>
+      </Transition>
+
+      <!-- Main Bar -->
+      <div class="p-4">
+        <div class="flex items-center justify-between gap-4">
+          <button
+            v-if="(hasTiers && !isSeatedEvent) || (isSeatedEvent && hasTables)"
+            @click="mobileExpanded = !mobileExpanded"
+            class="flex items-center gap-2 text-left"
+          >
+            <div>
+              <p class="text-sm text-gray-600">{{ priceLabel }}</p>
+              <p class="text-2xl font-bold text-primary-600">${{ displayPrice }}</p>
+            </div>
+            <svg
+              :class="['w-5 h-5 text-gray-400 transition-transform', mobileExpanded && 'rotate-180']"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <div v-else>
+            <p class="text-sm text-gray-600">{{ priceLabel }}</p>
+            <p class="text-2xl font-bold text-primary-600">${{ displayPrice }}</p>
+          </div>
+          <UiBaseButton
+            v-if="canPurchase"
+            @click="handleBuyTickets"
+            variant="success"
+            size="lg"
+            class="flex-1"
+          >
+            {{ ctaText }}
+          </UiBaseButton>
+          <div v-else class="flex-1 text-center">
+            <span class="text-sm font-medium text-gray-500">{{ blockedMessage }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -340,6 +408,9 @@ const showTablesModal = ref(false)
 const tableSearch = ref('')
 const tablesDisplayLimit = ref(20)
 
+// Mobile expanded state
+const mobileExpanded = ref(false)
+
 // Event type detection
 const isSeatedEvent = computed(() => props.event?.seating_type === 'seated')
 
@@ -596,5 +667,23 @@ watch(tableSearch, () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  max-height: 20rem;
+  opacity: 1;
 }
 </style>

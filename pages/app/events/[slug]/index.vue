@@ -334,8 +334,10 @@ const translations = {
   tablesFrom: { es: 'Mesas desde', en: 'Tables from' },
   from: { es: 'Desde', en: 'From' },
   perTicket: { es: 'Por boleto', en: 'Per ticket' },
+  perTable: { es: 'Por mesa', en: 'Per table' },
   chooseTable: { es: 'Elegir Mesa', en: 'Choose a Table' },
   getTickets: { es: 'Obtener Boletos', en: 'Get Tickets' },
+  getTables: { es: 'Obtener Mesa', en: 'Get a Table' },
   comingSoon: { es: 'Próximamente', en: 'Coming Soon' },
   registrationClosed: { es: 'Registro Cerrado', en: 'Registration Closed' },
   registrationEnded: { es: 'Registro Finalizado', en: 'Registration Ended' },
@@ -526,14 +528,20 @@ const displayPrice = computed(() => {
   return '0.00'
 })
 
+// Special case for fiesta-del-60-aniversario (sells tables but is GA event)
+const useTableMessaging = computed(() => {
+  return isSeatedEvent.value || route.params.slug === 'fiesta-del-60-aniversario'
+})
+
 const pricingLabel = computed(() => {
   if (isSeatedEvent.value) return hasTables.value ? t.tablesFrom : t.from
+  if (route.params.slug === 'fiesta-del-60-aniversario') return t.perTable
   if (activeTiers.value.length > 1) return t.from
   return t.perTicket
 })
 
 const ctaButtonText = computed(() => {
-  if (isSeatedEvent.value) return t.chooseTable
+  if (useTableMessaging.value) return t.chooseTable
   return t.getTickets
 })
 
@@ -543,14 +551,12 @@ const canPurchase = computed(() => {
 
 const blockedMessage = computed(() => {
   const reason = availability.value?.blocked_reason || event.value?.purchase_blocked_reason
-  // Special case for fiesta-del-60-aniversario (sells tables but is GA event)
-  const useTableMessaging = isSeatedEvent.value || route.params.slug === 'fiesta-del-60-aniversario'
   const messages = {
     not_live: t.comingSoon,
     registration_closed: t.registrationClosed,
     deadline_passed: t.registrationEnded,
     sold_out: t.soldOut,
-    no_available_tickets: useTableMessaging ? t.noTablesAvailable : t.noTicketsAvailable
+    no_available_tickets: useTableMessaging.value ? t.noTablesAvailable : t.noTicketsAvailable
   }
   return messages[reason] || t.notAvailable
 })

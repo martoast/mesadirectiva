@@ -543,12 +543,14 @@ const canPurchase = computed(() => {
 
 const blockedMessage = computed(() => {
   const reason = availability.value?.blocked_reason || event.value?.purchase_blocked_reason
+  // Special case for fiesta-del-60-aniversario (sells tables but is GA event)
+  const useTableMessaging = isSeatedEvent.value || route.params.slug === 'fiesta-del-60-aniversario'
   const messages = {
     not_live: t.comingSoon,
     registration_closed: t.registrationClosed,
     deadline_passed: t.registrationEnded,
     sold_out: t.soldOut,
-    no_available_tickets: isSeatedEvent.value ? t.noTablesAvailable : t.noTicketsAvailable
+    no_available_tickets: useTableMessaging ? t.noTablesAvailable : t.noTicketsAvailable
   }
   return messages[reason] || t.notAvailable
 })

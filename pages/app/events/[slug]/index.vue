@@ -335,7 +335,7 @@ const translations = {
   from: { es: 'Desde', en: 'From' },
   perTicket: { es: 'Por boleto', en: 'Per ticket' },
   perTable: { es: 'Por mesa', en: 'Per table' },
-  chooseTable: { es: 'Elegir Mesa', en: 'Choose a Table' },
+  chooseTable: { es: 'Comprar Mesa', en: 'Buy a Table' },
   getTickets: { es: 'Obtener Boletos', en: 'Get Tickets' },
   getTables: { es: 'Obtener Mesa', en: 'Get a Table' },
   comingSoon: { es: 'Próximamente', en: 'Coming Soon' },

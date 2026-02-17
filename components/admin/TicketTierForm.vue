@@ -181,6 +181,10 @@
             <input type="checkbox" v-model="form.show_description" />
             <span>{{ t.showDescription }}</span>
           </label>
+          <label class="checkbox-option">
+            <input type="checkbox" v-model="form.hide_available_quantity" />
+            <span>{{ t.hideAvailableQuantity }}</span>
+          </label>
         </div>
       </div>
     </div>
@@ -237,6 +241,7 @@ const translations = {
   active: { es: 'Activo', en: 'Active' },
   hidden: { es: 'Oculto', en: 'Hidden' },
   showDescription: { es: 'Mostrar Descripción', en: 'Show Description' },
+  hideAvailableQuantity: { es: 'Ocultar Disponibilidad', en: 'Hide Availability' },
   // Actions
   cancel: { es: 'Cancelar', en: 'Cancel' },
   saving: { es: 'Guardando...', en: 'Saving...' },
@@ -279,7 +284,8 @@ const form = ref({
   sort_order: 0,
   is_active: true,
   is_hidden: false,
-  show_description: true
+  show_description: true,
+  hide_available_quantity: false
 })
 
 const resetForm = () => {
@@ -296,7 +302,8 @@ const resetForm = () => {
     sort_order: 0,
     is_active: true,
     is_hidden: false,
-    show_description: true
+    show_description: true,
+    hide_available_quantity: false
   }
   showSalesWindow.value = false
   showOrderLimits.value = false
@@ -318,7 +325,8 @@ watch(() => props.tier, (newTier) => {
       sort_order: newTier.sort_order || 0,
       is_active: newTier.is_active !== false,
       is_hidden: newTier.is_hidden || false,
-      show_description: newTier.show_description !== false
+      show_description: newTier.show_description !== false,
+      hide_available_quantity: newTier.hide_available_quantity || false
     }
     showSalesWindow.value = !!(newTier.sales_start || newTier.sales_end)
     showOrderLimits.value = !!(newTier.min_per_order !== 1 || newTier.max_per_order !== 10)
@@ -337,7 +345,8 @@ const handleSubmit = () => {
     sort_order: parseInt(form.value.sort_order) || 0,
     is_active: form.value.is_active,
     is_hidden: form.value.is_hidden,
-    show_description: form.value.show_description
+    show_description: form.value.show_description,
+    hide_available_quantity: form.value.hide_available_quantity
   }
 
   // Sales window

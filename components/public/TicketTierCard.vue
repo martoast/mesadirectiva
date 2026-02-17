@@ -31,12 +31,17 @@
       <span v-if="!isAvailable" class="text-sm font-medium text-gray-500">
         {{ availabilityMessage }}
       </span>
-      <span v-else-if="tier.available !== null && tier.available <= 10" class="text-sm text-warning-600">
-        {{ t.onlyLeft }} {{ tier.available }} {{ t.left }}
-      </span>
-      <span v-else-if="tier.available !== null" class="text-sm text-gray-500">
-        {{ tier.available }} {{ t.available }}
-      </span>
+      <template v-else-if="!tier.hide_available_quantity">
+        <span v-if="tier.available !== null && tier.available <= 10" class="text-sm text-warning-600">
+          {{ t.onlyLeft }} {{ tier.available }} {{ t.left }}
+        </span>
+        <span v-else-if="tier.available !== null" class="text-sm text-gray-500">
+          {{ tier.available }} {{ t.available }}
+        </span>
+        <span v-else class="text-sm text-gray-500">
+          {{ t.availableLabel }}
+        </span>
+      </template>
       <span v-else class="text-sm text-gray-500">
         {{ t.availableLabel }}
       </span>

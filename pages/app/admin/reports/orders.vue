@@ -143,12 +143,49 @@
       <div v-if="orders.length === 0" class="p-12 text-center">
         <p class="text-gray-600 text-lg">{{ t.noOrdersFound }}</p>
       </div>
+
+      <!-- Pagination -->
+      <div v-if="meta.last_page > 1" class="pagination">
+        <button
+          @click="currentPage = Math.max(1, currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="page-btn page-nav"
+          aria-label="Previous page"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        <div class="page-numbers">
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            @click="page !== '...' && (currentPage = page)"
+            :class="['page-btn', { active: currentPage === page, ellipsis: page === '...' }]"
+            :disabled="page === '...'"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button
+          @click="currentPage = Math.min(meta.last_page, currentPage + 1)"
+          :disabled="currentPage === meta.last_page"
+          class="page-btn page-nav"
+          aria-label="Next page"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 definePageMeta({
   layout: 'admin',
@@ -221,11 +258,21 @@ const filterGroup = ref('')
 const filterStatus = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
+const currentPage = ref(1)
+const meta = ref({
+  current_page: 1,
+  last_page: 1,
+  per_page: 25,
+  total: 0
+})
 
 let searchTimeout = null
 
 const getFilters = () => {
-  const params = {}
+  const params = {
+    per_page: 25,
+    page: currentPage.value
+  }
   if (search.value) params.search = search.value
   if (filterEvent.value) params.event_id = filterEvent.value
   if (filterGroup.value) params.group_id = filterGroup.value
@@ -255,6 +302,7 @@ const fetchReport = async () => {
   try {
     const response = await getOrdersReport(getFilters())
     orders.value = response.orders || []
+    meta.value = response.meta || meta.value
   } catch (e) {
     error.value = e.message || t.failedToLoad
   } finally {
@@ -273,9 +321,33 @@ const handleExport = async () => {
   }
 }
 
+const visiblePages = computed(() => {
+  const total = meta.value.last_page
+  const current = currentPage.value
+  const pages = []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (current > 3) pages.push('...')
+
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+
+    for (let i = start; i <= end; i++) pages.push(i)
+
+    if (current < total - 2) pages.push('...')
+    pages.push(total)
+  }
+
+  return pages
+})
+
 const debouncedSearch = () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
+    currentPage.value = 1
     fetchReport()
   }, 300)
 }
@@ -328,6 +400,11 @@ const orderTypeClass = (order) => {
 }
 
 watch([filterEvent, filterGroup, filterStatus, dateFrom, dateTo], () => {
+  currentPage.value = 1
+  fetchReport()
+})
+
+watch(currentPage, () => {
   fetchReport()
 })
 
@@ -336,3 +413,71 @@ onMounted(() => {
   fetchReport()
 })
 </script>
+
+<style scoped>
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.page-btn:hover:not(.active):not(.ellipsis):not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.page-btn.active {
+  background: #111827;
+  color: white;
+  font-weight: 600;
+}
+
+.page-btn.ellipsis {
+  cursor: default;
+  color: #9ca3af;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-btn.page-nav {
+  border: 1px solid #d1d5db;
+}
+
+.page-btn.page-nav svg {
+  width: 14px;
+  height: 14px;
+}
+
+.page-btn.page-nav:hover:not(:disabled) {
+  border-color: #6b7280;
+  color: #111827;
+}
+</style>

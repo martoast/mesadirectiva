@@ -492,8 +492,6 @@ const priceLabel = computed(() => {
     return hasTables.value ? t.tablesFrom : t.tableReservations
   }
   if (hasTiers.value && activeTiers.value.length > 1) return t.startingFrom
-  // Override for specific event
-  if (props.event?.slug === 'fiesta-del-60-aniversario') return t.pricePerTable
   return t.pricePerTicket
 })
 

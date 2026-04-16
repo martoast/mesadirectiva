@@ -535,7 +535,6 @@ const useTableMessaging = computed(() => {
 
 const pricingLabel = computed(() => {
   if (isSeatedEvent.value) return hasTables.value ? t.tablesFrom : t.from
-  if (route.params.slug === 'fiesta-del-60-aniversario') return t.perTable
   if (activeTiers.value.length > 1) return t.from
   return t.perTicket
 })

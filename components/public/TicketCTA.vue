@@ -361,8 +361,8 @@ const translations = {
   ticketsRemaining: { es: 'boletos restantes', en: 'tickets remaining' },
 
   // CTA
-  chooseTable: { es: 'Elegir Mesa', en: 'Choose a Table' },
-  buyTicketsNow: { es: 'Comprar Boletos', en: 'Buy Tickets Now' },
+  chooseTable: { es: 'Comprar', en: 'Buy' },
+  buyTicketsNow: { es: 'Comprar', en: 'Buy' },
   securePayment: { es: 'Pago seguro con Stripe', en: 'Secure payment powered by Stripe' },
 
   // Blocked messages

@@ -87,8 +87,8 @@
                 <input id="phone" v-model="form.customer_phone" type="tel" :placeholder="t.phonePlaceholder" required />
               </div>
               <div class="field">
-                <label for="company">{{ t.company }} <span class="optional-label">{{ t.optional }}</span></label>
-                <input id="company" v-model="form.customer_company" type="text" :placeholder="t.companyPlaceholder" />
+                <label for="company">{{ t.company }}</label>
+                <input id="company" v-model="form.customer_company" type="text" :placeholder="t.companyPlaceholder" required />
               </div>
             </div>
           </section>
@@ -359,8 +359,7 @@ const translations = {
   phone: { es: 'Teléfono', en: 'Phone' },
   phonePlaceholder: { es: '+52 (555) 000-0000', en: '+1 (555) 000-0000' },
   company: { es: 'Empresa / Organización', en: 'Company / Organization' },
-  companyPlaceholder: { es: 'Nombre de la empresa', en: 'Company name' },
-  optional: { es: '(opcional)', en: '(optional)' },
+  companyPlaceholder: { es: 'Escribe aquí cualquier dato de referencia para identificarte mejor', en: 'Write any reference data here to better identify yourself' },
 
   // Tickets
   selectTickets: { es: 'Seleccionar Boletos', en: 'Select Tickets' },
@@ -576,7 +575,7 @@ const orderTotal = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  const hasContactInfo = form.value.customer_name.trim() && isEmailValid.value && form.value.customer_phone.trim()
+  const hasContactInfo = form.value.customer_name.trim() && isEmailValid.value && form.value.customer_phone.trim() && form.value.customer_company.trim()
   if (isSeatedEvent.value) return hasContactInfo && (selectedTables.value.length > 0 || selectedSeats.value.length > 0)
   if (hasTierSelections.value) return hasContactInfo
   return hasContactInfo && form.value.tickets > 0

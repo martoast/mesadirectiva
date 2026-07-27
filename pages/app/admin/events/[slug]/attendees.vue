@@ -179,6 +179,7 @@
 
             <div class="attendee-info">
               <h3 class="attendee-name">{{ attendee.attendee_name || t.noName }}</h3>
+              <p v-if="attendee.student_key" class="attendee-note">{{ t.studentKey }}: {{ attendee.student_key }}</p>
               <p v-if="attendee.attendee_note" class="attendee-note">{{ attendee.attendee_note }}</p>
 
               <!-- Badges -->
@@ -285,6 +286,7 @@ const translations = {
   noResults: { es: 'Sin resultados', en: 'No Results' },
   tryDifferentSearch: { es: 'Intenta con una búsqueda diferente.', en: 'Try a different search.' },
   noName: { es: 'Sin nombre', en: 'No name' },
+  studentKey: { es: 'Clave', en: 'Key' },
   table: { es: 'Mesa', en: 'Table' },
   seat: { es: 'Asiento', en: 'Seat' },
   purchasedBy: { es: 'Comprado por', en: 'Purchased by' },
@@ -491,7 +493,7 @@ const onScanSuccess = async (decodedText) => {
 
     scanResult.value = {
       success: true,
-      message: t.value.checkedInSuccess,
+      message: t.checkedInSuccess,
       attendee: response.attendee,
     }
 
@@ -507,14 +509,14 @@ const onScanSuccess = async (decodedText) => {
     }
   } catch (error) {
     const errorData = error?.data || {}
-    let message = t.value.invalidTicket
+    let message = t.invalidTicket
 
     if (errorData.already_checked_in) {
-      message = t.value.alreadyCheckedIn
+      message = t.alreadyCheckedIn
     } else if (errorData.message?.includes('different event')) {
-      message = t.value.wrongEvent
+      message = t.wrongEvent
     } else if (errorData.message?.includes('not been paid')) {
-      message = t.value.notPaid
+      message = t.notPaid
     }
 
     scanResult.value = {

@@ -78,6 +78,36 @@
       {{ error }}
     </div>
 
+    <!-- Summary Table (coordinadoras / viewer role) -->
+    <div v-else-if="isSummary" class="bg-white rounded-xl shadow-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th
+                v-for="col in summaryColumns"
+                :key="col.key"
+                class="px-6 py-4 text-left text-sm font-semibold text-gray-700"
+              >
+                {{ col.label }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr v-for="(row, idx) in summaryRows" :key="idx" class="hover:bg-gray-50 transition-colors">
+              <td v-for="col in summaryColumns" :key="col.key" class="px-6 py-4 text-sm text-gray-900">
+                <template v-if="col.key === 'total'">${{ Number(row[col.key] || 0).toFixed(2) }}</template>
+                <template v-else>{{ row[col.key] ?? '—' }}</template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-if="summaryRows.length === 0" class="p-12 text-center text-gray-500">
+          {{ t.noResults || 'Sin resultados' }}
+        </div>
+      </div>
+    </div>
+
     <!-- Orders Table -->
     <div v-else class="bg-white rounded-xl shadow-card overflow-hidden">
       <div class="overflow-x-auto">
@@ -249,6 +279,9 @@ const { getGroups } = useGroups()
 const orders = ref([])
 const events = ref([])
 const groups = ref([])
+const isSummary = ref(false)
+const summaryColumns = ref([])
+const summaryRows = ref([])
 const loading = ref(true)
 const exporting = ref(false)
 const error = ref('')
@@ -301,8 +334,14 @@ const fetchReport = async () => {
 
   try {
     const response = await getOrdersReport(getFilters())
-    orders.value = response.orders || []
-    meta.value = response.meta || meta.value
+    if (response.report_level === 'summary') {
+      isSummary.value = true
+      summaryColumns.value = response.columns || []
+      summaryRows.value = response.rows || []
+    } else {
+      orders.value = response.orders || []
+      meta.value = response.meta || meta.value
+    }
   } catch (e) {
     error.value = e.message || t.failedToLoad
   } finally {

@@ -461,16 +461,20 @@ const statusLabel = (status) => {
   return labels[status] || status
 }
 
+const orderTypeKey = (order) => {
+  const items = order.items || []
+  if (items.some(i => i.table_id || i.seat_id)) return 'seated'
+  if (items.some(i => i.ticket_tier_id)) return 'tiered'
+  return 'general'
+}
+
 const getOrderType = (order) => {
-  if (order.tables?.length > 0 || order.seats?.length > 0) return t.seated
-  if (order.tier_items?.length > 0) return t.tiered
-  return t.general
+  const labels = { seated: t.seated, tiered: t.tiered, general: t.general }
+  return labels[orderTypeKey(order)]
 }
 
 const getOrderTypeClass = (order) => {
-  if (order.tables?.length > 0 || order.seats?.length > 0) return 'seated'
-  if (order.tier_items?.length > 0) return 'tiered'
-  return 'general'
+  return orderTypeKey(order)
 }
 
 watch([filterEvent, filterStatus, dateFrom, dateTo], () => {

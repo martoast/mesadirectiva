@@ -47,6 +47,35 @@
           </select>
         </div>
 
+        <!-- Stripe account (money destination) -->
+        <div class="field">
+          <label>{{ t.stripeAccount }} <span class="required">*</span></label>
+          <div class="toggle-group">
+            <button
+              type="button"
+              :class="['toggle-btn', form.stripe_account === 'eventos' && 'active']"
+              @click="form.stripe_account = 'eventos'"
+            >
+              {{ t.accountEventos }}
+            </button>
+            <button
+              type="button"
+              :class="['toggle-btn', form.stripe_account === 'cafeteria' && 'active']"
+              @click="form.stripe_account = 'cafeteria'"
+            >
+              {{ t.accountCafeteria }}
+            </button>
+            <button
+              type="button"
+              :class="['toggle-btn', form.stripe_account === 'rifa' && 'active']"
+              @click="form.stripe_account = 'rifa'"
+            >
+              {{ t.accountRifa }}
+            </button>
+          </div>
+          <span class="field-hint">{{ t.stripeAccountHint }}</span>
+        </div>
+
         <!-- Date & Time -->
         <div class="field-row">
           <div class="field">
@@ -57,23 +86,6 @@
             <label>{{ t.endDateTime }}</label>
             <input v-model="form.ends_at" type="datetime-local" />
           </div>
-        </div>
-
-        <!-- Timezone -->
-        <div class="field">
-          <label>{{ t.timezone }}</label>
-          <select v-model="form.timezone">
-            <optgroup :label="t.mexico">
-              <option v-for="tz in mexicoTimezones" :key="tz.value" :value="tz.value">
-                {{ tz.label }}
-              </option>
-            </optgroup>
-            <optgroup :label="t.other">
-              <option v-for="tz in otherTimezones" :key="tz.value" :value="tz.value">
-                {{ tz.label }}
-              </option>
-            </optgroup>
-          </select>
         </div>
 
         <!-- Location Type -->
@@ -210,6 +222,34 @@
               <span class="setting-content">
                 <strong>{{ t.showRemaining }}</strong>
                 <span>{{ t.showRemainingDesc }}</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Checkout Fields (student data) -->
+        <div class="field">
+          <label>{{ t.checkoutFields }}</label>
+          <div class="settings-list">
+            <label class="setting-item">
+              <input type="checkbox" v-model="form.checkout_settings.collect_student_fields" />
+              <span class="setting-content">
+                <strong>{{ t.collectStudentFields }}</strong>
+                <span>{{ t.collectStudentFieldsDesc }}</span>
+              </span>
+            </label>
+            <label v-if="form.checkout_settings.collect_student_fields" class="setting-item">
+              <input type="checkbox" v-model="form.checkout_settings.require_student_fields" />
+              <span class="setting-content">
+                <strong>{{ t.requireStudentFields }}</strong>
+                <span>{{ t.requireStudentFieldsDesc }}</span>
+              </span>
+            </label>
+            <label v-if="form.checkout_settings.collect_student_fields" class="setting-item">
+              <input type="checkbox" v-model="form.checkout_settings.require_attendee_note" />
+              <span class="setting-content">
+                <strong>{{ t.requireAttendeeNote }}</strong>
+                <span>{{ t.requireAttendeeNoteDesc }}</span>
               </span>
             </label>
           </div>
@@ -418,7 +458,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
-import { MEXICO_TIMEZONES, ALL_TIMEZONES, getTimezoneLabel as getTzLabel, isoToLocal, localToISO } from '~/utils/dateTime'
+import { isoToLocal, localToISO } from '~/utils/dateTime'
 import { ONLINE_PLATFORMS, getEmptyVenueLocation, getEmptyOnlineLocation, formatLocation, getPlatformLabel } from '~/utils/location'
 import { translateError } from '~/utils/errorTranslations'
 
@@ -438,6 +478,18 @@ const translations = {
   startDateTime: { es: 'Fecha/hora de inicio', en: 'Start date/time' },
   endDateTime: { es: 'Fecha/hora de fin', en: 'End date/time' },
   timezone: { es: 'Zona horaria', en: 'Timezone' },
+  stripeAccount: { es: 'Cuenta de cobro', en: 'Payment account' },
+  stripeAccountHint: { es: 'Cuenta de Stripe donde se depositará el dinero de este evento', en: 'Stripe account where this event\'s money is collected' },
+  accountEventos: { es: 'Eventos', en: 'Events' },
+  accountCafeteria: { es: 'Cafetería', en: 'Cafeteria' },
+  accountRifa: { es: 'Rifa', en: 'Raffle' },
+  checkoutFields: { es: 'Datos del comprador', en: 'Checkout fields' },
+  collectStudentFields: { es: 'Pedir datos del alumno', en: 'Collect student info' },
+  collectStudentFieldsDesc: { es: 'Muestra nombre y clave del alumno en el pago. Apágalo para compradores externos.', en: 'Show student name and key at checkout. Turn off for external buyers.' },
+  requireStudentFields: { es: 'Nombre y clave obligatorios', en: 'Require name and key' },
+  requireStudentFieldsDesc: { es: 'El comprador debe llenar nombre y clave del alumno por cada boleto', en: 'Buyer must fill student name and key for every ticket' },
+  requireAttendeeNote: { es: 'Nota obligatoria (salón, generación)', en: 'Require note (classroom, grade)' },
+  requireAttendeeNoteDesc: { es: 'El campo de nota deja de ser opcional', en: 'The note field is no longer optional' },
   mexico: { es: 'México', en: 'Mexico' },
   other: { es: 'Otros', en: 'Other' },
   locationType: { es: 'Tipo de ubicación', en: 'Location type' },
@@ -527,29 +579,27 @@ const savedSlug = ref(props.initialData?.slug || '')
 const groups = ref([])
 const nameInputRef = ref(null)
 
-// Detect timezone
-const detectTimezone = () => {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone
-  } catch {
-    return 'America/Mexico_City'
-  }
-}
-
 // Form data
 const form = reactive({
   name: '',
   group_id: '',
+  stripe_account: 'eventos',
   seating_type: 'general_admission',
   starts_at: '',
   ends_at: '',
-  timezone: detectTimezone(),
+  // Event creation is pinned to Tijuana time (selector removed on purpose)
+  timezone: 'America/Tijuana',
   location_type: 'venue',
   location: getEmptyVenueLocation(),
   description: '',
   organizer_name: '',
   is_private: false,
   show_remaining: true,
+  checkout_settings: {
+    collect_student_fields: true,
+    require_student_fields: false,
+    require_attendee_note: false
+  },
   faq_items: []
 })
 
@@ -569,8 +619,6 @@ const stepTitle = computed(() => {
 
 const eventSlug = computed(() => savedSlug.value || props.initialData?.slug)
 
-const mexicoTimezones = computed(() => MEXICO_TIMEZONES)
-const otherTimezones = computed(() => ALL_TIMEZONES.filter(tz => !MEXICO_TIMEZONES.some(m => m.value === tz.value)))
 const onlinePlatforms = computed(() => ONLINE_PLATFORMS)
 
 const selectedGroup = computed(() => groups.value.find(g => g.id === form.group_id))
@@ -665,6 +713,7 @@ const prepareData = () => {
   return {
     name: form.name,
     group_id: form.group_id,
+    stripe_account: form.stripe_account,
     seating_type: form.seating_type,
     starts_at: form.starts_at ? localToISO(form.starts_at) : null,
     ends_at: form.ends_at ? localToISO(form.ends_at) : null,
@@ -675,6 +724,7 @@ const prepareData = () => {
     organizer_name: form.organizer_name || null,
     is_private: form.is_private,
     show_remaining: form.show_remaining,
+    checkout_settings: { ...form.checkout_settings },
     faq_items: form.faq_items.filter(f => f.question && f.answer)
   }
 }
@@ -831,16 +881,22 @@ const loadInitialData = () => {
     const data = props.initialData
     form.name = data.name || ''
     form.group_id = data.group_id || data.group?.id || ''
+    form.stripe_account = data.stripe_account || 'cafeteria'
     form.seating_type = data.seating_type || 'general_admission'
     form.starts_at = data.starts_at ? isoToLocal(data.starts_at) : ''
     form.ends_at = data.ends_at ? isoToLocal(data.ends_at) : ''
-    form.timezone = data.timezone || detectTimezone()
+    form.timezone = data.timezone || 'America/Tijuana'
     form.location_type = data.location_type || 'venue'
     form.location = data.location || (data.location_type === 'online' ? getEmptyOnlineLocation() : getEmptyVenueLocation())
     form.description = data.description || ''
     form.organizer_name = data.organizer_name || ''
     form.is_private = data.is_private || false
     form.show_remaining = data.show_remaining !== false
+    form.checkout_settings = {
+      collect_student_fields: data.checkout_settings?.collect_student_fields !== false,
+      require_student_fields: data.checkout_settings?.require_student_fields === true,
+      require_attendee_note: data.checkout_settings?.require_attendee_note === true
+    }
     form.faq_items = data.faq_items || []
 
     mediaData.image_url = data.image_url || ''

@@ -13,7 +13,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
   }
 
   if (!isAdmin.value) {
-    // Viewers can only access public pages
-    return navigateTo('/app/events')
+    // Viewers (coordinadoras) may access the reports section only
+    if (to.path.startsWith('/app/admin/reports')) return
+    return navigateTo('/app/admin/reports/sales')
   }
 })

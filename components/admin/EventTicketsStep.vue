@@ -64,6 +64,7 @@
         <div v-if="showTierForm" class="inline-form">
           <AdminTicketTierForm
             :tier="editingTier"
+            :available-tiers="tiers"
             :loading="formLoading"
             :errors="formErrors"
             @submit="handleTierSubmit"

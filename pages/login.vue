@@ -106,7 +106,7 @@ definePageMeta({
   middleware: 'guest'
 })
 
-const { login, getGoogleRedirectUrl, isAuthenticated } = useAuth()
+const { login, getGoogleRedirectUrl, isAuthenticated, isViewer } = useAuth()
 const { t: createT, language } = useLanguage()
 const router = useRouter()
 const route = useRoute()
@@ -180,7 +180,7 @@ const handleSubmit = async () => {
 
   try {
     await login(form.value.email, form.value.password)
-    router.push('/app/admin/events')
+    router.push(isViewer.value ? '/app/admin/reports/sales' : '/app/admin/events')
   } catch (e) {
     if (e.errors) {
       errors.value = e.errors

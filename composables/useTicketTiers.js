@@ -96,9 +96,21 @@ export const useTicketTiers = () => {
     return await post(`/events/${eventSlug}/ticket-tiers/reorder`, { tier_ids: tierIds })
   }
 
+  /**
+   * Check if a student key can buy a dependent tier (parcialidades)
+   * @param {string} eventSlug
+   * @param {number} tierId
+   * @param {string} studentKey
+   * @returns {Object} { eligible, missing_tiers: [{id, name}] }
+   */
+  const checkTierEligibility = async (eventSlug, tierId, studentKey) => {
+    return await get(`/public/events/${eventSlug}/ticket-tiers/${tierId}/eligibility`, { student_key: studentKey }, { auth: false })
+  }
+
   return {
     // Public
     getPublicTicketTiers,
+    checkTierEligibility,
 
     // Admin
     getTicketTiers,

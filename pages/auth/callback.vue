@@ -23,7 +23,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const { handleOAuthCallback } = useAuth()
+const { handleOAuthCallback, isViewer } = useAuth()
 const router = useRouter()
 const route = useRoute()
 
@@ -39,7 +39,7 @@ onMounted(async () => {
 
   try {
     await handleOAuthCallback(token)
-    router.push('/app/admin/events')
+    router.push(isViewer.value ? '/app/admin/reports/sales' : '/app/admin/events')
   } catch (e) {
     error.value = e.message || 'Authentication failed. Please try again.'
   }

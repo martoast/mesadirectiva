@@ -4,14 +4,14 @@
     <aside class="sidebar">
       <!-- Brand -->
       <div class="sidebar-brand">
-        <AppLogo to="/app/admin/events" variant="light" size="small" label="Admin" />
+        <AppLogo :to="isViewer ? '/app/admin/reports/sales' : '/app/admin/events'" variant="light" size="small" label="Admin" />
       </div>
 
       <!-- Navigation -->
       <nav class="sidebar-nav">
         <div class="nav-section">
           <span class="nav-label">{{ t.menu }}</span>
-          <NuxtLink to="/app/admin/events" class="nav-item" active-class="active">
+          <NuxtLink v-if="!isViewer" to="/app/admin/events" class="nav-item" active-class="active">
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -32,7 +32,7 @@
             <span>{{ t.users }}</span>
           </NuxtLink>
 
-          <NuxtLink to="/app/admin/orders" class="nav-item" active-class="active">
+          <NuxtLink v-if="!isViewer" to="/app/admin/orders" class="nav-item" active-class="active">
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
@@ -109,10 +109,10 @@
             <LanguageToggle :show-labels="true" />
           </div>
           <div class="mobile-divider"></div>
-          <NuxtLink to="/app/admin/events" class="mobile-link" @click="mobileMenuOpen = false">{{ t.events }}</NuxtLink>
+          <NuxtLink v-if="!isViewer" to="/app/admin/events" class="mobile-link" @click="mobileMenuOpen = false">{{ t.events }}</NuxtLink>
           <NuxtLink v-if="isSuperAdmin" to="/app/admin/groups" class="mobile-link" @click="mobileMenuOpen = false">{{ t.groups }}</NuxtLink>
           <NuxtLink v-if="isSuperAdmin" to="/app/admin/users" class="mobile-link" @click="mobileMenuOpen = false">{{ t.users }}</NuxtLink>
-          <NuxtLink to="/app/admin/orders" class="mobile-link" @click="mobileMenuOpen = false">{{ t.orders }}</NuxtLink>
+          <NuxtLink v-if="!isViewer" to="/app/admin/orders" class="mobile-link" @click="mobileMenuOpen = false">{{ t.orders }}</NuxtLink>
           <NuxtLink to="/app/admin/reports/sales" class="mobile-link" @click="mobileMenuOpen = false">{{ t.salesReport }}</NuxtLink>
           <div class="mobile-divider"></div>
           <NuxtLink to="/app/events" class="mobile-link" @click="mobileMenuOpen = false">{{ t.viewPublicSite }}</NuxtLink>
@@ -137,7 +137,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-const { user, logout, isSuperAdmin } = useAuth()
+const { user, logout, isSuperAdmin, isViewer } = useAuth()
 const { t: createT, language } = useLanguage()
 const router = useRouter()
 

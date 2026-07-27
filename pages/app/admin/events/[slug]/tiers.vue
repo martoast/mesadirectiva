@@ -74,6 +74,7 @@
       <div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
         <AdminTicketTierForm
           :tier="selectedTier"
+          :available-tiers="tiers"
           :loading="formLoading"
           :errors="formErrors"
           @submit="handleFormSubmit"

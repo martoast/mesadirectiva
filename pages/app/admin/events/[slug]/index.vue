@@ -319,6 +319,10 @@
                 {{ event.is_private ? t.private : t.public }}
               </span>
             </div>
+            <div class="detail-item">
+              <span class="label">{{ t.stripeAccount }}</span>
+              <span class="value">{{ stripeAccountLabel }}</span>
+            </div>
             <div v-if="event.seating_type === 'seated'" class="detail-item">
               <span class="label">{{ t.reservationHold }}</span>
               <span class="value">{{ event.reservation_minutes || 15 }} {{ t.minutes }}</span>
@@ -444,6 +448,10 @@ const translations = {
   visibility: { es: 'Visibilidad', en: 'Visibility' },
   private: { es: 'Privado', en: 'Private' },
   public: { es: 'Público', en: 'Public' },
+  stripeAccount: { es: 'Cuenta de cobro', en: 'Payment account' },
+  accountEventos: { es: 'Eventos', en: 'Events' },
+  accountCafeteria: { es: 'Cafetería', en: 'Cafeteria' },
+  accountRifa: { es: 'Rifa', en: 'Raffle' },
   reservationHold: { es: 'Tiempo de reserva', en: 'Reservation Hold' },
   minutes: { es: 'minutos', en: 'minutes' },
   salesOverview: { es: 'Ventas', en: 'Sales' },
@@ -521,6 +529,11 @@ const statusLabel = (status) => {
   const labels = { draft: t.draft, live: t.live, closed: t.closed }
   return labels[status] || status
 }
+
+const stripeAccountLabel = computed(() => {
+  const labels = { eventos: t.accountEventos, cafeteria: t.accountCafeteria, rifa: t.accountRifa }
+  return labels[event.value?.stripe_account] || t.accountCafeteria
+})
 
 const fetchEvent = async () => {
   loading.value = true

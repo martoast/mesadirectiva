@@ -153,6 +153,22 @@
       </div>
     </div>
 
+    <!-- Installments (parcialidades) -->
+    <div v-if="dependencyOptions.length > 0" class="form-section">
+      <div class="section-title">{{ t.installments }}</div>
+      <div class="form-field">
+        <label for="tier-depends-on">{{ t.dependsOn }}</label>
+        <select id="tier-depends-on" v-model="form.depends_on_tier_id">
+          <option value="">{{ t.noDependency }}</option>
+          <option v-for="opt in dependencyOptions" :key="opt.id" :value="opt.id">
+            {{ opt.name }}
+          </option>
+        </select>
+        <span v-if="errors.depends_on_tier_id" class="field-error">{{ errors.depends_on_tier_id[0] }}</span>
+        <p class="field-hint">{{ t.dependsOnHint }}</p>
+      </div>
+    </div>
+
     <!-- Options -->
     <div class="form-section">
       <div class="section-title">{{ t.options }}</div>
@@ -202,7 +218,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { isoToLocal, localToISO } from '~/utils/dateTime'
 
 const { t: createT, language } = useLanguage()
@@ -242,6 +258,12 @@ const translations = {
   hidden: { es: 'Oculto', en: 'Hidden' },
   showDescription: { es: 'Mostrar Descripción', en: 'Show Description' },
   hideAvailableQuantity: { es: 'Ocultar Disponibilidad', en: 'Hide Availability' },
+  // Installments
+  installments: { es: 'Pagos en parcialidades', en: 'Installment payments' },
+  dependsOn: { es: 'Este pago depende de', en: 'This payment depends on' },
+  noDependency: { es: 'Ninguno (pago independiente)', en: 'None (independent payment)' },
+  dependsOnHint: { es: 'Solo se podrá comprar con la clave de un alumno que ya completó el pago seleccionado.', en: 'Only purchasable with a student key that already completed the selected payment.' },
+
   // Actions
   cancel: { es: 'Cancelar', en: 'Cancel' },
   saving: { es: 'Guardando...', en: 'Saving...' },
@@ -256,6 +278,10 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  availableTiers: {
+    type: Array,
+    default: () => []
+  },
   loading: {
     type: Boolean,
     default: false
@@ -267,6 +293,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['submit', 'cancel'])
+
+const dependencyOptions = computed(() => {
+  return props.availableTiers.filter(t => !props.tier || t.id !== props.tier.id)
+})
 
 const showSalesWindow = ref(false)
 const showOrderLimits = ref(false)
@@ -282,6 +312,7 @@ const form = ref({
   min_per_order: '',
   max_per_order: '',
   sort_order: 0,
+  depends_on_tier_id: '',
   is_active: true,
   is_hidden: false,
   show_description: true,
@@ -300,6 +331,7 @@ const resetForm = () => {
     min_per_order: '',
     max_per_order: '',
     sort_order: 0,
+    depends_on_tier_id: '',
     is_active: true,
     is_hidden: false,
     show_description: true,
@@ -323,6 +355,7 @@ watch(() => props.tier, (newTier) => {
       min_per_order: newTier.min_per_order || '',
       max_per_order: newTier.max_per_order || '',
       sort_order: newTier.sort_order || 0,
+      depends_on_tier_id: newTier.depends_on_tier_id || '',
       is_active: newTier.is_active !== false,
       is_hidden: newTier.is_hidden || false,
       show_description: newTier.show_description !== false,
@@ -343,6 +376,7 @@ const handleSubmit = () => {
     currency: form.value.currency || 'MXN',
     quantity: form.value.quantity ? parseInt(form.value.quantity) : null,
     sort_order: parseInt(form.value.sort_order) || 0,
+    depends_on_tier_id: form.value.depends_on_tier_id ? parseInt(form.value.depends_on_tier_id) : null,
     is_active: form.value.is_active,
     is_hidden: form.value.is_hidden,
     show_description: form.value.show_description,

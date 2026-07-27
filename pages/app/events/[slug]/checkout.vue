@@ -87,7 +87,7 @@
                 <input id="phone" v-model="form.customer_phone" type="tel" :placeholder="t.phonePlaceholder" required />
               </div>
               <div class="field">
-                <label for="company">{{ t.company }}</label>
+                <label for="company">{{ t.company }} <span class="required-mark">*</span></label>
                 <input id="company" v-model="form.customer_company" type="text" :placeholder="t.companyPlaceholder" required />
               </div>
             </div>

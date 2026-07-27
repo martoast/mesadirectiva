@@ -1,87 +1,70 @@
-# Current Task: Email & Ticket CMS (Per-Event Customization)
+# Roadmap (updated 2026-07-15)
 
-## Overview
-Add an admin page where event organizers can customize the confirmation email and PDF ticket text per event. This connects to the new `email_settings` JSON field on the events API.
-
----
-
-## Plan
-
-### 1. Update `useEvents` composable
-- `updateEvent(slug, data)` already exists and supports any event field
-- No new composable methods needed — just pass `email_settings` in the update payload
-
-### 2. Create admin page: `pages/app/admin/events/[slug]/email-settings.vue`
-- New page at `/app/admin/events/{slug}/email-settings`
-- Follows existing admin page patterns (breadcrumb nav, card layout)
-- **Form fields** (all optional, show placeholder with defaults):
-  - **Email Subject** — text input, placeholder: "Tus boletos para {event_name}"
-  - **Greeting** — text input, placeholder: "Hola {customer_name},"
-  - **Intro Text** — textarea, placeholder: "Tus boletos están adjuntos a este correo."
-  - **Instructions** — textarea, placeholder: "Por favor ten tu boleto (impreso o en tu teléfono) listo en la entrada."
-  - **Email Footer** — text input, placeholder: "¡Te esperamos!"
-  - **Ticket Footer** — text input, placeholder: "Presenta este boleto en la entrada"
-- **Placeholders info box** — show available placeholders: `{event_name}`, `{customer_name}`
-- **Save button** — calls `updateEvent(slug, { email_settings: { ... } })`
-- **Reset to defaults button** — clears all fields (saves `email_settings: null`)
-- **Live preview section** — optional, shows a mini preview of how the email will look
-
-### 3. Add link to email settings from event detail page
-- In `pages/app/admin/events/[slug]/index.vue`
-- Add a new quick-action link in the Actions Card: "Email y Boletos" / "Email & Tickets"
-- Links to `/app/admin/events/{slug}/email-settings`
-
-### 4. Translations
-```javascript
-{
-  emailSettings: { es: 'Email y Boletos', en: 'Email & Tickets' },
-  emailSettingsDescription: { es: 'Personaliza el correo de confirmación y los boletos PDF para este evento.', en: 'Customize the confirmation email and PDF tickets for this event.' },
-  emailSubject: { es: 'Asunto del correo', en: 'Email Subject' },
-  emailGreeting: { es: 'Saludo', en: 'Greeting' },
-  emailIntro: { es: 'Texto de introducción', en: 'Intro Text' },
-  emailInstructions: { es: 'Instrucciones', en: 'Instructions' },
-  emailFooter: { es: 'Pie del correo', en: 'Email Footer' },
-  ticketFooter: { es: 'Pie del boleto PDF', en: 'PDF Ticket Footer' },
-  availablePlaceholders: { es: 'Placeholders disponibles', en: 'Available Placeholders' },
-  resetDefaults: { es: 'Restablecer valores predeterminados', en: 'Reset to Defaults' },
-  leaveEmptyForDefault: { es: 'Deja vacío para usar el texto predeterminado', en: 'Leave empty to use default text' },
-  saved: { es: 'Guardado', en: 'Saved' },
-  saveChanges: { es: 'Guardar Cambios', en: 'Save Changes' }
-}
-```
+Frontend side of the five workstreams. API counterpart plan: `mesadirectiva-api/tasks/todo.md` (read it first — schema/endpoints defined there).
 
 ---
 
-## Files to Create
-- `pages/app/admin/events/[slug]/email-settings.vue`
+## 1. Multi-Stripe: 3 accounts — DONE (2026-07-15)
 
-## Files to Modify
-- `pages/app/admin/events/[slug]/index.vue` — add quick-action link
+- ~~EventFormSimple.vue "Cuenta de cobro" toggle (Eventos/Cafetería/Rifa, default eventos for new events, existing events keep cafeteria)~~
+- ~~Admin event detail shows "Cuenta de cobro" row~~
+- No checkout changes needed: the API routes the session to the right account from the event.
+
+## 2. Parcialidades dependientes (tiers en orden) — DONE (2026-07-15)
+
+Implemented: "Este pago depende de" select in TicketTierForm (cycle-safe, API-validated), dependency chip in TicketTierList, locked tier cards + clave verification box in checkout (verifies via eligibility endpoint, prefills the clave into that tier's attendee fields), `checkTierEligibility` in useTicketTiers. Original plan below.
+
+- **TicketTierForm.vue** — "Este pago depende de" select (other tiers of the event, from a `availableTiers` prop). Send `depends_on_tier_id`.
+- **TicketTierList.vue** — show dependency chip ("Requiere: Pago 1").
+- **checkout.vue** — for a dependent tier:
+  - render locked state ("Disponible al completar {tier}") until eligibility confirmed,
+  - require clave del alumno, call `GET /public/events/{slug}/tiers/{id}/eligibility?student_key=...` (add to `useTicketTiers`),
+  - unlock quantity selector on `eligible: true`, show the API's message otherwise.
+- **Public event page tier list** — visually mark dependent tiers as sequential (Pago 1 → Pago 2 → Pago 3).
+
+## 3. Checkout improvements — DONE (2026-07-15)
+
+Implemented: student name/clave/nota section on GA checkout gated by `event.checkout_settings` (hidden entirely for external-buyer products), required marks + client validation when configured, clave sent per ticket, admin toggles in event form step 2 ("Datos del comprador"), clave shown+searchable on attendees page. Original plan below.
+
+### Original plan
+
+- **checkout.vue**:
+  - New fields **"Nombre del alumno"** and **"Clave del alumno"**, rendered only when `event.checkout_settings.collect_student_fields` is true; required per settings — include in `isFormValid`.
+  - Remove the "(opcional)" label from fields that are actually required (salón/generación/nota when the event requires them); required fields get `*` and validation.
+  - Send `student_name`/`student_key` per ticket entry in the checkout payload.
+- **Admin settings UI** — add the toggles to the event form (step 2) or a small card on the event detail page, saved via `updateEvent(slug, { checkout_settings })` (same pattern as email-settings).
+
+## 4. Reportes con dos niveles de acceso — DONE (2026-07-15)
+
+Implemented: viewers (coordinadoras) can now enter `/app/admin/reports/*` only (admin middleware carve-out; other admin URLs bounce them to reports), sidebar/mobile menu hides Events/Orders for viewers, login + OAuth callback redirect viewers to the sales report, both report pages render the API's summary columns/rows generically when `report_level === 'summary'`, export downloads the reduced Excel automatically. Original plan below.
+
+- **Access**: `middleware/admin.js` currently kicks `viewer` out of ALL of `/app/admin`. Options: allow viewers into `/app/admin/reports/*` only (route check inside middleware), plus hide non-report sidebar items for viewers in `layouts/admin.vue`.
+- **reports/sales.vue + reports/orders.vue** — column sets driven by role (`isViewer` from useAuth): viewers see the summary columns the API returns; admins see full (incl. hora, # orden, transacción, cuenta Stripe). Export button downloads whichever the API serves for the role.
+
+## 5. Zona horaria fija (Tijuana) — DONE (2026-07-15)
+
+Selector removed from EventFormSimple; new events always send America/Tijuana; existing events keep their timezone on edit.
+
+### Original plan
+
+- **EventFormSimple.vue** — remove the timezone `<select>`; always send `timezone: 'America/Tijuana'`; delete `detectTimezone()` usage.
+- Sweep display helpers that pass timezone (dateTime utils already mostly ignore it).
 
 ---
 
-## UI Design Notes
-- Follow existing admin card layout pattern
-- Each field shows the Spanish default as placeholder text
-- Info callout box explaining placeholders (`{event_name}`, `{customer_name}`)
-- Subtitle under page title: "Deja vacío para usar el texto predeterminado"
-- Toast/success message on save
+## 6. UX pass (Chesky-style, guest journey) — DONE (2026-07-15)
+
+- `/` and `/app` now land on the public events listing (SSR 302) — no more login wall / fake-stats page as the front door.
+- Public layout fully bilingual with LanguageToggle in navbar + mobile menu; footer dead links removed, dynamic year.
+- Confirmation page rewritten: Spanish-first, real order number (API now appends `?order=` to the Stripe success URL), "what happens next" steps, spam notice. Cancel page bilingual + reassuring.
+- Checkout: `*` on required contact fields, total shows MXN, submit errors scroll into view.
+- Free events show "Gratis" instead of "$0.00" (event page + TicketCTA).
+- Admin fixes: QR-scan feedback no longer crashes (`t.value` bug), orders "Tipo" column derives type from order items instead of nonexistent fields.
 
 ---
 
 # Previously Completed
-
-## E-Ticket QR Scanner (Done)
-- QR scanner on attendees page
-- Camera-based scanning with manual fallback
-- Check-in confirmation with visual feedback
-
-## Translation System (Done)
-- useLanguage composable
-- LanguageToggle component
-- All admin and public pages translated
-
-## Attendees Check-In System (Done)
-- useAttendees composable
-- Attendees page with search/filters
-- Check-in/undo functionality
+- Email & Ticket CMS admin page (`[slug]/email-settings.vue`)
+- QR scanner check-in on attendees page
+- Tier drag-to-reorder, hide-availability toggle
+- Translation system (useLanguage), attendees check-in

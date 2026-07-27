@@ -61,7 +61,7 @@
           >
             <div>
               <p class="text-sm text-gray-600">{{ priceLabel }}</p>
-              <p class="text-2xl font-bold text-primary-600">${{ displayPrice }}</p>
+              <p class="text-2xl font-bold text-primary-600">{{ priceDisplay }}</p>
             </div>
             <svg
               :class="['w-5 h-5 text-gray-400 transition-transform', mobileExpanded && 'rotate-180']"
@@ -74,7 +74,7 @@
           </button>
           <div v-else>
             <p class="text-sm text-gray-600">{{ priceLabel }}</p>
-            <p class="text-2xl font-bold text-primary-600">${{ displayPrice }}</p>
+            <p class="text-2xl font-bold text-primary-600">{{ priceDisplay }}</p>
           </div>
           <UiBaseButton
             v-if="canPurchase"
@@ -98,7 +98,7 @@
         <!-- Pricing Display -->
         <div class="text-center mb-6">
           <p class="text-sm font-semibold text-gray-600 uppercase mb-2">{{ priceLabel }}</p>
-          <p class="text-5xl font-bold text-primary-600 mb-1">${{ displayPrice }}</p>
+          <p class="text-5xl font-bold text-primary-600 mb-1">{{ priceDisplay }}</p>
           <p v-if="isSeatedEvent && hasTables" class="text-sm text-gray-600">
             {{ tablesAvailableCount }} {{ tablesAvailableCount === 1 ? t.tableAvailable : t.tablesAvailable }}
           </p>
@@ -332,6 +332,7 @@ const { t: createT, language } = useLanguage()
 const translations = {
   // Price labels
   tablesFrom: { es: 'Mesas desde', en: 'Tables from' },
+  free: { es: 'Gratis', en: 'Free' },
   tableReservations: { es: 'Reservaciones de mesa', en: 'Table reservations' },
   startingFrom: { es: 'Desde', en: 'Starting from' },
   pricePerTicket: { es: 'Precio por Boleto', en: 'Price per Ticket' },
@@ -478,14 +479,16 @@ const displayPrice = computed(() => {
     if (lowestTablePrice.value !== null && lowestTablePrice.value > 0) {
       return lowestTablePrice.value.toFixed(2)
     }
-    return '0.00'
+    return null
   }
   // For GA events, use tier pricing
-  if (hasTiers.value && lowestTierPrice.value !== null) {
+  if (hasTiers.value && lowestTierPrice.value !== null && lowestTierPrice.value > 0) {
     return lowestTierPrice.value.toFixed(2)
   }
-  return '0.00'
+  return null
 })
+
+const priceDisplay = computed(() => displayPrice.value === null ? t.free : `$${displayPrice.value}`)
 
 const priceLabel = computed(() => {
   if (isSeatedEvent.value) {

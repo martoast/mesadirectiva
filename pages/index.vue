@@ -3,18 +3,12 @@
 </template>
 
 <script setup>
-const { isAuthenticated } = useAuth()
-
 definePageMeta({
   layout: false
 })
 
-// Redirect based on auth status
-if (import.meta.client) {
-  if (isAuthenticated.value) {
-    navigateTo('/app/admin/events', { replace: true })
-  } else {
-    navigateTo('/login', { replace: true })
-  }
-}
+// The front door shows events, not a login wall. Admins reach their
+// dashboard from the navbar; this also runs on the server so visitors
+// never sit on a blank page.
+await navigateTo('/app/events', { replace: true, redirectCode: 302 })
 </script>

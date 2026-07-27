@@ -102,7 +102,7 @@
           <div class="mobile-cta">
             <div class="mobile-cta-price">
               <span class="mobile-cta-label">{{ pricingLabel }}</span>
-              <span class="mobile-cta-amount">${{ displayPrice }}</span>
+              <span class="mobile-cta-amount">{{ isFreeEvent ? t.free : `$${displayPrice}` }}</span>
             </div>
             <button v-if="canPurchase" @click="handleCtaClick" class="mobile-cta-button">
               {{ ctaButtonText }}
@@ -345,7 +345,8 @@ const translations = {
   noTablesAvailable: { es: 'Sin Mesas Disponibles', en: 'No Tables Available' },
   noTicketsAvailable: { es: 'Sin Boletos Disponibles', en: 'No Tickets Available' },
   notAvailable: { es: 'No Disponible', en: 'Not Available' },
-  onlineEvent: { es: 'Evento en Línea', en: 'Online Event' }
+  onlineEvent: { es: 'Evento en Línea', en: 'Online Event' },
+  free: { es: 'Gratis', en: 'Free' }
 }
 
 const t = createT(translations)
@@ -521,12 +522,16 @@ const displayPrice = computed(() => {
     if (lowestTablePrice.value !== null && lowestTablePrice.value > 0) {
       return lowestTablePrice.value.toFixed(2)
     }
-    return '0.00'
+    return null
   }
   // For GA events, show tier pricing
-  if (lowestTierPrice.value !== null) return lowestTierPrice.value.toFixed(2)
-  return '0.00'
+  if (lowestTierPrice.value !== null && lowestTierPrice.value > 0) {
+    return lowestTierPrice.value.toFixed(2)
+  }
+  return null
 })
+
+const isFreeEvent = computed(() => displayPrice.value === null)
 
 // Special case for fiesta-del-60-aniversario (sells tables but is GA event)
 const useTableMessaging = computed(() => {

@@ -9,25 +9,40 @@
           </svg>
         </div>
 
-        <h1>Thank You!</h1>
-        <p class="success-message">Your order has been confirmed.</p>
+        <h1>{{ t.title }}</h1>
+        <p class="success-message">{{ t.subtitle }}</p>
 
         <!-- Order Info -->
         <div v-if="orderNumber" class="order-info">
-          <span class="order-label">Order Number</span>
+          <span class="order-label">{{ t.orderNumber }}</span>
           <span class="order-number">{{ orderNumber }}</span>
+          <span class="order-keep">{{ t.keepThisNumber }}</span>
         </div>
 
-        <p class="email-notice">
-          A confirmation email has been sent to your email address with your ticket details.
-        </p>
+        <!-- What happens next -->
+        <div class="next-steps">
+          <div class="next-step">
+            <span class="step-icon">📩</span>
+            <p>{{ t.step1 }}</p>
+          </div>
+          <div class="next-step">
+            <span class="step-icon">🎟️</span>
+            <p>{{ t.step2 }}</p>
+          </div>
+          <div class="next-step">
+            <span class="step-icon">📱</span>
+            <p>{{ t.step3 }}</p>
+          </div>
+        </div>
+
+        <p class="spam-notice">{{ t.spamNotice }}</p>
 
         <div class="success-actions">
           <NuxtLink :to="`/app/events/${route.params.slug}`" class="btn-primary">
-            Back to Event
+            {{ t.backToEvent }}
           </NuxtLink>
           <NuxtLink to="/app/events" class="btn-secondary">
-            Browse More Events
+            {{ t.browseMore }}
           </NuxtLink>
         </div>
       </div>
@@ -43,18 +58,25 @@ definePageMeta({
 })
 
 const route = useRoute()
+const { t: createT } = useLanguage()
 
-// Extract order number from session storage or query params
-const orderNumber = computed(() => {
-  if (import.meta.client) {
-    const stored = sessionStorage.getItem('lastOrderNumber')
-    if (stored) {
-      sessionStorage.removeItem('lastOrderNumber')
-      return stored
-    }
-  }
-  return route.query.order || null
-})
+const translations = {
+  title: { es: '¡Listo, tu compra está confirmada!', en: 'All set — your purchase is confirmed!' },
+  subtitle: { es: 'Gracias por tu compra. Esto es lo que sigue:', en: 'Thank you for your purchase. Here\'s what happens next:' },
+  orderNumber: { es: 'Número de orden', en: 'Order number' },
+  keepThisNumber: { es: 'Guárdalo por si necesitas ayuda con tu compra', en: 'Keep it handy in case you need help with your purchase' },
+  step1: { es: 'Te enviamos un correo de confirmación con tus boletos en PDF adjuntos.', en: 'We sent you a confirmation email with your PDF tickets attached.' },
+  step2: { es: 'Cada boleto trae un código QR único para entrar al evento.', en: 'Each ticket has a unique QR code for entry to the event.' },
+  step3: { es: 'El día del evento, presenta tu boleto impreso o desde tu teléfono.', en: 'On event day, show your ticket printed or on your phone.' },
+  spamNotice: { es: '¿No ves el correo? Revisa tu carpeta de spam o correo no deseado.', en: 'Don\'t see the email? Check your spam or junk folder.' },
+  backToEvent: { es: 'Volver al evento', en: 'Back to Event' },
+  browseMore: { es: 'Ver más eventos', en: 'Browse More Events' }
+}
+
+const t = createT(translations)
+
+// The API appends ?order={order_number} to the Stripe success URL
+const orderNumber = computed(() => route.query.order || null)
 </script>
 
 <style scoped>
@@ -84,7 +106,7 @@ const orderNumber = computed(() => {
 
 .success-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
 }
 
 .success-card {
@@ -138,14 +160,14 @@ const orderNumber = computed(() => {
 
 h1 {
   font-family: var(--font-heading);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 8px;
 }
 
 .success-message {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--color-text-light);
   margin-bottom: 24px;
 }
@@ -154,7 +176,7 @@ h1 {
   background: var(--color-bg-alt);
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .order-label {
@@ -167,17 +189,56 @@ h1 {
 }
 
 .order-number {
-  font-size: 18px;
+  display: block;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
   font-family: monospace;
+  letter-spacing: 0.5px;
 }
 
-.email-notice {
+.order-keep {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
+.next-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.next-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--color-bg-alt);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.step-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.next-step p {
   font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.spam-notice {
+  font-size: 13px;
   color: var(--color-text-muted);
   line-height: 1.5;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .success-actions {
@@ -225,7 +286,7 @@ h1 {
   }
 
   h1 {
-    font-size: 36px;
+    font-size: 32px;
   }
 }
 </style>

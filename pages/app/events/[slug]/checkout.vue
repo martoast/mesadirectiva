@@ -60,11 +60,11 @@
             <h2>{{ t.contactInformation }}</h2>
             <div class="form-fields">
               <div class="field">
-                <label for="name">{{ t.fullName }}</label>
+                <label for="name">{{ t.fullName }} <span class="required-mark">*</span></label>
                 <input id="name" v-model="form.customer_name" type="text" :placeholder="t.fullNamePlaceholder" required />
               </div>
               <div class="field">
-                <label for="email">{{ t.email }}</label>
+                <label for="email">{{ t.email }} <span class="required-mark">*</span></label>
                 <input
                   id="email"
                   v-model="form.customer_email"
@@ -83,7 +83,7 @@
                 </p>
               </div>
               <div class="field">
-                <label for="phone">{{ t.phone }}</label>
+                <label for="phone">{{ t.phone }} <span class="required-mark">*</span></label>
                 <input id="phone" v-model="form.customer_phone" type="tel" :placeholder="t.phonePlaceholder" required />
               </div>
               <div class="field">
@@ -96,10 +96,43 @@
           <!-- Ticket Tiers (General Admission) -->
           <section v-if="!isSeatedEvent && availableTiers.length > 0" class="form-section">
             <h2>{{ t.selectTickets }}</h2>
+
+            <!-- Installment verification (parcialidades) -->
+            <div v-for="tier in dependentTiers" :key="`dep-${tier.id}`" class="installment-check">
+              <div class="installment-check-header">
+                <strong>{{ tier.name }}</strong>
+                <span>{{ t.requiresPayment }}: {{ getDependencyName(tier) }}</span>
+              </div>
+              <template v-if="!verifiedTiers[tier.id]">
+                <p class="installment-check-hint">{{ t.verifyKeyHint }}</p>
+                <div class="installment-check-row">
+                  <input
+                    v-model="eligibilityKeys[tier.id]"
+                    type="text"
+                    :placeholder="t.studentKeyPlaceholder"
+                    @keyup.enter.prevent="verifyEligibility(tier)"
+                  />
+                  <button
+                    type="button"
+                    class="verify-btn"
+                    :disabled="verifyingTier === tier.id || !eligibilityKeys[tier.id]?.trim()"
+                    @click="verifyEligibility(tier)"
+                  >
+                    {{ verifyingTier === tier.id ? t.verifying : t.verify }}
+                  </button>
+                </div>
+                <p v-if="eligibilityErrors[tier.id]" class="installment-check-error">{{ eligibilityErrors[tier.id] }}</p>
+              </template>
+              <p v-else class="installment-check-ok">
+                ✓ {{ t.keyVerified }} ({{ verifiedTiers[tier.id] }})
+              </p>
+            </div>
+
             <PublicTicketTierSelector
               :tiers="availableTiers"
               :selections="tierSelections"
               :show-header="false"
+              :locked-tiers="lockedTiers"
               @update:selections="tierSelections = $event"
             />
           </section>
@@ -143,8 +176,8 @@
             </div>
           </section>
 
-          <!-- Attendee Information - Tiers -->
-          <section v-if="!isSeatedEvent && ticketEntries.length > 0" class="form-section">
+          <!-- Attendee Information - Tiers (student fields, per-event config) -->
+          <section v-if="!isSeatedEvent && collectStudentFields && ticketEntries.length > 0" class="form-section">
             <h2>{{ t.attendeeInformation }}</h2>
             <p class="section-description">{{ t.attendeeDescription }}</p>
             <div class="attendee-list">
@@ -154,23 +187,42 @@
                 </div>
                 <div class="attendee-fields">
                   <div class="field">
-                    <label :for="`attendee-name-${entry.key}`">{{ t.attendeeName }}</label>
+                    <label :for="`attendee-name-${entry.key}`">
+                      {{ t.studentName }}<span v-if="requireStudentFields" class="required-mark"> *</span>
+                    </label>
                     <input
                       :id="`attendee-name-${entry.key}`"
                       :value="getAttendeeValue(entry.key, 'name')"
                       @input="setAttendeeValue(entry.key, 'name', $event.target.value)"
                       type="text"
                       :placeholder="t.attendeeNamePlaceholder"
+                      :required="requireStudentFields"
                     />
                   </div>
                   <div class="field">
-                    <label :for="`attendee-note-${entry.key}`">{{ t.noteOptional }}</label>
+                    <label :for="`attendee-key-${entry.key}`">
+                      {{ t.studentKey }}<span v-if="requireStudentFields" class="required-mark"> *</span>
+                    </label>
+                    <input
+                      :id="`attendee-key-${entry.key}`"
+                      :value="getAttendeeValue(entry.key, 'key')"
+                      @input="setAttendeeValue(entry.key, 'key', $event.target.value)"
+                      type="text"
+                      :placeholder="t.studentKeyPlaceholder"
+                      :required="requireStudentFields"
+                    />
+                  </div>
+                  <div class="field">
+                    <label :for="`attendee-note-${entry.key}`">
+                      {{ requireAttendeeNote ? t.note : t.noteOptional }}<span v-if="requireAttendeeNote" class="required-mark"> *</span>
+                    </label>
                     <input
                       :id="`attendee-note-${entry.key}`"
                       :value="getAttendeeValue(entry.key, 'note')"
                       @input="setAttendeeValue(entry.key, 'note', $event.target.value)"
                       type="text"
                       :placeholder="t.notePlaceholder"
+                      :required="requireAttendeeNote"
                     />
                   </div>
                 </div>
@@ -274,7 +326,7 @@
                   <span>${{ getTierLineTotal(tierId, qty) }}</span>
                 </div>
               </template>
-              <div v-else-if="!isSeatedEvent && !hasTierSelections && form.tickets > 0" class="summary-line">
+              <div v-else-if="!isSeatedEvent && availableTiers.length === 0 && form.tickets > 0" class="summary-line">
                 <span>{{ t.tickets }} × {{ form.tickets }}</span>
                 <span>${{ legacyTicketSubtotal.toFixed(2) }}</span>
               </div>
@@ -295,7 +347,7 @@
             <!-- Total -->
             <div class="summary-total">
               <span>{{ t.total }}</span>
-              <span class="total-amount">${{ orderTotal.toFixed(2) }}</span>
+              <span class="total-amount">${{ orderTotal.toFixed(2) }} <span class="currency-label">MXN</span></span>
             </div>
 
             <!-- Submit -->
@@ -325,7 +377,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 
 definePageMeta({
   layout: 'public'
@@ -379,6 +431,19 @@ const translations = {
   attendeeName: { es: 'Nombre del Asistente', en: 'Attendee Name' },
   attendeeNamePlaceholder: { es: 'Nombre de la persona que asistirá', en: 'Name of person attending' },
   noteOptional: { es: 'Nota (opcional)', en: 'Note (optional)' },
+  note: { es: 'Nota (salón, generación, etc.)', en: 'Note (classroom, grade, etc.)' },
+  studentName: { es: 'Nombre del alumno', en: 'Student name' },
+  studentKey: { es: 'Clave del alumno', en: 'Student key' },
+  studentKeyPlaceholder: { es: 'Ej: A012345', en: 'E.g. A012345' },
+  requiresPayment: { es: 'Requiere', en: 'Requires' },
+  verifyKeyHint: { es: 'Ingresa la clave del alumno para verificar que el pago anterior está completado.', en: 'Enter the student key to verify the previous payment is completed.' },
+  verify: { es: 'Verificar', en: 'Verify' },
+  verifying: { es: 'Verificando...', en: 'Verifying...' },
+  keyVerified: { es: 'Clave verificada, puedes continuar', en: 'Key verified, you can continue' },
+  notEligible: { es: 'Esta clave aún no tiene completado el pago requerido', en: 'This key has not completed the required payment yet' },
+  verifyFailed: { es: 'No se pudo verificar. Intenta de nuevo.', en: 'Could not verify. Try again.' },
+  studentFieldsRequiredError: { es: 'Completa el nombre y la clave del alumno para cada boleto.', en: 'Fill in the student name and key for every ticket.' },
+  noteRequiredError: { es: 'Completa la nota (salón, generación, etc.) para cada boleto.', en: 'Fill in the note (classroom, grade, etc.) for every ticket.' },
   notePlaceholder: { es: 'Clave, Salón, Generación, etc.', en: 'ID, Classroom, Grade, etc.' },
   primaryContactName: { es: 'Nombre del Contacto Principal', en: 'Primary Contact Name' },
   tableHostPlaceholder: { es: 'Nombre del anfitrión de la mesa', en: 'Name of table host' },
@@ -405,7 +470,7 @@ const t = createT(translations)
 const route = useRoute()
 const router = useRouter()
 const { getPublicEvent, checkAvailability } = useEvents()
-const { getPublicTicketTiers } = useTicketTiers()
+const { getPublicTicketTiers, checkTierEligibility } = useTicketTiers()
 const { getPublicTables } = useTables()
 const { createSession } = useCheckout()
 
@@ -493,6 +558,75 @@ onMounted(async () => {
 const isSeatedEvent = computed(() => event.value?.seating_type === 'seated')
 const canPurchase = computed(() => availability.value?.can_purchase ?? false)
 
+// Per-event checkout field configuration (defaults keep legacy behavior)
+const checkoutSettings = computed(() => event.value?.checkout_settings || {})
+const collectStudentFields = computed(() => checkoutSettings.value.collect_student_fields !== false)
+const requireStudentFields = computed(() => collectStudentFields.value && checkoutSettings.value.require_student_fields === true)
+const requireAttendeeNote = computed(() => collectStudentFields.value && checkoutSettings.value.require_attendee_note === true)
+
+// Sequential installments (parcialidades)
+const eligibilityKeys = ref({})
+const verifiedTiers = ref({})
+const eligibilityErrors = ref({})
+const verifyingTier = ref(null)
+
+const dependentTiers = computed(() => availableTiers.value.filter(t => t.depends_on_tier_id))
+
+const getDependencyName = (tier) => {
+  if (tier.depends_on_tier?.name) return tier.depends_on_tier.name
+  const parent = availableTiers.value.find(t => t.id === tier.depends_on_tier_id)
+  return parent?.name || ''
+}
+
+// Dependent tiers stay locked in the selector until a clave is verified
+const lockedTiers = computed(() => {
+  const locked = {}
+  for (const tier of dependentTiers.value) {
+    if (!verifiedTiers.value[tier.id]) {
+      locked[tier.id] = `${t.requiresPayment}: ${getDependencyName(tier)}`
+    }
+  }
+  return locked
+})
+
+const verifyEligibility = async (tier) => {
+  const key = (eligibilityKeys.value[tier.id] || '').trim()
+  if (!key) return
+
+  verifyingTier.value = tier.id
+  eligibilityErrors.value = { ...eligibilityErrors.value, [tier.id]: '' }
+
+  try {
+    const res = await checkTierEligibility(route.params.slug, tier.id, key)
+    if (res.eligible) {
+      verifiedTiers.value = { ...verifiedTiers.value, [tier.id]: key.toUpperCase() }
+    } else {
+      const missing = res.missing_tiers?.map(m => m.name).join(', ')
+      eligibilityErrors.value = {
+        ...eligibilityErrors.value,
+        [tier.id]: missing ? `${t.notEligible}: ${missing}` : t.notEligible
+      }
+    }
+  } catch (e) {
+    eligibilityErrors.value = { ...eligibilityErrors.value, [tier.id]: e.message || t.verifyFailed }
+  } finally {
+    verifyingTier.value = null
+  }
+}
+
+
+// Every GA ticket entry has the required student data filled in
+const attendeeFieldsValid = computed(() => {
+  if (isSeatedEvent.value) return true
+  if (!requireStudentFields.value && !requireAttendeeNote.value) return true
+  return ticketEntries.value.every(entry => {
+    const a = tierAttendees.value[entry.key] || {}
+    if (requireStudentFields.value && (!a.name?.trim() || !a.key?.trim())) return false
+    if (requireAttendeeNote.value && !a.note?.trim()) return false
+    return true
+  })
+})
+
 // Email validation
 const isEmailValid = computed(() => {
   const email = form.value.customer_email.trim()
@@ -534,6 +668,17 @@ const ticketEntries = computed(() => {
   return entries
 })
 
+// Prefill the verified clave on this tier's attendee entries (still editable)
+watch([verifiedTiers, ticketEntries], () => {
+  for (const entry of ticketEntries.value) {
+    const verifiedKey = verifiedTiers.value[entry.tierId]
+    if (verifiedKey && !tierAttendees.value[entry.key]?.key) {
+      setAttendeeValue(entry.key, 'key', verifiedKey)
+    }
+  }
+}, { deep: true })
+
+
 const legacyTicketSubtotal = computed(() => (event.value?.price || 0) * form.value.tickets)
 
 const tierSubtotal = computed(() => {
@@ -570,14 +715,16 @@ const itemsSubtotal = computed(() => selectedItems.value.reduce((sum, item) => s
 
 const orderTotal = computed(() => {
   if (isSeatedEvent.value) return seatedSubtotal.value + itemsSubtotal.value
-  if (hasTierSelections.value) return tierSubtotal.value + itemsSubtotal.value
+  if (availableTiers.value.length > 0) return tierSubtotal.value + itemsSubtotal.value
   return legacyTicketSubtotal.value + itemsSubtotal.value
 })
 
 const isFormValid = computed(() => {
   const hasContactInfo = form.value.customer_name.trim() && isEmailValid.value && form.value.customer_phone.trim() && form.value.customer_company.trim()
   if (isSeatedEvent.value) return hasContactInfo && (selectedTables.value.length > 0 || selectedSeats.value.length > 0)
-  if (hasTierSelections.value) return hasContactInfo
+  // Tiered events require a real tier selection; the legacy single-price
+  // path only applies to events with no tiers at all
+  if (availableTiers.value.length > 0) return hasContactInfo && hasTierSelections.value && attendeeFieldsValid.value
   return hasContactInfo && form.value.tickets > 0
 })
 
@@ -624,7 +771,7 @@ const getAttendeeValue = (key, field) => {
 }
 const setAttendeeValue = (key, field, value) => {
   if (!tierAttendees.value[key]) {
-    tierAttendees.value[key] = { name: '', note: '' }
+    tierAttendees.value[key] = { name: '', note: '', key: '' }
   }
   tierAttendees.value[key][field] = value
 }
@@ -700,10 +847,11 @@ const handleSubmit = async () => {
           // Collect attendees for this tier
           const attendees = []
           for (let i = 0; i < quantity; i++) {
-            const key = `${tier_id}_${i}`
+            const entryKey = `${tier_id}_${i}`
             attendees.push({
-              name: tierAttendees.value[key]?.name || null,
-              note: tierAttendees.value[key]?.note || null
+              name: tierAttendees.value[entryKey]?.name || null,
+              note: tierAttendees.value[entryKey]?.note || null,
+              key: tierAttendees.value[entryKey]?.key || null
             })
           }
           return {
@@ -722,6 +870,9 @@ const handleSubmit = async () => {
   } catch (e) {
     error.value = e.message || t.failedToCreateSession
     submitting.value = false
+    // The banner lives at the top; on a phone the user is at the bottom
+    await nextTick()
+    document.querySelector('.error-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 </script>
@@ -951,6 +1102,84 @@ const handleSubmit = async () => {
   font-weight: 500;
   color: var(--color-text);
   margin-bottom: 6px;
+}
+
+.required-mark {
+  color: #dc2626;
+}
+
+.currency-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-light, #666);
+}
+
+/* Installment (parcialidades) verification */
+.installment-check {
+  border: 1px solid var(--color-border, #eee);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+
+.installment-check-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  font-size: 14px;
+}
+
+.installment-check-header span {
+  font-size: 12px;
+  color: #b45309;
+}
+
+.installment-check-hint {
+  font-size: 12px;
+  color: #666;
+  margin: 6px 0 8px;
+}
+
+.installment-check-row {
+  display: flex;
+  gap: 8px;
+}
+
+.installment-check-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.verify-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.verify-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.installment-check-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.installment-check-ok {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #059669;
+  font-weight: 500;
 }
 
 .optional-label {

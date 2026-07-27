@@ -32,6 +32,8 @@
         :tier="tier"
         :quantity="getQuantity(tier.id)"
         :max-per-order="maxPerOrder"
+        :locked="!!lockedTiers[tier.id]"
+        :locked-message="lockedTiers[tier.id] || ''"
         @update:quantity="(qty) => updateQuantity(tier.id, qty)"
       />
     </div>
@@ -81,6 +83,10 @@ const props = defineProps({
   showHeader: {
     type: Boolean,
     default: true
+  },
+  lockedTiers: {
+    type: Object,
+    default: () => ({})
   }
 })
 
@@ -101,6 +107,7 @@ const getQuantity = (tierId) => {
 }
 
 const updateQuantity = (tierId, quantity) => {
+  if (props.lockedTiers[tierId]) return
   const newSelections = { ...props.selections }
 
   if (quantity > 0) {

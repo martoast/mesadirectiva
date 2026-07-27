@@ -20,30 +20,36 @@
 
         <!-- Desktop nav -->
         <div class="nav-links">
-          <NuxtLink to="/app/events" class="nav-link">Events</NuxtLink>
+          <NuxtLink to="/app/events" class="nav-link">{{ t.events }}</NuxtLink>
           <template v-if="isAuthenticated">
-            <NuxtLink to="/app/admin/events" class="nav-link">Dashboard</NuxtLink>
+            <NuxtLink :to="dashboardPath" class="nav-link">{{ t.dashboard }}</NuxtLink>
             <div class="nav-user">
               <span class="user-name">{{ user?.name }}</span>
-              <button @click="handleLogout" class="nav-link logout">Sign Out</button>
+              <button @click="handleLogout" class="nav-link logout">{{ t.signOut }}</button>
             </div>
           </template>
           <template v-else>
-            <NuxtLink to="/login" class="nav-cta">Sign In</NuxtLink>
+            <NuxtLink to="/login" class="nav-cta">{{ t.signIn }}</NuxtLink>
           </template>
+          <div class="nav-lang">
+            <LanguageToggle />
+          </div>
         </div>
       </div>
 
       <!-- Mobile menu -->
       <Transition name="slide-down">
         <div v-if="mobileMenuOpen" class="mobile-menu">
-          <NuxtLink to="/app/events" class="mobile-link" @click="mobileMenuOpen = false">Events</NuxtLink>
+          <div class="mobile-lang">
+            <LanguageToggle :show-labels="true" />
+          </div>
+          <NuxtLink to="/app/events" class="mobile-link" @click="mobileMenuOpen = false">{{ t.events }}</NuxtLink>
           <template v-if="isAuthenticated">
-            <NuxtLink to="/app/admin/events" class="mobile-link" @click="mobileMenuOpen = false">Dashboard</NuxtLink>
-            <button @click="handleLogout" class="mobile-link logout">Sign Out</button>
+            <NuxtLink :to="dashboardPath" class="mobile-link" @click="mobileMenuOpen = false">{{ t.dashboard }}</NuxtLink>
+            <button @click="handleLogout" class="mobile-link logout">{{ t.signOut }}</button>
           </template>
           <template v-else>
-            <NuxtLink to="/login" class="mobile-link cta" @click="mobileMenuOpen = false">Sign In</NuxtLink>
+            <NuxtLink to="/login" class="mobile-link cta" @click="mobileMenuOpen = false">{{ t.signIn }}</NuxtLink>
           </template>
         </div>
       </Transition>
@@ -66,25 +72,16 @@
             <p class="brand-tagline">Asociación de Padres de Familia del Instituto México A.C.</p>
           </div>
           <div class="footer-links">
-            <h4>Explore</h4>
-            <NuxtLink to="/app/events">All Events</NuxtLink>
+            <h4>{{ t.explore }}</h4>
+            <NuxtLink to="/app/events">{{ t.allEvents }}</NuxtLink>
             <template v-if="isAuthenticated">
-              <NuxtLink to="/app/admin/events">Dashboard</NuxtLink>
+              <NuxtLink :to="dashboardPath">{{ t.dashboard }}</NuxtLink>
             </template>
-          </div>
-          <div class="footer-links">
-            <h4>Support</h4>
-            <a href="#">Contact</a>
-            <a href="#">FAQ</a>
-          </div>
-          <div class="footer-links">
-            <h4>Legal</h4>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
+            <NuxtLink v-else to="/login">{{ t.organizerAccess }}</NuxtLink>
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2025 APFIM A.C. All rights reserved.</p>
+          <p>&copy; {{ new Date().getFullYear() }} APFIM A.C. {{ t.allRights }}</p>
         </div>
       </div>
     </footer>
@@ -92,11 +89,29 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
-const { user, isAuthenticated, logout } = useAuth()
+const { user, isAuthenticated, logout, isViewer } = useAuth()
+const { t: createT } = useLanguage()
 const router = useRouter()
 const mobileMenuOpen = ref(false)
+
+const translations = {
+  events: { es: 'Eventos', en: 'Events' },
+  dashboard: { es: 'Panel', en: 'Dashboard' },
+  signIn: { es: 'Iniciar Sesión', en: 'Sign In' },
+  signOut: { es: 'Cerrar Sesión', en: 'Sign Out' },
+  explore: { es: 'Explorar', en: 'Explore' },
+  allEvents: { es: 'Todos los eventos', en: 'All Events' },
+  organizerAccess: { es: 'Acceso organizadores', en: 'Organizer access' },
+  allRights: { es: 'Todos los derechos reservados.', en: 'All rights reserved.' }
+}
+
+const t = createT(translations)
+
+const dashboardPath = computed(() =>
+  isViewer.value ? '/app/admin/reports/sales' : '/app/admin/events'
+)
 
 const handleLogout = async () => {
   mobileMenuOpen.value = false
@@ -295,6 +310,20 @@ const handleLogout = async () => {
   background: var(--color-bg-dark);
   color: #fff;
   margin-top: auto;
+}
+
+.nav-lang :deep(.language-toggle) {
+  background: #f4f4f5;
+}
+
+.mobile-lang {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 12px;
+}
+
+.mobile-lang :deep(.language-toggle) {
+  background: #f4f4f5;
 }
 
 .footer-inner {

@@ -9,17 +9,15 @@
           </svg>
         </div>
 
-        <h1>Payment Cancelled</h1>
-        <p class="cancel-message">
-          Your payment was not completed. No charges have been made to your account.
-        </p>
+        <h1>{{ t.title }}</h1>
+        <p class="cancel-message">{{ t.message }}</p>
 
         <div class="cancel-actions">
           <NuxtLink :to="`/app/events/${route.params.slug}/checkout`" class="btn-primary">
-            Try Again
+            {{ t.tryAgain }}
           </NuxtLink>
           <NuxtLink :to="`/app/events/${route.params.slug}`" class="btn-secondary">
-            Back to Event
+            {{ t.backToEvent }}
           </NuxtLink>
         </div>
       </div>
@@ -33,6 +31,16 @@ definePageMeta({
 })
 
 const route = useRoute()
+const { t: createT } = useLanguage()
+
+const translations = {
+  title: { es: 'Pago no completado', en: 'Payment Not Completed' },
+  message: { es: 'No te preocupes: no se hizo ningún cargo a tu cuenta. Tus boletos siguen disponibles y puedes intentarlo de nuevo cuando quieras.', en: 'Don\'t worry — no charges were made to your account. Your tickets are still available and you can try again whenever you like.' },
+  tryAgain: { es: 'Intentar de nuevo', en: 'Try Again' },
+  backToEvent: { es: 'Volver al evento', en: 'Back to Event' }
+}
+
+const t = createT(translations)
 </script>
 
 <style scoped>

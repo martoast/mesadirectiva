@@ -2,7 +2,7 @@
   <div
     :class="[
       'border rounded-xl p-4 transition-all duration-200',
-      !isAvailable ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-white border-gray-200 hover:border-primary-300 hover:shadow-md',
+      (!isAvailable || locked) ? 'bg-gray-50 border-gray-200 opacity-60' : 'bg-white border-gray-200 hover:border-primary-300 hover:shadow-md',
       quantity > 0 && isAvailable && 'border-primary-500 ring-2 ring-primary-100'
     ]"
   >
@@ -10,6 +10,12 @@
       <div>
         <h3 class="font-semibold text-gray-900">{{ tier.name }}</h3>
         <p v-if="tier.description && tier.show_description" class="text-sm text-gray-500 mt-1">{{ tier.description }}</p>
+        <p v-if="locked && lockedMessage" class="text-xs font-medium text-warning-600 mt-1 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          {{ lockedMessage }}
+        </p>
       </div>
     </div>
 
@@ -47,7 +53,7 @@
       </span>
 
       <!-- Quantity Selector -->
-      <div v-if="isAvailable" class="flex items-center gap-2">
+      <div v-if="isAvailable && !locked" class="flex items-center gap-2">
         <button
           type="button"
           @click="decrementQuantity"
@@ -122,6 +128,14 @@ const props = defineProps({
   maxPerOrder: {
     type: Number,
     default: 10
+  },
+  locked: {
+    type: Boolean,
+    default: false
+  },
+  lockedMessage: {
+    type: String,
+    default: ''
   }
 })
 

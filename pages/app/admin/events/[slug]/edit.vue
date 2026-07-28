@@ -131,6 +131,11 @@ const handleSave = async (eventData) => {
 const handleSaveAndPublish = async (eventData) => {
   error.value = ''
   const slug = eventData.slug || route.params.slug
+  try {
+    await publishEvent(slug)
+  } catch (e) {
+    // already live — fine
+  }
   router.push(`/app/admin/events/${slug}`)
 }
 

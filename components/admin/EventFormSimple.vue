@@ -83,8 +83,8 @@
             <input v-model="form.starts_at" type="datetime-local" required />
           </div>
           <div class="field">
-            <label>{{ t.endDateTime }}</label>
-            <input v-model="form.ends_at" type="datetime-local" />
+            <label>{{ t.endDateTime }} <span class="required">*</span></label>
+            <input v-model="form.ends_at" type="datetime-local" required />
           </div>
         </div>
 
@@ -632,13 +632,13 @@ const hasLocation = computed(() => {
 
 const canProceedToNext = computed(() => {
   if (currentStep.value === 0) {
-    return form.name && form.starts_at && form.group_id && hasLocation.value
+    return form.name && form.starts_at && form.ends_at && form.group_id && hasLocation.value
   }
   return true
 })
 
 const canPublish = computed(() => {
-  return form.name && form.starts_at && form.group_id && hasLocation.value
+  return form.name && form.starts_at && form.ends_at && form.group_id && hasLocation.value
 })
 
 const formattedDate = computed(() => {

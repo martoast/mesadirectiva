@@ -67,6 +67,7 @@ definePageMeta({
 })
 
 const router = useRouter()
+const { publishEvent } = useEvents()
 const { t: createT } = useLanguage()
 
 const translations = {
@@ -106,6 +107,13 @@ const handleSaveDraft = async (eventData) => {
 const handlePublish = async (eventData) => {
   const slug = eventData.slug || createdSlug.value
   if (slug) {
+    // The event API strips `status` from create/update payloads, so the
+    // wizard must call the publish endpoint explicitly (was a silent no-op)
+    try {
+      await publishEvent(slug)
+    } catch (e) {
+      // already live or publish blocked — the detail page shows real status
+    }
     if (eventData.seating_type === 'seated') {
       successData.isPublished = true
       successData.isSeated = true

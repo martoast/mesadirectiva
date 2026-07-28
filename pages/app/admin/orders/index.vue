@@ -151,6 +151,7 @@
               <th class="col-order">{{ t.orderNumber }}</th>
               <th class="col-customer">{{ t.customer }}</th>
               <th class="col-event">{{ t.event }}</th>
+              <th class="col-account">{{ t.account }}</th>
               <th class="col-type">{{ t.type }}</th>
               <th class="col-items">{{ t.items }}</th>
               <th class="col-total">{{ t.total }}</th>
@@ -172,6 +173,9 @@
               </td>
               <td class="col-event">
                 <span class="event-name">{{ order.event?.name || '—' }}</span>
+              </td>
+              <td class="col-account">
+                <span class="event-name">{{ accountLabel(order.stripe_account) }}</span>
               </td>
               <td class="col-type">
                 <span :class="['type-badge', getOrderTypeClass(order)]">
@@ -324,7 +328,16 @@ const translations = {
   errorTitle: { es: 'Error al cargar', en: 'Failed to load' }
 }
 
+translations.account = { es: 'Cuenta', en: 'Account' }
+
 const t = createT(translations)
+
+const accountLabel = (a) => {
+  const labels = language.value === 'es'
+    ? { cafeteria: 'Cafetería', rifa: 'Rifa', eventos: 'Eventos' }
+    : { cafeteria: 'Cafeteria', rifa: 'Raffle', eventos: 'Events' }
+  return labels[a] || '—'
+}
 
 const ordersLabel = computed(() => {
   if (language.value === 'es') {

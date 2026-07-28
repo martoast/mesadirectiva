@@ -117,6 +117,7 @@
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.orderNumber }}</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.customer }}</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.event }}</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.account }}</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.type }}</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.items }}</th>
               <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">{{ t.total }}</th>
@@ -135,6 +136,9 @@
               </td>
               <td class="px-6 py-4 text-sm text-gray-900">
                 {{ order.event?.name || '-' }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                {{ accountLabel(order.stripe_account) }}
               </td>
               <td class="px-6 py-4">
                 <span :class="orderTypeClass(order)">
@@ -270,7 +274,16 @@ const translations = {
   noOrdersFound: { es: 'No se encontraron órdenes para los filtros seleccionados.', en: 'No orders found for the selected filters.' }
 }
 
+translations.account = { es: 'Cuenta', en: 'Account' }
+
 const t = createT(translations)
+const accountLabel = (a) => {
+  const labels = language.value === 'es'
+    ? { cafeteria: 'Cafetería', rifa: 'Rifa', eventos: 'Eventos' }
+    : { cafeteria: 'Cafeteria', rifa: 'Raffle', eventos: 'Events' }
+  return labels[a] || '—'
+}
+
 
 const { getOrdersReport, exportOrders } = useReports()
 const { getEvents } = useEvents()

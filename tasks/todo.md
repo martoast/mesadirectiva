@@ -1,70 +1,56 @@
-# Roadmap (updated 2026-07-15)
+# Roadmap — Frontend (updated 2026-09-05)
 
-Frontend side of the five workstreams. API counterpart plan: `mesadirectiva-api/tasks/todo.md` (read it first — schema/endpoints defined there).
+API counterpart: `mesadirectiva-api/tasks/todo.md` (read it first — schema/endpoints live there).
 
----
-
-## 1. Multi-Stripe: 3 accounts — DONE (2026-07-15)
-
-- ~~EventFormSimple.vue "Cuenta de cobro" toggle (Eventos/Cafetería/Rifa, default eventos for new events, existing events keep cafeteria)~~
-- ~~Admin event detail shows "Cuenta de cobro" row~~
-- No checkout changes needed: the API routes the session to the right account from the event.
-
-## 2. Parcialidades dependientes (tiers en orden) — DONE (2026-07-15)
-
-Implemented: "Este pago depende de" select in TicketTierForm (cycle-safe, API-validated), dependency chip in TicketTierList, locked tier cards + clave verification box in checkout (verifies via eligibility endpoint, prefills the clave into that tier's attendee fields), `checkTierEligibility` in useTicketTiers. Original plan below.
-
-- **TicketTierForm.vue** — "Este pago depende de" select (other tiers of the event, from a `availableTiers` prop). Send `depends_on_tier_id`.
-- **TicketTierList.vue** — show dependency chip ("Requiere: Pago 1").
-- **checkout.vue** — for a dependent tier:
-  - render locked state ("Disponible al completar {tier}") until eligibility confirmed,
-  - require clave del alumno, call `GET /public/events/{slug}/tiers/{id}/eligibility?student_key=...` (add to `useTicketTiers`),
-  - unlock quantity selector on `eligible: true`, show the API's message otherwise.
-- **Public event page tier list** — visually mark dependent tiers as sequential (Pago 1 → Pago 2 → Pago 3).
-
-## 3. Checkout improvements — DONE (2026-07-15)
-
-Implemented: student name/clave/nota section on GA checkout gated by `event.checkout_settings` (hidden entirely for external-buyer products), required marks + client validation when configured, clave sent per ticket, admin toggles in event form step 2 ("Datos del comprador"), clave shown+searchable on attendees page. Original plan below.
-
-### Original plan
-
-- **checkout.vue**:
-  - New fields **"Nombre del alumno"** and **"Clave del alumno"**, rendered only when `event.checkout_settings.collect_student_fields` is true; required per settings — include in `isFormValid`.
-  - Remove the "(opcional)" label from fields that are actually required (salón/generación/nota when the event requires them); required fields get `*` and validation.
-  - Send `student_name`/`student_key` per ticket entry in the checkout payload.
-- **Admin settings UI** — add the toggles to the event form (step 2) or a small card on the event detail page, saved via `updateEvent(slug, { checkout_settings })` (same pattern as email-settings).
-
-## 4. Reportes con dos niveles de acceso — DONE (2026-07-15)
-
-Implemented: viewers (coordinadoras) can now enter `/app/admin/reports/*` only (admin middleware carve-out; other admin URLs bounce them to reports), sidebar/mobile menu hides Events/Orders for viewers, login + OAuth callback redirect viewers to the sales report, both report pages render the API's summary columns/rows generically when `report_level === 'summary'`, export downloads the reduced Excel automatically. Original plan below.
-
-- **Access**: `middleware/admin.js` currently kicks `viewer` out of ALL of `/app/admin`. Options: allow viewers into `/app/admin/reports/*` only (route check inside middleware), plus hide non-report sidebar items for viewers in `layouts/admin.vue`.
-- **reports/sales.vue + reports/orders.vue** — column sets driven by role (`isViewer` from useAuth): viewers see the summary columns the API returns; admins see full (incl. hora, # orden, transacción, cuenta Stripe). Export button downloads whichever the API serves for the role.
-
-## 5. Zona horaria fija (Tijuana) — DONE (2026-07-15)
-
-Selector removed from EventFormSimple; new events always send America/Tijuana; existing events keep their timezone on edit.
-
-### Original plan
-
-- **EventFormSimple.vue** — remove the timezone `<select>`; always send `timezone: 'America/Tijuana'`; delete `detectTimezone()` usage.
-- Sweep display helpers that pass timezone (dateTime utils already mostly ignore it).
+The five 2026-07 workstreams (multi-Stripe UI, parcialidades, checkout student fields,
+viewer reports, Tijuana timezone) all shipped and are live. See "Shipped" at the bottom.
 
 ---
 
-## 6. UX pass (Chesky-style, guest journey) — DONE (2026-07-15)
+## Open
 
-- `/` and `/app` now land on the public events listing (SSR 302) — no more login wall / fake-stats page as the front door.
-- Public layout fully bilingual with LanguageToggle in navbar + mobile menu; footer dead links removed, dynamic year.
-- Confirmation page rewritten: Spanish-first, real order number (API now appends `?order=` to the Stripe success URL), "what happens next" steps, spam notice. Cancel page bilingual + reassuring.
-- Checkout: `*` on required contact fields, total shows MXN, submit errors scroll into view.
-- Free events show "Gratis" instead of "$0.00" (event page + TicketCTA).
-- Admin fixes: QR-scan feedback no longer crashes (`t.value` bug), orders "Tipo" column derives type from order items instead of nonexistent fields.
+### 1. Password-reset links 404
+The API emails `{frontend_url}/password-reset/{token}?email=`, but our route is
+`pages/reset-password.vue` → `/reset-password?token=&email=`. The fix belongs on the
+API side (one line in `AppServiceProvider`); nothing to change here unless we decide
+to also accept the `/password-reset/{token}` shape as an alias.
+
+### 2. Hardcoded `fiesta-del-60-aniversario` special-casing
+Slug-specific table messaging and tier renaming is hardcoded in the public event page,
+checkout page, and `TicketCTA`. It's inert for every other event but should become an
+event-level setting (or be deleted) once that event is over.
+
+### 3. Dead code to delete
+- `components/admin/EventForm.vue` (~1.9k lines) — superseded by `EventFormSimple.vue`, unused.
+- `composables/useMockEvents.js` — unused.
+
+### 4. `tasks/summary.md` is out of date
+Says Nuxt 3.16; `package.json` is on `nuxt ^4.2.1`.
 
 ---
 
-# Previously Completed
-- Email & Ticket CMS admin page (`[slug]/email-settings.vue`)
-- QR scanner check-in on attendees page
-- Tier drag-to-reorder, hide-availability toggle
-- Translation system (useLanguage), attendees check-in
+## Shipped
+
+- **Checkout copy pass** (2026-09-05) — "Clave del alumno" placeholder is now
+  `(Salón + Número de lista)`; the note field is labeled "Notas" with placeholder
+  `(Número de Planilla)`. Seated-event note fields keep the old generic placeholder
+  (`noteGenericPlaceholder`).
+- **Multi-Stripe UI** (2026-07) — "Cuenta de cobro" toggle in `EventFormSimple`, Cuenta
+  row on admin event detail, Cuenta column in reports and the orders list.
+  Checkout needs no account awareness: the API routes the session from the event.
+- **Parcialidades** (2026-07) — dependency select in `TicketTierForm`, dependency chip in
+  `TicketTierList`, locked tier cards + clave verification box in checkout,
+  `checkTierEligibility` in `useTicketTiers`.
+- **Checkout student fields** (2026-07) — name/clave/nota section gated by
+  `event.checkout_settings`, required marks + client validation, clave sent per ticket,
+  admin toggles in event form step 2, clave shown and searchable on the attendees page.
+- **Viewer (coordinadora) reports** (2026-07) — viewers reach `/app/admin/reports/*` only;
+  sidebar and mobile menu hide Events/Orders for them; login and OAuth callback land them
+  on the sales report; report pages render the API's summary columns generically.
+- **Timezone selector removed** (2026-07) — new events always send `America/Tijuana`;
+  existing events keep theirs on edit.
+- **Guest-journey UX pass** (2026-07) — `/` and `/app` land on the public events listing,
+  bilingual public layout with language toggle, rewritten confirmation page with real
+  order number, "Gratis" instead of "$0.00", required-field marks on contact fields.
+- Earlier: Email & Ticket CMS admin page, QR scanner check-in, tier drag-to-reorder,
+  hide-availability toggle, translation system (`useLanguage`).

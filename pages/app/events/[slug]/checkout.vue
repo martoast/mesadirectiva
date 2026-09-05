@@ -286,7 +286,7 @@
                       :value="getSeatAttendeeValue(seatId, 'note')"
                       @input="setSeatAttendeeValue(seatId, 'note', $event.target.value)"
                       type="text"
-                      :placeholder="t.notePlaceholder"
+                      :placeholder="t.noteGenericPlaceholder"
                     />
                   </div>
                 </div>
@@ -430,11 +430,11 @@ const translations = {
   attendeeDescription: { es: 'Para paseos o graduaciones escolares, favor de poner el nombre del alumno a quien se acreditarán los boletos. Para torneos, favor de poner el nombre del equipo.', en: 'For school trips or graduations, please enter the name of the student to whom the tickets will be credited. For tournaments, please enter the team name.' },
   attendeeName: { es: 'Nombre del Asistente', en: 'Attendee Name' },
   attendeeNamePlaceholder: { es: 'Nombre de la persona que asistirá', en: 'Name of person attending' },
-  noteOptional: { es: 'Nota (opcional)', en: 'Note (optional)' },
-  note: { es: 'Nota (salón, generación, etc.)', en: 'Note (classroom, grade, etc.)' },
+  noteOptional: { es: 'Notas (opcional)', en: 'Notes (optional)' },
+  note: { es: 'Notas', en: 'Notes' },
   studentName: { es: 'Nombre del alumno', en: 'Student name' },
   studentKey: { es: 'Clave del alumno', en: 'Student key' },
-  studentKeyPlaceholder: { es: 'Ej: A012345', en: 'E.g. A012345' },
+  studentKeyPlaceholder: { es: '(Salón + Número de lista)', en: '(Classroom + List number)' },
   requiresPayment: { es: 'Requiere', en: 'Requires' },
   verifyKeyHint: { es: 'Ingresa la clave del alumno para verificar que el pago anterior está completado.', en: 'Enter the student key to verify the previous payment is completed.' },
   verify: { es: 'Verificar', en: 'Verify' },
@@ -443,8 +443,9 @@ const translations = {
   notEligible: { es: 'Esta clave aún no tiene completado el pago requerido', en: 'This key has not completed the required payment yet' },
   verifyFailed: { es: 'No se pudo verificar. Intenta de nuevo.', en: 'Could not verify. Try again.' },
   studentFieldsRequiredError: { es: 'Completa el nombre y la clave del alumno para cada boleto.', en: 'Fill in the student name and key for every ticket.' },
-  noteRequiredError: { es: 'Completa la nota (salón, generación, etc.) para cada boleto.', en: 'Fill in the note (classroom, grade, etc.) for every ticket.' },
-  notePlaceholder: { es: 'Clave, Salón, Generación, etc.', en: 'ID, Classroom, Grade, etc.' },
+  noteRequiredError: { es: 'Completa las notas para cada boleto.', en: 'Fill in the notes for every ticket.' },
+  notePlaceholder: { es: '(Número de Planilla)', en: '(Planilla number)' },
+  noteGenericPlaceholder: { es: 'Clave, Salón, Generación, etc.', en: 'ID, Classroom, Grade, etc.' },
   primaryContactName: { es: 'Nombre del Contacto Principal', en: 'Primary Contact Name' },
   tableHostPlaceholder: { es: 'Nombre del anfitrión de la mesa', en: 'Name of table host' },
   specialRequestsPlaceholder: { es: 'Solicitudes especiales, etc.', en: 'Special requests, etc.' },

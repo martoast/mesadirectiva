@@ -19,6 +19,15 @@
       </div>
 
       <div class="field">
+        <label>{{ t.image }}</label>
+        <AdminEventImageUpload
+          v-model="pendingImageFile"
+          :existing-url="existingImageUrl"
+          @clear="existingImageUrl = ''"
+        />
+      </div>
+
+      <div class="field">
         <label>{{ t.description }}</label>
         <textarea v-model="form.description" rows="4" :placeholder="t.descriptionPlaceholder"></textarea>
       </div>
@@ -75,6 +84,7 @@ const translations = {
   accountNotice: { es: 'Los pagos se depositan en la cuenta de Cafetería.', en: 'Payments go to the Cafetería account.' },
   product: { es: 'Producto', en: 'Product' },
   productPlaceholder: { es: 'Ej. Playera de uniforme', en: 'e.g. Uniform shirt' },
+  image: { es: 'Imagen', en: 'Image' },
   description: { es: 'Descripción', en: 'Description' },
   descriptionPlaceholder: { es: 'Tallas, colores, contenido...', en: 'Sizes, colors, contents...' },
   quantity: { es: 'Cantidad', en: 'Quantity' },
@@ -100,7 +110,7 @@ const props = defineProps({
 
 const emit = defineEmits(['saved'])
 
-const { createEvent, updateEvent, publishEvent } = useEvents()
+const { createEvent, updateEvent, publishEvent, uploadEventImage } = useEvents()
 const { createTicketTier, updateTicketTier } = useTicketTiers()
 
 const isEdit = computed(() => !!props.initialData)
@@ -111,6 +121,8 @@ const nameInputRef = ref(null)
 const savedSlug = ref(props.initialData?.slug || '')
 const tierId = ref(null)
 const soldCount = ref(0)
+const pendingImageFile = ref(null)
+const existingImageUrl = ref(props.initialData?.image_url || '')
 
 const form = reactive({
   name: '',
@@ -140,6 +152,11 @@ const submit = async (publish) => {
       description: form.description.trim() || null
     }
 
+    // Image removed in the uploader and not replaced
+    if (props.initialData?.image_url && !existingImageUrl.value && !pendingImageFile.value) {
+      productData.image = null
+    }
+
     let slug = savedSlug.value
     if (slug) {
       await updateEvent(slug, productData)
@@ -147,6 +164,12 @@ const submit = async (publish) => {
       const response = await createEvent({ ...productData, kind: 'product' })
       slug = response.event.slug
       savedSlug.value = slug
+    }
+
+    if (pendingImageFile.value instanceof File) {
+      const response = await uploadEventImage(slug, pendingImageFile.value)
+      existingImageUrl.value = response.url || existingImageUrl.value
+      pendingImageFile.value = null
     }
 
     if (tierId.value) {

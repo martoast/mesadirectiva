@@ -9,6 +9,15 @@ viewer reports, Tijuana timezone) all shipped and are live. See "Shipped" at the
 
 ## Open
 
+### 0. Products (branch `feature/products`, pairs with the API branch of the same name)
+Sidebar "Productos" → `/app/admin/products` (list, create, `[slug]` detail, `[slug]/edit`) using
+`components/admin/ProductForm.vue`: name, group, photo, description, variants (name/price/stock →
+ticket tiers, synced on save), "Disponible hasta", pickup location + instructions, buyer fields.
+No Stripe account picker — products always go to Tiendita. Admin event pages redirect products to
+the product pages. Public pages reuse the event pages with store wording via
+`utils/productLabels.js` (`withProductLabels`); `/app/events` gained Todo / Eventos / Tienda tabs.
+Not verified in a browser yet (only `nuxi build` + API tests) — click through once the API runs.
+
 ### 1. Password-reset links 404
 The API emails `{frontend_url}/password-reset/{token}?email=`, but our route is
 `pages/reset-password.vue` → `/reset-password?token=&email=`. The fix belongs on the

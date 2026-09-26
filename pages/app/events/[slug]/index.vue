@@ -43,7 +43,7 @@
         <div class="event-header-container">
           <div class="event-header-content">
             <!-- Date Badge -->
-            <div class="date-badge">
+            <div v-if="!isProduct" class="date-badge">
               <span class="date-badge-month">{{ formattedMonth }}</span>
               <span class="date-badge-day">{{ formattedDay }}</span>
             </div>
@@ -54,7 +54,7 @@
 
               <div class="event-meta-list">
                 <!-- Date & Time -->
-                <div class="event-meta-item">
+                <div v-if="!isProduct" class="event-meta-item">
                   <svg class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -64,8 +64,8 @@
                   </div>
                 </div>
 
-                <!-- Location -->
-                <div class="event-meta-item">
+                <!-- Location (pickup point for products) -->
+                <div v-if="!isProduct || event.location?.name" class="event-meta-item">
                   <svg v-if="event.location_type === 'online'" class="event-meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
@@ -74,6 +74,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <div>
+                    <span v-if="isProduct" class="event-meta-label">{{ t.pickupAt }}</span>
                     <span class="event-meta-primary">{{ formattedLocation }}</span>
                     <span v-if="fullAddress && event.location_type === 'venue'" class="event-meta-secondary">{{ fullAddress }}</span>
                   </div>
@@ -183,7 +184,7 @@
 
             <!-- Venue/Online Section -->
             <section v-if="hasLocationInfo" class="section venue-section">
-              <h2 class="section-title centered">{{ event.location_type === 'online' ? t.eventDetails : t.venue }}</h2>
+              <h2 class="section-title centered">{{ isProduct ? t.pickup : event.location_type === 'online' ? t.eventDetails : t.venue }}</h2>
               <div class="venue-card">
                 <div class="venue-grid">
                   <!-- Venue Location -->
@@ -197,6 +198,7 @@
                     <div>
                       <h4 class="venue-name">{{ event.location?.name || 'Venue' }}</h4>
                       <p v-if="fullAddress" class="venue-address">{{ fullAddress }}</p>
+                      <p v-if="isProduct && event.location?.instructions" class="venue-address">{{ event.location.instructions }}</p>
                       <a v-if="mapUrl" :href="mapUrl" target="_blank" rel="noopener" class="venue-map-link">
                         {{ t.viewOnMap }}
                       </a>
@@ -303,6 +305,7 @@ import { ref, computed, onMounted } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
 import { formatLocation, formatFullAddress, buildMapUrl, getPlatformLabel } from '~/utils/location'
 import { isHtml, sanitizeHtml, truncateText as truncateHtmlText } from '~/utils/html'
+import { withProductLabels } from '~/utils/productLabels'
 
 definePageMeta({
   layout: 'public'
@@ -346,10 +349,26 @@ const translations = {
   noTicketsAvailable: { es: 'Sin Boletos Disponibles', en: 'No Tickets Available' },
   notAvailable: { es: 'No Disponible', en: 'Not Available' },
   onlineEvent: { es: 'Evento en Línea', en: 'Online Event' },
-  free: { es: 'Gratis', en: 'Free' }
+  free: { es: 'Gratis', en: 'Free' },
+  salesEnded: { es: 'Venta Terminada', en: 'Sales Ended' },
+  pickupAt: { es: 'Entrega en', en: 'Pickup at' },
+  pickup: { es: 'Entrega', en: 'Pickup' }
 }
 
-const t = createT(translations)
+const productTranslations = {
+  allEvents: { es: 'Ver todo', en: 'Browse all' },
+  aboutThisEvent: { es: 'Sobre Este Producto', en: 'About This Product' },
+  perTicket: { es: 'Precio', en: 'Price' },
+  comingSoon: { es: 'No Disponible', en: 'Not Available' },
+  noTicketsAvailable: { es: 'Agotado', en: 'Sold Out' },
+  eventNotFound: { es: 'Producto No Encontrado', en: 'Product Not Found' },
+  sorryNotFound: { es: 'Lo sentimos, no pudimos encontrar este producto.', en: "Sorry, we couldn't find this product." }
+}
+
+// Products (kind = product) reuse this page with store wording and no date
+const isProduct = computed(() => event.value?.kind === 'product')
+
+const t = withProductLabels(createT(translations), createT(productTranslations), isProduct)
 
 const route = useRoute()
 const config = useRuntimeConfig()
@@ -560,12 +579,14 @@ const blockedMessage = computed(() => {
     registration_closed: t.registrationClosed,
     deadline_passed: t.registrationEnded,
     sold_out: t.soldOut,
-    no_available_tickets: useTableMessaging.value ? t.noTablesAvailable : t.noTicketsAvailable
+    no_available_tickets: useTableMessaging.value ? t.noTablesAvailable : t.noTicketsAvailable,
+    sales_ended: t.salesEnded
   }
   return messages[reason] || t.notAvailable
 })
 
 const hasLocationInfo = computed(() => {
+  if (isProduct.value) return event.value?.location?.name || event.value?.location?.instructions
   return event.value?.location || event.value?.organizer_name
 })
 

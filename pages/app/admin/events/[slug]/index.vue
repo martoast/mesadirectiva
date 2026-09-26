@@ -452,6 +452,7 @@ const translations = {
   accountEventos: { es: 'Eventos', en: 'Events' },
   accountCafeteria: { es: 'Cafetería', en: 'Cafeteria' },
   accountRifa: { es: 'Rifa', en: 'Raffle' },
+  accountTiendita: { es: 'Tiendita', en: 'Tiendita' },
   reservationHold: { es: 'Tiempo de reserva', en: 'Reservation Hold' },
   minutes: { es: 'minutos', en: 'minutes' },
   salesOverview: { es: 'Ventas', en: 'Sales' },
@@ -531,7 +532,7 @@ const statusLabel = (status) => {
 }
 
 const stripeAccountLabel = computed(() => {
-  const labels = { eventos: t.accountEventos, cafeteria: t.accountCafeteria, rifa: t.accountRifa }
+  const labels = { eventos: t.accountEventos, cafeteria: t.accountCafeteria, rifa: t.accountRifa, tiendita: t.accountTiendita }
   return labels[event.value?.stripe_account] || t.accountCafeteria
 })
 
@@ -540,6 +541,10 @@ const fetchEvent = async () => {
   error.value = ''
   try {
     const response = await getEvent(route.params.slug)
+    if (response.event.kind === 'product') {
+      // Products have their own admin page
+      return router.replace(`/app/admin/products/${route.params.slug}`)
+    }
     event.value = response.event
     if (response.event.seating_type === 'seated') {
       await fetchTables()

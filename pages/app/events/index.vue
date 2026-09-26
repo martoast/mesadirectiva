@@ -22,6 +22,20 @@
           </button>
         </div>
 
+        <!-- Events / Store switch -->
+        <div class="kind-tabs" role="tablist">
+          <button
+            v-for="option in kindOptions"
+            :key="option.value"
+            role="tab"
+            :aria-selected="selectedKind === option.value"
+            :class="['kind-tab', { active: selectedKind === option.value }]"
+            @click="selectKind(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
         <!-- Filter Pills -->
         <div class="filters-row">
           <div class="filter-pills">
@@ -41,7 +55,7 @@
               {{ group.name }}
             </button>
           </div>
-          <span class="results-count">{{ meta.total || 0 }} {{ meta.total === 1 ? t.event : t.events }}</span>
+          <span class="results-count">{{ meta.total || 0 }} {{ resultsLabel }}</span>
         </div>
       </div>
     </header>
@@ -117,8 +131,15 @@
 
             <!-- Content -->
             <div class="card-body">
+              <!-- Store badge (products have no date) -->
+              <div v-if="event.kind === 'product'" class="card-date card-store" :aria-label="t.store">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+
               <!-- Date -->
-              <div class="card-date">
+              <div v-else class="card-date">
                 <span class="date-month">{{ formatMonth(event.starts_at) }}</span>
                 <span class="date-day">{{ formatDay(event.starts_at) }}</span>
               </div>
@@ -126,7 +147,10 @@
               <!-- Info -->
               <div class="card-info">
                 <h3 class="card-title">{{ event.name }}</h3>
-                <p class="card-location">
+                <p v-if="event.kind === 'product'" class="card-location">
+                  <span>{{ event.location?.name ? `${t.pickupAt} ${event.location.name}` : t.store }}</span>
+                </p>
+                <p v-else class="card-location">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path v-if="event.location_type === 'online'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -168,7 +192,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { formatLocation } from '~/utils/location'
 
 definePageMeta({
@@ -186,7 +210,13 @@ const translations = {
   somethingWrong: { es: 'Algo salió mal', en: 'Something went wrong' },
   tryAgain: { es: 'Intentar de nuevo', en: 'Try again' },
   noEventsFound: { es: 'No hay eventos', en: 'No events found' },
-  checkBackSoon: { es: 'Vuelve pronto para ver próximos eventos', en: 'Check back soon for upcoming events' }
+  checkBackSoon: { es: 'Vuelve pronto para ver próximos eventos', en: 'Check back soon for upcoming events' },
+  all: { es: 'Todo', en: 'All' },
+  eventsTab: { es: 'Eventos', en: 'Events' },
+  store: { es: 'Tienda', en: 'Store' },
+  pickupAt: { es: 'Entrega en', en: 'Pickup at' },
+  item: { es: 'resultado', en: 'result' },
+  items: { es: 'resultados', en: 'results' }
 }
 
 const t = createT(translations)
@@ -199,6 +229,8 @@ const groups = ref([])
 const loading = ref(true)
 const error = ref('')
 const selectedGroup = ref(null)
+// '' = everything, 'event' = tickets only, 'product' = store only
+const selectedKind = ref('')
 const searchQuery = ref('')
 const searchTimeout = ref(null)
 const currentPage = ref(1)
@@ -222,6 +254,7 @@ const fetchEvents = async () => {
   try {
     const params = { per_page: 12, page: currentPage.value }
     if (selectedGroup.value) params.group = selectedGroup.value
+    if (selectedKind.value) params.kind = selectedKind.value
     if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
     const response = await getPublicEvents(params)
     events.value = response.events || []
@@ -231,6 +264,23 @@ const fetchEvents = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const kindOptions = computed(() => [
+  { value: '', label: t.all },
+  { value: 'event', label: t.eventsTab },
+  { value: 'product', label: t.store }
+])
+
+const resultsLabel = computed(() => {
+  const single = meta.value.total === 1
+  if (selectedKind.value === 'event') return single ? t.event : t.events
+  return single ? t.item : t.items
+})
+
+const selectKind = (kind) => {
+  selectedKind.value = kind
+  currentPage.value = 1
 }
 
 const selectGroup = (slug) => {
@@ -252,7 +302,7 @@ const clearSearch = () => {
   fetchEvents()
 }
 
-watch([selectedGroup, currentPage], fetchEvents)
+watch([selectedGroup, selectedKind, currentPage], fetchEvents)
 
 onMounted(() => {
   fetchGroups()
@@ -380,6 +430,35 @@ const getLocationDisplay = (event) => {
 }
 
 /* Filters */
+.kind-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+  background: var(--color-bg-subtle, #f3f4f6);
+  border-radius: 100px;
+}
+
+.kind-tab {
+  height: 32px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.kind-tab.active {
+  color: var(--color-text);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
 .filters-row {
   display: flex;
   align-items: center;
@@ -644,6 +723,17 @@ const getLocationDisplay = (event) => {
   width: 48px;
   text-align: center;
   padding-top: 2px;
+}
+
+.card-store {
+  display: flex;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.card-store svg {
+  width: 28px;
+  height: 28px;
 }
 
 .date-month {

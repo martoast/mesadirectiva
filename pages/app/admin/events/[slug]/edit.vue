@@ -114,6 +114,10 @@ const fetchEvent = async () => {
 
   try {
     const response = await getEvent(route.params.slug)
+    if (response.event.kind === 'product') {
+      // Products have their own editor
+      return router.replace(`/app/admin/products/${route.params.slug}/edit`)
+    }
     event.value = response.event
   } catch (e) {
     loadError.value = e.message || 'Failed to load event'

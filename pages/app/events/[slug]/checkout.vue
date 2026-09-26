@@ -477,9 +477,9 @@ const productTranslations = {
   emailNotice: { es: 'Asegúrate de ingresar tu correo correctamente. Aquí recibirás el comprobante de tu compra.', en: 'Make sure to enter your email correctly. You will receive your purchase receipt here.' },
   selectTickets: { es: 'Elige tus artículos', en: 'Choose your items' },
   tickets: { es: 'Artículos', en: 'Items' },
-  attendeeInformation: { es: 'Datos del alumno', en: 'Student information' },
-  attendeeDescription: { es: 'Indica para qué alumno es cada pieza.', en: 'Tell us which student each item is for.' },
-  notePlaceholder: { es: 'Talla, número o personalización', en: 'Size, number or personalization' },
+  attendeeInformation: { es: 'Información de referencia', en: 'Reference information' },
+  attendeeDescription: { es: 'Para productos o servicios, favor de agregar el nombre del alumno, su clave (salón + número de lista) y agregar en notas cualquier indicación especial que gustes compartir. En caso de comprar algo PERSONALIZADO, agregar en “notas” el nombre o la instrucción que deseas dar.', en: 'For products or services, please add the student’s name, their key (classroom + list number) and any special instructions in the notes. If you are buying something PERSONALIZED, add the name or instruction in “notes”.' },
+  notePlaceholder: { es: 'Nombre o instrucción para artículos personalizados', en: 'Name or instruction for personalized items' },
   studentFieldsRequiredError: { es: 'Completa el nombre y la clave del alumno para cada pieza.', en: 'Fill in the student name and key for every item.' },
   noteRequiredError: { es: 'Completa las notas para cada pieza.', en: 'Fill in the notes for every item.' },
   failedToLoadEvent: { es: 'Error al cargar el producto', en: 'Failed to load product' }

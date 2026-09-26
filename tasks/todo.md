@@ -9,14 +9,12 @@ viewer reports, Tijuana timezone) all shipped and are live. See "Shipped" at the
 
 ## Open
 
-### 0. Products (branch `feature/products`, pairs with the API branch of the same name)
-Sidebar "Productos" → `/app/admin/products` (list, create, `[slug]` detail, `[slug]/edit`) using
-`components/admin/ProductForm.vue`: name, group, photo, description, variants (name/price/stock →
-ticket tiers, synced on save), "Disponible hasta", pickup location + instructions, buyer fields.
-No Stripe account picker — products always go to Tiendita. Admin event pages redirect products to
-the product pages. Public pages reuse the event pages with store wording via
-`utils/productLabels.js` (`withProductLabels`); `/app/events` gained Todo / Eventos / Tienda tabs.
-Not verified in a browser yet (only `nuxi build` + API tests) — click through once the API runs.
+### 0. Products (Cafetería) — shipped 2026-09-26
+Sidebar "Productos" → `/app/admin/products` (list, create, detail, edit). `ProductForm.vue` has only
+the fields the team asked for: Producto, Descripción, Cantidad, Precio, Moneda (one ticket tier).
+Money goes to Cafetería; no group, dates, place, photo, variants or check-in. Admin event pages
+redirect products here. Public pages reuse the event pages with product wording
+(`utils/productLabels.js`); checkout shows "Información de referencia" with notes optional.
 
 ### 1. Password-reset links 404
 The API emails `{frontend_url}/password-reset/{token}?email=`, but our route is

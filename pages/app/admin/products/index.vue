@@ -57,10 +57,6 @@
         </div>
         <div class="info">
           <span class="name">{{ product.name }}</span>
-          <span class="meta">
-            <span v-if="product.group">{{ product.group.name }}</span>
-            <span v-if="product.ends_at"> · {{ t.until }} {{ formatDateShort(product.ends_at) }}</span>
-          </span>
         </div>
         <span :class="['status', product.status]">{{ statusLabel(product.status) }}</span>
         <div class="figures">
@@ -80,7 +76,6 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { formatDateShort } from '~/utils/dateTime'
 
 definePageMeta({
   layout: 'admin',
@@ -92,7 +87,7 @@ const { t: createT } = useLanguage()
 
 const translations = {
   title: { es: 'Productos', en: 'Products' },
-  subtitle: { es: 'Artículos de la tienda. Los pagos se depositan en la cuenta de la Tiendita.', en: 'Store items. Payments go to the Tiendita account.' },
+  subtitle: { es: 'Alimentos, artículos promocionales y uniformes que se venden a través de Cafetería.', en: 'Food, promotional items and uniforms sold through Cafetería.' },
   newProduct: { es: 'Nuevo producto', en: 'New product' },
   all: { es: 'Todos', en: 'All' },
   live: { es: 'En venta', en: 'On sale' },
@@ -103,7 +98,6 @@ const translations = {
   emptyTitle: { es: 'Sin productos aún', en: 'No products yet' },
   emptyDescription: { es: 'Crea un producto para venderlo en la tienda: uniformes, playeras, termos...', en: 'Create a product to sell in the store: uniforms, shirts, bottles...' },
   createFirst: { es: 'Crear primer producto', en: 'Create first product' },
-  until: { es: 'hasta', en: 'until' },
   sold: { es: 'vendidos', en: 'sold' },
   failedToLoad: { es: 'No se pudieron cargar los productos', en: 'Failed to load products' }
 }

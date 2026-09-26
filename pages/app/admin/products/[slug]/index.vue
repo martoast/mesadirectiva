@@ -19,9 +19,7 @@
             <span :class="['status', product.status]">{{ statusLabel }}</span>
           </div>
           <p class="meta">
-            <span v-if="product.group">{{ product.group.name }}</span>
-            <span> · {{ t.tiendita }}</span>
-            <span v-if="product.ends_at"> · {{ t.until }} {{ formatDateTime(product.ends_at) }}</span>
+            {{ t.account }}
           </p>
         </div>
         <div class="header-actions">
@@ -58,50 +56,33 @@
         </div>
       </div>
 
-      <!-- Variants -->
+      <!-- Price & quantity -->
       <section class="card">
         <div class="card-header">
-          <h2>{{ t.variants }}</h2>
-          <NuxtLink :to="`/app/admin/products/${product.slug}/edit`" class="card-link">{{ t.editVariants }}</NuxtLink>
+          <h2>{{ t.details }}</h2>
+          <NuxtLink :to="`/app/admin/products/${product.slug}/edit`" class="card-link">{{ t.edit }}</NuxtLink>
         </div>
-        <div v-if="variants.length === 0" class="empty-line">{{ t.noVariants }}</div>
-        <table v-else class="table">
-          <thead>
-            <tr>
-              <th>{{ t.variant }}</th>
-              <th class="num">{{ t.price }}</th>
-              <th class="num">{{ t.sold }}</th>
-              <th class="num">{{ t.remaining }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="variant in variants" :key="variant.id" :class="!variant.is_active && 'muted'">
-              <td>
-                {{ variant.name }}
-                <span v-if="!variant.is_active" class="tag">{{ t.paused }}</span>
-                <span v-else-if="variant.is_sold_out" class="tag">{{ t.soldOut }}</span>
-              </td>
-              <td class="num">${{ formatMoney(variant.price) }}</td>
-              <td class="num">{{ variant.quantity_sold }}</td>
-              <td class="num">{{ variant.quantity === null ? '∞' : variant.available }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- Pickup -->
-      <section v-if="product.location?.name || product.location?.instructions" class="card">
-        <h2>{{ t.pickup }}</h2>
-        <p v-if="product.location?.name" class="pickup-name">{{ product.location.name }}</p>
-        <p v-if="product.location?.instructions" class="pickup-text">{{ product.location.instructions }}</p>
+        <div v-if="!tier" class="empty-line">{{ t.noPrice }}</div>
+        <dl v-else class="details">
+          <div>
+            <dt>{{ t.price }}</dt>
+            <dd>${{ formatMoney(tier.price) }} {{ tier.currency }}</dd>
+          </div>
+          <div>
+            <dt>{{ t.quantity }}</dt>
+            <dd>{{ tier.quantity ?? t.unlimited }}</dd>
+          </div>
+          <div>
+            <dt>{{ t.remaining }}</dt>
+            <dd>{{ tier.quantity === null ? '∞' : tier.available }}</dd>
+          </div>
+        </dl>
+        <p v-if="product.description" class="description">{{ product.description }}</p>
       </section>
 
       <!-- Orders -->
       <section class="card">
-        <div class="card-header">
-          <h2>{{ t.recentOrders }}</h2>
-          <NuxtLink :to="`/app/admin/events/${product.slug}/attendees`" class="card-link">{{ t.viewBuyers }}</NuxtLink>
-        </div>
+        <h2>{{ t.recentOrders }}</h2>
         <div v-if="orders.length === 0" class="empty-line">{{ t.noOrders }}</div>
         <table v-else class="table">
           <thead>
@@ -162,9 +143,12 @@ const { t: createT, language } = useLanguage()
 
 const translations = {
   products: { es: 'Productos', en: 'Products' },
+  account: { es: 'Cuenta: Cafetería', en: 'Account: Cafetería' },
+  details: { es: 'Precio y cantidad', en: 'Price & quantity' },
+  noPrice: { es: 'Este producto no tiene precio. Edítalo para agregarlo.', en: 'This product has no price. Edit it to add one.' },
+  quantity: { es: 'Cantidad', en: 'Quantity' },
+  unlimited: { es: 'Sin límite', en: 'Unlimited' },
   loading: { es: 'Cargando...', en: 'Loading...' },
-  tiendita: { es: 'Cuenta: Tiendita', en: 'Account: Tiendita' },
-  until: { es: 'disponible hasta', en: 'available until' },
   edit: { es: 'Editar', en: 'Edit' },
   publish: { es: 'Publicar', en: 'Publish' },
   stopSelling: { es: 'Cerrar venta', en: 'Stop selling' },
@@ -177,18 +161,9 @@ const translations = {
   itemsSold: { es: 'Piezas vendidas', en: 'Items sold' },
   revenue: { es: 'Ingresos', en: 'Revenue' },
   orders: { es: 'Pedidos', en: 'Orders' },
-  variants: { es: 'Variantes', en: 'Variants' },
-  editVariants: { es: 'Editar variantes', en: 'Edit variants' },
-  noVariants: { es: 'Este producto no tiene variantes. Agrega al menos una para poder venderlo.', en: 'This product has no variants. Add at least one to sell it.' },
-  variant: { es: 'Variante', en: 'Variant' },
   price: { es: 'Precio', en: 'Price' },
-  sold: { es: 'Vendidos', en: 'Sold' },
   remaining: { es: 'Quedan', en: 'Left' },
-  paused: { es: 'Pausada', en: 'Paused' },
-  soldOut: { es: 'Agotada', en: 'Sold out' },
-  pickup: { es: 'Entrega', en: 'Pickup' },
   recentOrders: { es: 'Pedidos recientes', en: 'Recent orders' },
-  viewBuyers: { es: 'Ver compradores', en: 'View buyers' },
   noOrders: { es: 'Aún no hay pedidos.', en: 'No orders yet.' },
   order: { es: 'Pedido', en: 'Order' },
   customer: { es: 'Cliente', en: 'Customer' },
@@ -222,9 +197,8 @@ const deleteModalOpen = ref(false)
 
 const statusLabel = computed(() => ({ live: t.live, draft: t.draft, closed: t.closed }[product.value?.status] || product.value?.status))
 
-const variants = computed(() => {
-  return [...(product.value?.ticket_tiers || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id)
-})
+// A product's price/quantity live on its (single) ticket tier
+const tier = computed(() => [...(product.value?.ticket_tiers || [])].sort((a, b) => a.id - b.id)[0] || null)
 
 const publicUrl = computed(() => {
   const base = config.public.siteUrl || (import.meta.client ? window.location.origin : '')
@@ -600,13 +574,27 @@ button:disabled {
   color: var(--color-danger);
 }
 
-.pickup-name {
+.details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   margin: 0;
-  font-weight: 600;
 }
 
-.pickup-text {
-  margin: 4px 0 0;
+.details dt {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.details dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.description {
+  margin: 16px 0 0;
   font-size: 14px;
   color: var(--color-muted);
   white-space: pre-line;

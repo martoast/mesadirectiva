@@ -273,8 +273,8 @@ translations.account = { es: 'Cuenta', en: 'Account' }
 const t = createT(translations)
 const accountLabel = (a) => {
   const labels = language.value === 'es'
-    ? { cafeteria: 'Cafetería', rifa: 'Rifa', eventos: 'Eventos' }
-    : { cafeteria: 'Cafeteria', rifa: 'Raffle', eventos: 'Events' }
+    ? { cafeteria: 'Cafetería', rifa: 'Rifa', eventos: 'Eventos', tiendita: 'Tiendita' }
+    : { cafeteria: 'Cafeteria', rifa: 'Raffle', eventos: 'Events', tiendita: 'Tiendita' }
   return labels[a] || '—'
 }
 

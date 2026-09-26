@@ -202,8 +202,19 @@
           {{ t.securePayment }}
         </p>
 
+        <!-- Product Quick Info (pickup) -->
+        <div v-if="isProduct && event.location?.name" class="mt-6 pt-6 border-t border-gray-200">
+          <div class="flex items-start gap-3">
+            <span class="text-lg">📦</span>
+            <div class="text-sm">
+              <p class="text-gray-600">{{ t.pickupAt }}</p>
+              <p class="font-semibold text-gray-900">{{ event.location.name }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Event Quick Info -->
-        <div class="mt-6 pt-6 border-t border-gray-200 space-y-3">
+        <div v-else-if="!isProduct" class="mt-6 pt-6 border-t border-gray-200 space-y-3">
           <div class="flex items-start gap-3">
             <span class="text-lg">📅</span>
             <div class="text-sm">
@@ -326,6 +337,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatTime } from '~/utils/dateTime'
 import { formatLocation, formatFullAddress, buildMapUrl } from '~/utils/location'
+import { withProductLabels } from '~/utils/productLabels'
 
 const { t: createT, language } = useLanguage()
 
@@ -374,6 +386,8 @@ const translations = {
   noTablesAvailable: { es: 'No hay mesas disponibles', en: 'No tables available' },
   noTicketsAvailable: { es: 'No hay boletos disponibles', en: 'No tickets available' },
   notAvailable: { es: 'No disponible', en: 'Not available' },
+  salesEnded: { es: 'Venta terminada', en: 'Sales ended' },
+  pickupAt: { es: 'Entrega en', en: 'Pickup at' },
 
   // Event info
   seatedEvent: { es: 'Evento con Asientos', en: 'Seated Event' },
@@ -383,7 +397,19 @@ const translations = {
   viewOnMap: { es: 'Ver en Mapa', en: 'View on Map' }
 }
 
-const t = createT(translations)
+const productTranslations = {
+  pricePerTicket: { es: 'Precio', en: 'Price' },
+  individualTicket: { es: 'Por pieza', en: 'Per item' },
+  multipleTiersAvailable: { es: 'Varias opciones disponibles', en: 'Several options available' },
+  availableTiers: { es: 'Opciones:', en: 'Options:' },
+  moreTiers: { es: 'opciones más', en: 'more options' },
+  ticketsRemaining: { es: 'piezas disponibles', en: 'items left' },
+  eventNotAvailable: { es: 'Producto no disponible', en: 'Product not available' },
+  noTicketsAvailable: { es: 'Agotado', en: 'Sold out' },
+  salesEnded: { es: 'Venta terminada', en: 'Sales ended' }
+}
+
+const t = withProductLabels(createT(translations), createT(productTranslations), computed(() => props.event?.kind === 'product'))
 
 const props = defineProps({
   event: {
@@ -414,6 +440,7 @@ const mobileExpanded = ref(false)
 
 // Event type detection
 const isSeatedEvent = computed(() => props.event?.seating_type === 'seated')
+const isProduct = computed(() => props.event?.kind === 'product')
 
 // === TIERS (General Admission) ===
 const activeTiers = computed(() => {
@@ -517,7 +544,8 @@ const blockedMessage = computed(() => {
     registration_closed: t.registrationClosed,
     deadline_passed: t.deadlinePassed,
     sold_out: t.soldOutStatus,
-    no_available_tickets: isSeatedEvent.value ? t.noTablesAvailable : t.noTicketsAvailable
+    no_available_tickets: isSeatedEvent.value ? t.noTablesAvailable : t.noTicketsAvailable,
+    sales_ended: t.salesEnded
   }
   return messages[blockedReason.value] || t.notAvailable
 })

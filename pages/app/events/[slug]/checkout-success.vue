@@ -26,10 +26,10 @@
             <p>{{ t.step1 }}</p>
           </div>
           <div class="next-step">
-            <span class="step-icon">🎟️</span>
+            <span class="step-icon">{{ isProduct ? '🛍️' : '🎟️' }}</span>
             <p>{{ t.step2 }}</p>
           </div>
-          <div class="next-step">
+          <div v-if="!isProduct" class="next-step">
             <span class="step-icon">📱</span>
             <p>{{ t.step3 }}</p>
           </div>
@@ -52,6 +52,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { withProductLabels } from '~/utils/productLabels'
 
 definePageMeta({
   layout: 'public'
@@ -73,7 +74,17 @@ const translations = {
   browseMore: { es: 'Ver más eventos', en: 'Browse More Events' }
 }
 
-const t = createT(translations)
+const productTranslations = {
+  step1: { es: 'Te enviamos un correo con el comprobante de tu compra.', en: 'We sent you an email with your purchase receipt.' },
+  step2: { es: 'El comprobante indica dónde y cuándo recoger tu pedido.', en: 'The receipt tells you where and when to pick up your order.' },
+  backToEvent: { es: 'Volver al producto', en: 'Back to product' },
+  browseMore: { es: 'Ver más', en: 'Browse more' }
+}
+
+// The API appends &kind=product to the success URL for store purchases
+const isProduct = computed(() => route.query.kind === 'product')
+
+const t = withProductLabels(createT(translations), createT(productTranslations), isProduct)
 
 // The API appends ?order={order_number} to the Stripe success URL
 const orderNumber = computed(() => route.query.order || null)
